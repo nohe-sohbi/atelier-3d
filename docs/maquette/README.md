@@ -10,7 +10,7 @@ La version cliquable et à jour est le canvas publié sur claude.ai ; ce dossier
 3. **Le thème Rome antique est un exemple.** Aucun nom d'objet, de style ou de lot n'est écrit en dur dans l'app.
 4. **Style.** Polices IBM Plex Sans et IBM Plex Mono. Couleurs à reprendre en variables : accent `#2B50C8`, texte `#1D1C1A`, texte secondaire `#5E5B55`, bordures `#E3E1DC` et `#CFCCC5`, fond `#F5F4F1`, succès `#1F6B45` sur `#E3F2EA`, alerte `#8A4B00` sur `#FBF7EF`.
 5. **Accessibilité.** Vrais `<button>`, `<a>` et `<label>`, cibles cliquables de 44 px minimum, focus visible ; une fenêtre se ferme avec Échap et rend le focus au bouton qui l'a ouverte.
-6. **En cas de doute** entre la maquette et le cahier des charges, le cahier des charges gagne ; signale l'écart au lieu de choisir seul.
+6. **En cas de doute** entre la maquette et le cahier des charges (`docs/cahier-des-charges/`), le cahier des charges gagne ; signale l'écart au lieu de choisir seul.
 
 ## Lire un fichier `.dc.html`
 

@@ -10,6 +10,7 @@ fini, testé, rendu, jugé en revue, puis rangé en bibliothèque et publié.
 - Travaux longs : file de tâches en base, exécutée par un worker Python.
 - Blender 5.2 LTS sans fenêtre : blender -b --factory-startup -P <script> -- <arguments>.
 - Modèle des écrans : la maquette dans docs/maquette/ ; lire d'abord son README.md.
+- Cahier des charges : docs/cahier-des-charges/ ; son README.md dit quel fichier fait foi.
 
 ## Règles
 - Un écran est branché sur de vraies données dès qu'il est construit ; jamais de
@@ -24,6 +25,7 @@ fini, testé, rendu, jugé en revue, puis rangé en bibliothèque et publié.
 - Quand un test échoue, on corrige le code, jamais le seuil.
 - Secrets et chemins dans config.local.yaml, non versionné.
 - Chaque étape finie : commit, puis push sur origin main.
+- docs/ est en lecture seule : une décision se change avec Nohé, jamais dans le code.
 
 ## Fini veut dire
 Les tests automatiques passent et la fonctionnalité s'utilise depuis son écran.
