@@ -1,0 +1,151 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<title>Lots</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&amp;family=IBM+Plex+Sans:wght@400;500;600&amp;display=swap">
+<style>
+body{margin:0;background:#F5F4F1}
+a{color:#2B50C8}a:hover{color:#1E3A96}
+button,input,textarea,select{font-family:inherit}
+</style>
+</helmet>
+<div style="min-height: 100vh; background: #F5F4F1; color: #1D1C1A; font-family: 'IBM Plex Sans', system-ui, sans-serif; display: flex; flex-wrap: wrap; align-items: stretch">
+<div style="flex: 1 1 240px; min-width: 0; background: #FFFFFF; border-right: 1px solid #E3E1DC">
+<dc-import name="Sidebar" active="lots" hint-size="240px,900px"></dc-import>
+</div>
+<div style="flex: 999 1 560px; min-width: 0">
+<div style="background: #FFFFFF; border-bottom: 1px solid #E3E1DC">
+<div style="padding: 10px 24px; box-sizing: border-box; display: flex; flex-wrap: wrap; align-items: center; gap: 12px 16px">
+<div style="flex: 1 1 280px; max-width: 520px; position: relative">
+<label for="global-search" style="position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap">Rechercher partout</label>
+<svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true" style="position: absolute; left: 12px; top: 14px; display: block"><path d="M7 2.5 A4.5 4.5 0 1 0 7 11.5 A4.5 4.5 0 1 0 7 2.5 Z M10.5 10.5 L14 14" style="fill: none; stroke: #5E5B55; stroke-width: 1.6; stroke-linecap: round"></path></svg>
+<input id="global-search" type="search" placeholder="Rechercher un asset, un lot, une étiquette…" style="width: 100%; height: 44px; padding: 0 12px 0 36px; border: 1px solid #CFCCC5; border-radius: 8px; font-size: 14px; background: #F5F4F1; color: #1D1C1A; box-sizing: border-box">
+</div>
+<button type="button" aria-label="Notifications : 2 nouvelles" style="margin-left: auto; position: relative; width: 44px; height: 44px; padding: 0; border: 1px solid #E3E1DC; border-radius: 8px; background: #FFFFFF; color: #1D1C1A; cursor: pointer; display: flex; align-items: center; justify-content: center">
+<svg width="18" height="18" viewBox="0 0 18 18" aria-hidden="true"><path d="M4.5 12.5 V8 Q4.5 3.5 9 3.5 Q13.5 3.5 13.5 8 V12.5 L15 14 H3 Z M7.5 15.5 Q9 17 10.5 15.5" style="fill: none; stroke: currentColor; stroke-width: 1.5; stroke-linejoin: round; stroke-linecap: round"></path></svg>
+<span aria-hidden="true" style="position: absolute; top: 9px; right: 9px; width: 8px; height: 8px; border-radius: 50%; background: #B42318"></span>
+</button>
+</div>
+</div>
+<main style="width: 100%; max-width: 1360px; margin: 0 auto; padding: 28px 24px 48px; box-sizing: border-box; display: flex; flex-direction: column; gap: 20px">
+<div style="display: flex; flex-wrap: wrap; align-items: flex-end; justify-content: space-between; gap: 12px 16px">
+<div style="flex: 1 1 360px; min-width: 0">
+<h1 style="margin: 0 0 6px; font-size: 26px; font-weight: 600; letter-spacing: -0.015em">Lots</h1>
+<p style="margin: 0; font-size: 14px; color: #5E5B55">Un lot, c'est un thème, une liste d'objets et quatre étapes. Il s'ouvre sur l'étape où il en est.</p>
+</div>
+<a href="Brief.dc.html" style="display: inline-flex; align-items: center; gap: 8px; min-height: 44px; padding: 0 18px; border-radius: 8px; background: #2B50C8; color: #FFFFFF; text-decoration: none; font-size: 14px; font-weight: 600">
+<svg width="14" height="14" viewBox="0 0 14 14" aria-hidden="true"><path d="M7 2 V12 M2 7 H12" style="fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round"></path></svg>
+Nouveau lot
+</a>
+</div>
+<div role="group" aria-label="Filtrer les lots" style="display: flex; flex-wrap: wrap; gap: 6px">
+<sc-for list="{{ tabs }}" as="t" hint-placeholder-count="4">
+<button type="button" onClick="{{ t.pick }}" aria-pressed="{{ t.sel }}" style="min-height: 40px; padding: 0 14px; border-radius: 999px; font-size: 13.5px; font-weight: 500; cursor: pointer; border: 1px solid {{ t.bd }}; background: {{ t.bg }}; color: {{ t.fg }}">{{ t.label }}</button>
+</sc-for>
+</div>
+<div style="background: #FFFFFF; border: 1px solid #E3E1DC; border-radius: 12px; overflow-x: auto">
+<div role="table" aria-label="Lots" style="min-width: 940px">
+<div role="row" style="display: grid; grid-template-columns: minmax(200px, 2fr) minmax(150px, 1.1fr) minmax(150px, 1.1fr) minmax(230px, 1.7fr) minmax(100px, 0.8fr) 150px; gap: 16px; padding: 12px 20px; border-bottom: 1px solid #E3E1DC; font-size: 12px; font-weight: 600; letter-spacing: 0.04em; text-transform: uppercase; color: #5E5B55">
+<span role="columnheader">Lot</span>
+<span role="columnheader">Style</span>
+<span role="columnheader">Étape</span>
+<span role="columnheader">Où il en est</span>
+<span role="columnheader">Mis à jour</span>
+<span role="columnheader"><span style="position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap">Action</span></span>
+</div>
+<sc-for list="{{ lots }}" as="l" hint-placeholder-count="5">
+<div role="row" style="display: grid; grid-template-columns: minmax(200px, 2fr) minmax(150px, 1.1fr) minmax(150px, 1.1fr) minmax(230px, 1.7fr) minmax(100px, 0.8fr) 150px; gap: 16px; align-items: center; padding: 14px 20px; border-top: 1px solid #ECEAE5">
+<div role="cell" style="min-width: 0">
+<a href="{{ l.href }}" style="font-size: 15px; font-weight: 600; color: #1D1C1A; text-decoration: none">{{ l.name }}</a>
+<div style="margin-top: 2px; font-size: 12.5px; color: #5E5B55">{{ l.theme }}</div>
+</div>
+<span role="cell" style="font-family: 'IBM Plex Mono', monospace; font-size: 12px; color: #5E5B55; overflow-wrap: anywhere">{{ l.style }}</span>
+<div role="cell" style="display: flex; flex-direction: column; gap: 6px">
+<span aria-hidden="true" style="display: flex; gap: 4px">
+<sc-for list="{{ l.segs }}" as="sg" hint-placeholder-count="4"><span style="width: 26px; height: 6px; border-radius: 3px; background: {{ sg.bg }}"></span></sc-for>
+</span>
+<span style="font-size: 13px">{{ l.stageLabel }}</span>
+</div>
+<div role="cell" style="display: flex; flex-wrap: wrap; align-items: center; gap: 6px 10px">
+<span style="padding: 3px 9px; border-radius: 999px; font-size: 12px; font-weight: 600; background: {{ l.toneBg }}; color: {{ l.toneFg }}">{{ l.status }}</span>
+<span style="font-size: 13px; color: #3F3D38">{{ l.detail }}</span>
+</div>
+<span role="cell" style="font-size: 13px; color: #5E5B55">{{ l.updated }}</span>
+<div role="cell" style="text-align: right"><a href="{{ l.href }}" style="display: inline-flex; align-items: center; min-height: 40px; padding: 0 14px; border-radius: 8px; border: 1px solid #CFCCC5; background: #FFFFFF; color: #1D1C1A; text-decoration: none; font-size: 13.5px; font-weight: 500">{{ l.action }}</a></div>
+</div>
+</sc-for>
+</div>
+</div>
+</main>
+</div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1440,"height":950}}'>
+class Component extends DCLogic {
+  constructor(props) {
+    super(props);
+    this.state = { tab: "all" };
+  }
+  renderVals() {
+    const TONE = {
+      accent: ["#E8EDFB", "#2B50C8"],
+      run: ["#EAEDF3", "#2F3A55"],
+      warn: ["#FBEEDC", "#8A4B00"],
+      good: ["#E3F2EA", "#1F6B45"],
+      idle: ["#F0EEEA", "#5E5B55"]
+    };
+    const STAGES = ["Brief", "Références", "Génération", "Revue"];
+    const raw = [
+      { name: "Camp de légionnaires", theme: "Rome antique · 8 objets", stage: 4, status: "Revue prête", tone: "accent", detail: "4 objets à juger", updated: "il y a 40 min", href: "Review.dc.html", action: "Reprendre", group: "run" },
+      { name: "Thermes", theme: "Rome antique · 4 objets", stage: 3, status: "En génération", tone: "run", detail: "3 sur 4 générés", updated: "il y a 12 min", href: "Generation.dc.html", action: "Suivre", group: "run" },
+      { name: "Forum romain", theme: "Rome antique · 5 objets", stage: 2, status: "À toi", tone: "warn", detail: "5 références à choisir", updated: "il y a 5 h", href: "Refs.dc.html", action: "Reprendre", group: "run" },
+      { name: "Vie du camp", theme: "Rome antique · 5 objets", stage: 5, status: "Terminé", tone: "good", detail: "5 gardés, aucun jeté", updated: "hier", href: "Library.dc.html", action: "Voir les assets", group: "done" },
+      { name: "Mobilier de villa", theme: "Rome antique · 8 objets", stage: 1, status: "Brouillon", tone: "idle", detail: "liste à valider", updated: "8 oct.", href: "Brief.dc.html", action: "Reprendre", group: "draft" }
+    ];
+    const TABS = [
+      { k: "all", label: "Tous" },
+      { k: "run", label: "En cours" },
+      { k: "done", label: "Terminés" },
+      { k: "draft", label: "Brouillons" }
+    ];
+    const tab = this.state.tab;
+    const tabs = TABS.map((t) => {
+      const n = t.k === "all" ? raw.length : raw.filter((r) => r.group === t.k).length;
+      const on = tab === t.k;
+      return {
+        label: t.label + " · " + n,
+        sel: on,
+        bg: on ? "#1D1C1A" : "#FFFFFF",
+        fg: on ? "#FFFFFF" : "#1D1C1A",
+        bd: on ? "#1D1C1A" : "#CFCCC5",
+        pick: () => this.setState({ tab: t.k })
+      };
+    });
+    const lots = raw
+      .filter((r) => tab === "all" || r.group === tab)
+      .map((r) => ({
+        name: r.name,
+        theme: r.theme,
+        style: "rome-stylise-v0",
+        status: r.status,
+        toneBg: TONE[r.tone][0],
+        toneFg: TONE[r.tone][1],
+        detail: r.detail,
+        updated: r.updated,
+        href: r.href,
+        action: r.action,
+        stageLabel: r.stage > 4 ? "Terminé" : "Étape " + r.stage + " sur 4 · " + STAGES[r.stage - 1],
+        segs: [1, 2, 3, 4].map((i) => ({ bg: i < r.stage ? "#1F6B45" : i === r.stage ? "#2B50C8" : "#E3E1DC" }))
+      }));
+    return { tabs: tabs, lots: lots };
+  }
+}
+</script>
+</body>
+</html>

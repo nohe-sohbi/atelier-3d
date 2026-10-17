@@ -1,0 +1,179 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<title>Brief du lot</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&amp;family=IBM+Plex+Sans:wght@400;500;600&amp;display=swap">
+<style>
+body{margin:0;background:#F5F4F1}
+a{color:#2B50C8}a:hover{color:#1E3A96}
+button,input,textarea,select{font-family:inherit}
+</style>
+</helmet>
+<div style="min-height: 100vh; background: #F5F4F1; color: #1D1C1A; font-family: 'IBM Plex Sans', system-ui, sans-serif; display: flex; flex-wrap: wrap; align-items: stretch">
+<div style="flex: 1 1 240px; min-width: 0; background: #FFFFFF; border-right: 1px solid #E3E1DC">
+<dc-import name="Sidebar" active="lots" hint-size="240px,900px"></dc-import>
+</div>
+<div style="flex: 999 1 560px; min-width: 0">
+<div style="background: #FFFFFF; border-bottom: 1px solid #E3E1DC">
+<div style="padding: 10px 24px; box-sizing: border-box; display: flex; flex-wrap: wrap; align-items: center; gap: 12px 16px">
+<div style="flex: 1 1 280px; max-width: 520px; position: relative">
+<label for="global-search" style="position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap">Rechercher partout</label>
+<svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true" style="position: absolute; left: 12px; top: 14px; display: block"><path d="M7 2.5 A4.5 4.5 0 1 0 7 11.5 A4.5 4.5 0 1 0 7 2.5 Z M10.5 10.5 L14 14" style="fill: none; stroke: #5E5B55; stroke-width: 1.6; stroke-linecap: round"></path></svg>
+<input id="global-search" type="search" placeholder="Rechercher un asset, un lot, une étiquette…" style="width: 100%; height: 44px; padding: 0 12px 0 36px; border: 1px solid #CFCCC5; border-radius: 8px; font-size: 14px; background: #F5F4F1; color: #1D1C1A; box-sizing: border-box">
+</div>
+<button type="button" aria-label="Notifications : 2 nouvelles" style="margin-left: auto; position: relative; width: 44px; height: 44px; padding: 0; border: 1px solid #E3E1DC; border-radius: 8px; background: #FFFFFF; color: #1D1C1A; cursor: pointer; display: flex; align-items: center; justify-content: center">
+<svg width="18" height="18" viewBox="0 0 18 18" aria-hidden="true"><path d="M4.5 12.5 V8 Q4.5 3.5 9 3.5 Q13.5 3.5 13.5 8 V12.5 L15 14 H3 Z M7.5 15.5 Q9 17 10.5 15.5" style="fill: none; stroke: currentColor; stroke-width: 1.5; stroke-linejoin: round; stroke-linecap: round"></path></svg>
+<span aria-hidden="true" style="position: absolute; top: 9px; right: 9px; width: 8px; height: 8px; border-radius: 50%; background: #B42318"></span>
+</button>
+</div>
+</div>
+<dc-import name="LotHeader" step="brief" hint-size="100%,190px"></dc-import>
+<main style="width: 100%; max-width: 1360px; margin: 0 auto; padding: 24px 24px 48px; box-sizing: border-box">
+<div style="display: flex; flex-wrap: wrap; gap: 24px; align-items: flex-start">
+<section aria-labelledby="brief-title" style="flex: 1 1 360px; min-width: 0; background: #FFFFFF; border: 1px solid #E3E1DC; border-radius: 12px; padding: 24px; box-sizing: border-box; display: flex; flex-direction: column; gap: 20px">
+<div>
+<h2 id="brief-title" style="margin: 0 0 6px; font-size: 20px; font-weight: 600; letter-spacing: -0.01em">Brief</h2>
+<p style="margin: 0; font-size: 14px; line-height: 1.5; color: #5E5B55">Un thème, un style, une phrase. Claude propose la liste d'objets à fabriquer.</p>
+</div>
+<div style="display: flex; flex-direction: column; gap: 6px">
+<label for="theme" style="font-size: 13px; font-weight: 500">Thème</label>
+<input id="theme" type="text" defaultValue="Rome antique" style="height: 44px; padding: 0 12px; border: 1px solid #CFCCC5; border-radius: 8px; font-size: 15px; color: #1D1C1A; background: #FFFFFF; box-sizing: border-box">
+</div>
+<div style="display: flex; flex-direction: column; gap: 6px">
+<span id="style-label" style="font-size: 13px; font-weight: 500">Style</span>
+<div role="group" aria-labelledby="style-label" style="display: flex; gap: 4px; padding: 4px; background: #F0EEEA; border-radius: 10px">
+<button type="button" onClick="{{ pickStylise }}" aria-pressed="{{ stylise }}" style="flex: 1 1 0; min-height: 40px; border: 0; border-radius: 7px; font-size: 14px; cursor: pointer; color: #1D1C1A; background: {{ styliseBg }}; font-weight: {{ styliseWeight }}">Stylisé</button>
+<button type="button" onClick="{{ pickSemi }}" aria-pressed="{{ semi }}" style="flex: 1 1 0; min-height: 40px; border: 0; border-radius: 7px; font-size: 14px; cursor: pointer; color: #1D1C1A; background: {{ semiBg }}; font-weight: {{ semiWeight }}">Semi-réaliste</button>
+</div>
+<p style="margin: 0; font-size: 12.5px; line-height: 1.45; color: #5E5B55">Le style fixe la palette, les matériaux et les budgets de tout le lot. <a href="Styles.dc.html" style="font-weight: 500">Voir les styles</a></p>
+</div>
+<div style="display: flex; flex-direction: column; gap: 6px">
+<label for="besoin" style="font-size: 13px; font-weight: 500">Ce que tu veux</label>
+<textarea id="besoin" rows="4" defaultValue="Un camp de légionnaires : armes, mobilier, contenants et un peu de décor." style="padding: 10px 12px; border: 1px solid #CFCCC5; border-radius: 8px; font-size: 15px; line-height: 1.5; color: #1D1C1A; background: #FFFFFF; resize: vertical; box-sizing: border-box"></textarea>
+</div>
+<button type="button" style="display: inline-flex; align-items: center; justify-content: center; gap: 8px; min-height: 44px; padding: 0 16px; border-radius: 8px; background: #FFFFFF; color: #1D1C1A; border: 1px solid #CFCCC5; font-size: 14px; font-weight: 500; cursor: pointer">
+<svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><path d="M13 3 V6.5 H9.5 M12.6 6.2 A5 5 0 1 0 13 9.5" style="fill: none; stroke: currentColor; stroke-width: 1.6; stroke-linecap: round; stroke-linejoin: round"></path></svg>
+Reproposer la liste
+</button>
+</section>
+<section aria-labelledby="list-title" style="flex: 2 1 560px; min-width: 0; background: #FFFFFF; border: 1px solid #E3E1DC; border-radius: 12px; padding: 24px; box-sizing: border-box">
+<div style="display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 8px 16px">
+<h2 id="list-title" style="margin: 0; font-size: 18px; font-weight: 600">Liste proposée</h2>
+<span style="font-size: 13px; color: #5E5B55">{{ countOn }} objets retenus</span>
+</div>
+<p style="margin: 6px 0 16px; font-size: 14px; line-height: 1.5; color: #5E5B55">Claude classe chaque objet, puis les règles de routage choisissent sa voie : ta bibliothèque d'abord, puis un équivalent CC0, le code pour le géométrique, l'IA pour l'ornemental. Un objet géométrique sans générateur est marqué « À créer ».</p>
+<ul role="list" style="list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column">
+<sc-for list="{{ items }}" as="item" hint-placeholder-count="9">
+<li style="display: flex; flex-wrap: wrap; align-items: center; gap: 12px 16px; padding: 12px 0; border-top: 1px solid #ECEAE5">
+<input type="checkbox" id="{{ item.cbId }}" checked="{{ item.on }}" onChange="{{ item.toggle }}" style="width: 20px; height: 20px; margin: 0; accent-color: #2B50C8; cursor: pointer">
+<div style="width: 56px; height: 56px; flex: none; border-radius: 8px; background: #EDEBE6; display: flex; align-items: center; justify-content: center">
+<svg width="44" height="44" viewBox="0 0 100 100" aria-hidden="true" style="display: block"><path d="{{ item.path }}" style="fill: none; stroke: #3A3833; stroke-width: 1.6; stroke-linecap: round; stroke-linejoin: round; vector-effect: non-scaling-stroke"></path></svg>
+</div>
+<div style="flex: 1 1 200px; min-width: 0">
+<label for="{{ item.cbId }}" style="display: block; font-size: 15px; font-weight: 500; cursor: pointer">{{ item.name }}</label>
+<div style="margin-top: 2px; font-size: 13px; line-height: 1.4; color: #5E5B55">{{ item.desc }}</div>
+<sc-if value="{{ item.hasAction }}" hint-placeholder-val="{{ false }}">
+<a href="ClaudeRequest.dc.html" style="display: inline-flex; align-items: center; min-height: 32px; margin-top: 4px; font-size: 13px; font-weight: 600">Préparer la demande pour Claude Code</a>
+</sc-if>
+</div>
+<span style="padding: 4px 10px; border-radius: 999px; font-size: 12px; font-weight: 600; background: {{ item.chipBg }}; color: {{ item.chipFg }}">{{ item.voie }}</span>
+<span style="min-width: 112px; text-align: right; font-family: 'IBM Plex Mono', monospace; font-size: 12.5px; color: #5E5B55">{{ item.dims }}</span>
+</li>
+</sc-for>
+</ul>
+<div style="display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 16px; margin-top: 8px; padding-top: 16px; border-top: 1px solid #E3E1DC">
+<p style="margin: 0; font-size: 14px; color: #1D1C1A">{{ summary }}</p>
+<a href="Refs.dc.html" style="display: inline-flex; align-items: center; gap: 8px; min-height: 44px; padding: 0 20px; border-radius: 8px; background: #2B50C8; color: #FFFFFF; text-decoration: none; font-size: 15px; font-weight: 600">Générer les références
+<svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><path d="M3 8 H13 M9 4 L13 8 L9 12" style="fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round"></path></svg>
+</a>
+</div>
+</section>
+</div>
+</main>
+</div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1440,"height":1150}}'>
+class Component extends DCLogic {
+  constructor(props) {
+    super(props);
+    this.state = { style: "stylise", off: { ratelier: true } };
+  }
+  renderVals() {
+    const P = {
+      scutum: "M32 10 H68 Q76 10 76 18 V82 Q76 90 68 90 H32 Q24 90 24 82 V18 Q24 10 32 10 Z M42 50 A8 8 0 1 0 58 50 A8 8 0 1 0 42 50 Z M24 50 H42 M58 50 H76",
+      gladius: "M47 10 H53 L55 60 L50 68 L45 60 Z M36 68 H64 V74 H36 Z M47 74 H53 V86 H47 Z M43 86 H57 Q59 92 50 93 Q41 92 43 86 Z",
+      pilum: "M50 6 L55 20 L51.5 22 V94 H48.5 V22 L45 20 Z M46 58 H54 V66 H46 Z",
+      amphore: "M44 10 H56 V18 Q56 23 60 25 Q74 31 72 52 Q70 70 57 82 L53 92 H47 L43 82 Q30 70 28 52 Q26 31 40 25 Q44 23 44 18 Z M44 20 Q32 20 34 34 M56 20 Q68 20 66 34",
+      colonne: "M26 12 H74 L68 24 H32 Z M36 24 H64 V82 H36 Z M44 28 V78 M50 28 V78 M56 28 V78 M30 82 H70 V90 H30 Z",
+      brasero: "M24 40 H76 Q74 58 50 60 Q26 58 24 40 Z M34 58 L28 90 M66 58 L72 90 M50 60 V90 M42 34 Q44 24 50 20 Q48 28 54 30 Q58 24 57 16 Q66 26 60 34",
+      caisse: "M22 30 H78 V86 H22 Z M22 30 L78 86 M78 30 L22 86 M22 40 H78",
+      tente: "M10 84 L50 22 L90 84 Z M50 22 V84 M40 84 L50 58 L60 84",
+      ratelier: "M14 20 H86 M14 80 H86 M20 20 V88 M80 20 V88 M34 12 V84 M50 12 V84 M66 12 V84"
+    };
+    const tone = {
+      Code: ["#EAEDF3", "#2F3A55"],
+      IA: ["#E8EDFB", "#2B50C8"],
+      Mixte: ["#F1ECFA", "#5B3FA6"],
+      CC0: ["#E3F2EA", "#1F6B45"],
+      "Réutilisé": ["#E2EFEF", "#1D5C5C"],
+      "À créer": ["#FBEEDC", "#8A4B00"]
+    };
+    const base = [
+      { id: "scutum", name: "Scutum", desc: "Bouclier de légionnaire, coque courbe et umbo central", voie: "Code", dims: "0,65 × 1,10 m" },
+      { id: "gladius", name: "Gladius", desc: "Épée courte, lame droite et garde ronde", voie: "Code", dims: "0,10 × 0,70 m" },
+      { id: "pilum", name: "Pilum", desc: "Javelot à long fer", voie: "Code", dims: "2,00 m" },
+      { id: "amphore", name: "Amphore", desc: "Contenant en terre cuite à deux anses", voie: "IA", dims: "0,40 × 0,95 m" },
+      { id: "colonne", name: "Colonne corinthienne", desc: "2 pièces : fût cannelé en code, chapiteau orné en IA", voie: "Mixte", dims: "0,60 × 4,00 m" },
+      { id: "brasero", name: "Brasero en bronze", desc: "Coupe ciselée sur trois pieds", voie: "IA", dims: "0,60 × 0,90 m" },
+      { id: "caisse", name: "Caisse en bois", desc: "Équivalent CC0 trouvé : importé, puis fini, testé et revu comme le reste", voie: "CC0", dims: "0,60 × 0,60 m" },
+      { id: "tente", name: "Tente de légionnaire", desc: "Déjà dans ta bibliothèque (lot Vie du camp) : réutilisée telle quelle", voie: "Réutilisé", dims: "2,40 × 2,00 m" },
+      { id: "ratelier", name: "Râtelier d'armes", desc: "Aucun générateur pour ce type : à écrire avec Claude Code, ou passer en voie IA", voie: "À créer", dims: "1,20 × 1,60 m" }
+    ];
+    const off = this.state.off;
+    const items = base.map((o) => {
+      const on = !off[o.id];
+      return {
+        ...o,
+        path: P[o.id],
+        on: on,
+        cbId: "cb-" + o.id,
+        hasAction: o.voie === "À créer",
+        chipBg: tone[o.voie][0],
+        chipFg: tone[o.voie][1],
+        toggle: () => this.setState({ off: { ...this.state.off, [o.id]: on } })
+      };
+    });
+    const kept = items.filter((i) => i.on);
+    const make = kept.filter((i) => i.voie !== "CC0" && i.voie !== "Réutilisé").length;
+    const imp = kept.filter((i) => i.voie === "CC0").length;
+    const reuse = kept.filter((i) => i.voie === "Réutilisé").length;
+    // Voie IA ou mixte : 30 crédits pour la 3D texturée + 12 pour 4 images de référence (3 l'image).
+    // Voie code : variantes rendues par Blender, gratuites. Import et réutilisation : gratuits.
+    const credits = kept.filter((i) => i.voie === "IA" || i.voie === "Mixte").length * 42;
+    const todo = kept.filter((i) => i.voie === "À créer").length;
+    const st = this.state.style === "stylise";
+    return {
+      items: items,
+      countOn: kept.length,
+      summary: make + " à fabriquer · " + imp + " importé en CC0 · " + reuse + " réutilisé · ≈ " + credits + " crédits Meshy" + (todo > 0 ? " · " + todo + " générateur à écrire avant de lancer" : ""),
+      stylise: st,
+      semi: !st,
+      styliseBg: st ? "#FFFFFF" : "transparent",
+      styliseWeight: st ? 600 : 400,
+      semiBg: st ? "transparent" : "#FFFFFF",
+      semiWeight: st ? 400 : 600,
+      pickStylise: () => this.setState({ style: "stylise" }),
+      pickSemi: () => this.setState({ style: "semi" })
+    };
+  }
+}
+</script>
+</body>
+</html>

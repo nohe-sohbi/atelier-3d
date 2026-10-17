@@ -1,0 +1,348 @@
+{
+  "v": 3,
+  "createdOnFiles": {
+    "v": 1,
+    "at": "2026-10-09T11:35:00Z"
+  },
+  "title": "Interface bibliothèque 3D",
+  "launch": {
+    "view": "canvas"
+  },
+  "pages": [],
+  "boards": {
+    "Main.dc.html": {
+      "x": 0,
+      "y": 0,
+      "w": 1440,
+      "h": 1110,
+      "title": "Accueil",
+      "expand": "fill",
+      "is_interactive": true
+    },
+    "Lots.dc.html": {
+      "x": 1520,
+      "y": 0,
+      "w": 1440,
+      "h": 900,
+      "title": "Lots",
+      "expand": "fill",
+      "is_interactive": true
+    },
+    "Library.dc.html": {
+      "x": 3040,
+      "y": 0,
+      "w": 1440,
+      "h": 1830,
+      "title": "Bibliothèque",
+      "expand": "fill",
+      "is_interactive": true
+    },
+    "Asset.dc.html": {
+      "x": 4560,
+      "y": 0,
+      "w": 1440,
+      "h": 1990,
+      "title": "Fiche asset",
+      "expand": "fill",
+      "is_interactive": true
+    },
+    "Generators.dc.html": {
+      "x": 6080,
+      "y": 0,
+      "w": 1440,
+      "h": 1870,
+      "title": "Générateurs",
+      "expand": "fill",
+      "is_interactive": true
+    },
+    "Styles.dc.html": {
+      "x": 7600,
+      "y": 0,
+      "w": 1440,
+      "h": 1110,
+      "title": "Styles",
+      "expand": "fill",
+      "is_interactive": true
+    },
+    "Settings.dc.html": {
+      "x": 9120,
+      "y": 0,
+      "w": 1440,
+      "h": 2160,
+      "title": "Réglages",
+      "expand": "fill",
+      "is_interactive": true
+    },
+    "Brief.dc.html": {
+      "x": 0,
+      "y": 2940,
+      "w": 1440,
+      "h": 1320,
+      "title": "Lot · 1 Brief",
+      "expand": "fill",
+      "is_interactive": true
+    },
+    "Refs.dc.html": {
+      "x": 1520,
+      "y": 2940,
+      "w": 1440,
+      "h": 2150,
+      "title": "Lot · 2 Références",
+      "expand": "fill",
+      "is_interactive": true
+    },
+    "Generation.dc.html": {
+      "x": 3040,
+      "y": 2940,
+      "w": 1440,
+      "h": 1640,
+      "title": "Lot · 3 Génération",
+      "expand": "fill",
+      "is_interactive": true
+    },
+    "Review.dc.html": {
+      "x": 4560,
+      "y": 2940,
+      "w": 1440,
+      "h": 2590,
+      "title": "Lot · 4 Revue",
+      "expand": "fill",
+      "is_interactive": true
+    },
+    "Sidebar.dc.html": {
+      "x": 0,
+      "y": 5970,
+      "w": 240,
+      "h": 900,
+      "title": "Composant · Menu",
+      "is_interactive": true
+    },
+    "LotHeader.dc.html": {
+      "x": 320,
+      "y": 5970,
+      "w": 1200,
+      "h": 190,
+      "title": "Composant · En-tête de lot",
+      "is_interactive": true
+    },
+    "Publish.dc.html": {
+      "x": 0,
+      "y": 7430,
+      "w": 760,
+      "h": 630,
+      "title": "Fenêtre · Publier",
+      "is_interactive": true
+    },
+    "BenchLaunch.dc.html": {
+      "x": 840,
+      "y": 7430,
+      "w": 760,
+      "h": 840,
+      "title": "Fenêtre · Lancer un banc",
+      "is_interactive": true
+    },
+    "NewStyle.dc.html": {
+      "x": 1680,
+      "y": 7430,
+      "w": 760,
+      "h": 954,
+      "title": "Fenêtre · Nouveau style",
+      "is_interactive": true
+    },
+    "Regenerate.dc.html": {
+      "x": 2520,
+      "y": 7430,
+      "w": 760,
+      "h": 760,
+      "title": "Fenêtre · Régénérer",
+      "is_interactive": true
+    },
+    "ClaudeRequest.dc.html": {
+      "x": 3360,
+      "y": 7430,
+      "w": 760,
+      "h": 872,
+      "title": "Fenêtre · Demande Claude Code",
+      "is_interactive": true
+    }
+  },
+  "order": [
+    "Main.dc.html",
+    "Lots.dc.html",
+    "Library.dc.html",
+    "Asset.dc.html",
+    "Generators.dc.html",
+    "Styles.dc.html",
+    "Settings.dc.html",
+    "Brief.dc.html",
+    "Refs.dc.html",
+    "Generation.dc.html",
+    "Review.dc.html",
+    "Sidebar.dc.html",
+    "LotHeader.dc.html",
+    "Publish.dc.html",
+    "BenchLaunch.dc.html",
+    "NewStyle.dc.html",
+    "Regenerate.dc.html",
+    "ClaudeRequest.dc.html"
+  ],
+  "notes": {
+    "titre": {
+      "x": 0,
+      "y": -640,
+      "text": "Le tableau de bord : un menu, cinq sections et les réglages",
+      "kind": "title1",
+      "maxW": 10560
+    },
+    "s_home": {
+      "x": 0,
+      "y": -380,
+      "text": "Accueil : ce qui t'attend. Revue prête, références à choisir, résultat d'un banc d'essai : un clic t'amène au bon écran. La cloche s'ouvre sur les notifications.",
+      "w": 440,
+      "maxH": 240,
+      "fill": "blue"
+    },
+    "s_lots": {
+      "x": 1520,
+      "y": -380,
+      "text": "Lots : tous tes lots et leur étape. Un lot s'ouvre directement sur l'étape où il en est.",
+      "w": 440,
+      "maxH": 240,
+      "fill": "blue"
+    },
+    "n5": {
+      "x": 3040,
+      "y": -380,
+      "text": "Bibliothèque : ranger et retrouver. Vues, collections et étiquettes ; sélection multiple pour étiqueter, publier ou archiver d'un coup. Les étiquettes techniques viennent seules des métadonnées.",
+      "w": 440,
+      "maxH": 240,
+      "fill": "blue"
+    },
+    "n6": {
+      "x": 4560,
+      "y": -380,
+      "text": "Fiche asset : l'historique d'un asset. Toutes ses générations, rejets compris avec leur motif. Compare deux versions, choisis l'active : les fichiers suivent. Dessinée pour le casque : dans la maquette, chaque carte ouvre cette fiche.",
+      "w": 440,
+      "maxH": 240,
+      "fill": "blue"
+    },
+    "s_gen": {
+      "x": 6080,
+      "y": -380,
+      "text": "Générateurs : ajouter, comparer, adopter. Le banc d'essai compare deux générateurs sur tes objets de référence ; les règles de routage décident qui fabrique quoi.",
+      "w": 440,
+      "maxH": 240,
+      "fill": "blue"
+    },
+    "s_styles": {
+      "x": 7600,
+      "y": -380,
+      "text": "Styles : tes moodboards exécutables, versionnés. Un lot en applique un ; un matériau partagé modifié se répercute sur les assets de la voie code, les assets IA se régénèrent.",
+      "w": 440,
+      "maxH": 240,
+      "fill": "blue"
+    },
+    "s_settings": {
+      "x": 9120,
+      "y": -380,
+      "text": "Réglages : les clés de Meshy, de l'API Claude et d'itch.io, les outils de ta machine, les plafonds et la file de tâches. Rien ne part ailleurs que vers ces services.",
+      "w": 440,
+      "maxH": 240,
+      "fill": "blue"
+    },
+    "titre2": {
+      "x": 0,
+      "y": 2300,
+      "text": "Dans un lot : le même lot à quatre moments, le menu reste à gauche",
+      "kind": "title1",
+      "maxW": 6000
+    },
+    "n1": {
+      "x": 0,
+      "y": 2560,
+      "text": "Toi : un thème, un style, une phrase. Claude propose et classe la liste d'objets, les règles de routage choisissent la voie de chacun ; tu coches. Cible : 2 min par lot.",
+      "w": 440,
+      "maxH": 240,
+      "fill": "blue"
+    },
+    "n2": {
+      "x": 1520,
+      "y": 2560,
+      "text": "Toi : choisir 1 image sur 4 par objet. C'est ici que se joue le style : l'image choisie guide la voie IA et sert de cible à la voie code. Cible : 30 s par objet.",
+      "w": 440,
+      "maxH": 240,
+      "fill": "blue"
+    },
+    "n3": {
+      "x": 3040,
+      "y": 2560,
+      "text": "Toi : rien. Code ou IA selon l'objet, finition, tests et relances tournent seuls. Une notification arrive quand la revue est prête.",
+      "w": 440,
+      "maxH": 240,
+      "fill": "gray"
+    },
+    "n4": {
+      "x": 4560,
+      "y": 2560,
+      "text": "Toi : garder, régénérer, changer de voie ou jeter. La technique est déjà vérifiée ; tu ne juges que le beau et le cohérent. Cible : 1 min par objet.",
+      "w": 440,
+      "maxH": 240,
+      "fill": "blue"
+    },
+    "titre3": {
+      "x": 0,
+      "y": 5670,
+      "text": "Composants partagés par tous les écrans",
+      "kind": "title1",
+      "maxW": 1520
+    },
+    "titre4": {
+      "x": 0,
+      "y": 7030,
+      "text": "Fenêtres qui s'ouvrent depuis les écrans",
+      "kind": "title1",
+      "maxW": 4120
+    },
+    "w_pub": {
+      "x": 0,
+      "y": 7190,
+      "text": "Depuis Bibliothèque (sélection) ou Fiche asset. Un asset devient public quand il entre dans un pack publié. La licence se choisit ici, avant la première publication.",
+      "w": 680,
+      "maxH": 160,
+      "fill": "blue"
+    },
+    "w_bench": {
+      "x": 840,
+      "y": 7190,
+      "text": "Depuis Générateurs. Mêmes objets de référence pour chaque banc ; côté Meshy, reprendre le dernier essai ne coûte rien.",
+      "w": 680,
+      "maxH": 160,
+      "fill": "blue"
+    },
+    "w_style": {
+      "x": 1680,
+      "y": 7190,
+      "text": "Depuis Styles. Tu définis, l'IA dessine une planche de 6 objets génériques, tu gardes ce qui te ressemble.",
+      "w": 680,
+      "maxH": 160,
+      "fill": "blue"
+    },
+    "w_regen": {
+      "x": 2520,
+      "y": 7190,
+      "text": "Depuis Revue ou Fiche asset. La consigne part de l'avis de l'IA ; le coût s'affiche avant de relancer.",
+      "w": 680,
+      "maxH": 160,
+      "fill": "blue"
+    },
+    "w_claude": {
+      "x": 3360,
+      "y": 7190,
+      "text": "Depuis Brief ou Générateurs, quand aucun générateur code ne connaît le type. L'app écrit la demande, Claude Code écrit le script.",
+      "w": 680,
+      "maxH": 160,
+      "fill": "blue"
+    }
+  },
+  "designSystems": []
+}

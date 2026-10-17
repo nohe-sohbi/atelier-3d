@@ -1,0 +1,380 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<title>Fiche asset : Casque</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&amp;family=IBM+Plex+Sans:wght@400;500;600&amp;display=swap">
+<style>
+body{margin:0;background:#F5F4F1}
+a{color:#2B50C8}a:hover{color:#1E3A96}
+button,input,textarea,select{font-family:inherit}
+</style>
+</helmet>
+<div style="min-height: 100vh; background: #F5F4F1; color: #1D1C1A; font-family: 'IBM Plex Sans', system-ui, sans-serif; display: flex; flex-wrap: wrap; align-items: stretch">
+<div style="flex: 1 1 240px; min-width: 0; background: #FFFFFF; border-right: 1px solid #E3E1DC">
+<dc-import name="Sidebar" active="library" hint-size="240px,900px"></dc-import>
+</div>
+<div style="flex: 999 1 560px; min-width: 0">
+<div style="background: #FFFFFF; border-bottom: 1px solid #E3E1DC">
+<div style="padding: 10px 24px; box-sizing: border-box; display: flex; flex-wrap: wrap; align-items: center; gap: 12px 16px">
+<div style="flex: 1 1 280px; max-width: 520px; position: relative">
+<label for="global-search" style="position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap">Rechercher partout</label>
+<svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true" style="position: absolute; left: 12px; top: 14px; display: block"><path d="M7 2.5 A4.5 4.5 0 1 0 7 11.5 A4.5 4.5 0 1 0 7 2.5 Z M10.5 10.5 L14 14" style="fill: none; stroke: #5E5B55; stroke-width: 1.6; stroke-linecap: round"></path></svg>
+<input id="global-search" type="search" placeholder="Rechercher un asset, un lot, une étiquette…" style="width: 100%; height: 44px; padding: 0 12px 0 36px; border: 1px solid #CFCCC5; border-radius: 8px; font-size: 14px; background: #F5F4F1; color: #1D1C1A; box-sizing: border-box">
+</div>
+<button type="button" aria-label="Notifications : 2 nouvelles" style="margin-left: auto; position: relative; width: 44px; height: 44px; padding: 0; border: 1px solid #E3E1DC; border-radius: 8px; background: #FFFFFF; color: #1D1C1A; cursor: pointer; display: flex; align-items: center; justify-content: center">
+<svg width="18" height="18" viewBox="0 0 18 18" aria-hidden="true"><path d="M4.5 12.5 V8 Q4.5 3.5 9 3.5 Q13.5 3.5 13.5 8 V12.5 L15 14 H3 Z M7.5 15.5 Q9 17 10.5 15.5" style="fill: none; stroke: currentColor; stroke-width: 1.5; stroke-linejoin: round; stroke-linecap: round"></path></svg>
+<span aria-hidden="true" style="position: absolute; top: 9px; right: 9px; width: 8px; height: 8px; border-radius: 50%; background: #B42318"></span>
+</button>
+</div>
+</div>
+<main style="max-width: 1360px; margin: 0 auto; padding: 16px 24px 48px; box-sizing: border-box; display: flex; flex-direction: column; gap: 16px">
+<nav aria-label="Fil d'Ariane" style="display: flex; align-items: center; gap: 8px; font-size: 13.5px; color: #5E5B55">
+<a href="Library.dc.html" style="display: inline-flex; align-items: center; gap: 6px; min-height: 44px; color: #2B50C8; text-decoration: none; font-weight: 500">
+<svg width="14" height="14" viewBox="0 0 14 14" aria-hidden="true"><path d="M9 3 L5 7 L9 11" style="fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round"></path></svg>
+Bibliothèque
+</a>
+<span aria-hidden="true">/</span>
+<span aria-current="page" style="color: #1D1C1A">Casque</span>
+</nav>
+<div style="display: flex; flex-wrap: wrap; align-items: center; gap: 8px 14px">
+<h1 style="margin: 0; font-size: 28px; font-weight: 600; letter-spacing: -0.015em">Casque</h1>
+<span style="font-family: 'IBM Plex Mono', monospace; font-size: 13px; color: #5E5B55">ROM_PROP_Casque_A</span>
+<span style="padding: 3px 9px; border-radius: 999px; font-size: 12px; font-weight: 600; background: #E8EDFB; color: #2B50C8">IA</span>
+<span style="padding: 3px 9px; border-radius: 6px; font-size: 12px; font-weight: 600; background: {{ statusBg }}; color: {{ statusFg }}; border: 1px solid #E3E1DC">{{ statusLabel }}</span>
+</div>
+<div style="display: flex; flex-wrap: wrap; gap: 24px; align-items: flex-start">
+<div style="flex: 999 1 640px; min-width: 0; display: flex; flex-direction: column; gap: 20px">
+<section aria-labelledby="preview-h" style="background: #FFFFFF; border: 1px solid #E3E1DC; border-radius: 12px; overflow: hidden">
+<div style="display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 6px 16px; padding: 14px 16px; border-bottom: 1px solid #ECEAE5">
+<h2 id="preview-h" style="margin: 0; font-size: 15px; font-weight: 600">Version active · {{ activeLabel }}</h2>
+<span style="font-family: 'IBM Plex Mono', monospace; font-size: 12.5px; color: #5E5B55">{{ activeMeta }}</span>
+</div>
+<div style="position: relative; height: 340px; background: #EDEBE6; display: flex; align-items: center; justify-content: center">
+<svg viewBox="0 0 100 100" aria-hidden="true" style="display: block; width: 290px; height: 290px"><g transform="{{ activeTransform }}"><path d="{{ path }}" style="fill: none; stroke: #1D1C1A; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; vector-effect: non-scaling-stroke"></path></g></svg>
+<div style="position: absolute; right: 12px; bottom: 12px; display: flex; flex-wrap: wrap; gap: 8px">
+<button type="button" style="display: inline-flex; align-items: center; gap: 6px; min-height: 40px; padding: 0 12px; border-radius: 8px; background: #FFFFFF; color: #1D1C1A; border: 1px solid #CFCCC5; font-size: 13px; font-weight: 500; cursor: pointer">
+<svg width="14" height="14" viewBox="0 0 16 16" aria-hidden="true"><path d="M8 1.5 L14 4.75 V11.25 L8 14.5 L2 11.25 V4.75 Z M2 4.75 L8 8 L14 4.75 M8 8 V14.5" style="fill: none; stroke: currentColor; stroke-width: 1.4; stroke-linejoin: round"></path></svg>
+Tourner en 3D
+</button>
+<button type="button" style="min-height: 40px; padding: 0 12px; border-radius: 8px; background: #FFFFFF; color: #1D1C1A; border: 1px solid #CFCCC5; font-size: 13px; font-weight: 500; cursor: pointer">Les 5 vues</button>
+</div>
+</div>
+</section>
+<section aria-labelledby="hist-h" style="background: #FFFFFF; border: 1px solid #E3E1DC; border-radius: 12px; padding: 16px 20px 8px; box-sizing: border-box">
+<div style="display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 4px 16px">
+<h2 id="hist-h" style="margin: 0; font-size: 17px; font-weight: 600">Historique des générations</h2>
+<span style="font-size: 13px; color: #5E5B55">{{ histSummary }}</span>
+</div>
+<p style="margin: 6px 0 10px; font-size: 13.5px; line-height: 1.5; color: #5E5B55">Rien n'est supprimé : chaque rejet garde son motif. Mets une version en A et une autre en B pour les comparer.</p>
+<ul role="list" style="list-style: none; margin: 0 -8px; padding: 0">
+<sc-for list="{{ versions }}" as="ver" hint-placeholder-count="4">
+<li style="display: flex; flex-wrap: wrap; align-items: center; gap: 12px 16px; padding: 14px 8px; border-top: 1px solid #ECEAE5; border-radius: 8px; background: {{ ver.rowBg }}">
+<div style="width: 64px; height: 64px; flex: none; border-radius: 8px; background: #EDEBE6; display: flex; align-items: center; justify-content: center">
+<svg viewBox="0 0 100 100" aria-hidden="true" style="display: block; width: 52px; height: 52px"><g transform="{{ ver.transform }}"><path d="{{ ver.path }}" style="fill: none; stroke: {{ ver.ink }}; stroke-width: 1.6; stroke-linecap: round; stroke-linejoin: round; vector-effect: non-scaling-stroke"></path></g></svg>
+</div>
+<div style="flex: 1 1 280px; min-width: 0">
+<div style="display: flex; flex-wrap: wrap; align-items: center; gap: 6px 10px">
+<span style="font-size: 15px; font-weight: 600">{{ ver.label }}</span>
+<span style="padding: 2px 8px; border-radius: 999px; font-size: 12px; font-weight: 600; background: {{ ver.badgeBg }}; color: {{ ver.badgeFg }}">{{ ver.badge }}</span>
+<span style="font-size: 13px; color: #5E5B55">{{ ver.prov }} · {{ ver.date }}</span>
+</div>
+<div style="margin-top: 4px; font-size: 13px; line-height: 1.45; color: #3F3D38">{{ ver.note }}</div>
+</div>
+<span style="min-width: 150px; font-family: 'IBM Plex Mono', monospace; font-size: 12.5px; color: #5E5B55">{{ ver.tris }} tris · {{ ver.tests }}</span>
+<div style="display: flex; flex-wrap: wrap; align-items: center; gap: 8px">
+<div role="group" aria-label="Comparer {{ ver.label }}" style="display: flex; gap: 4px">
+<button type="button" onClick="{{ ver.pickA }}" aria-pressed="{{ ver.aOn }}" aria-label="{{ ver.aLabel }}" style="width: 44px; height: 44px; padding: 0; border-radius: 8px; font-size: 14px; font-weight: 600; cursor: pointer; border: 1px solid {{ ver.aBd }}; background: {{ ver.aBg }}; color: {{ ver.aFg }}">A</button>
+<button type="button" onClick="{{ ver.pickB }}" aria-pressed="{{ ver.bOn }}" aria-label="{{ ver.bLabel }}" style="width: 44px; height: 44px; padding: 0; border-radius: 8px; font-size: 14px; font-weight: 600; cursor: pointer; border: 1px solid {{ ver.bBd }}; background: {{ ver.bBg }}; color: {{ ver.bFg }}">B</button>
+</div>
+<sc-if value="{{ ver.canActivate }}" hint-placeholder-val="{{ false }}">
+<button type="button" onClick="{{ ver.activate }}" style="min-height: 44px; padding: 0 12px; border-radius: 8px; background: #FFFFFF; color: #1D1C1A; border: 1px solid #CFCCC5; font-size: 13px; font-weight: 500; cursor: pointer">Rendre active</button>
+</sc-if>
+</div>
+</li>
+</sc-for>
+</ul>
+</section>
+<section aria-labelledby="cmp-h" style="background: #FFFFFF; border: 1px solid #E3E1DC; border-radius: 12px; padding: 16px 20px 20px; box-sizing: border-box; display: flex; flex-direction: column; gap: 16px">
+<h2 id="cmp-h" style="margin: 0; font-size: 17px; font-weight: 600">Comparer {{ aName }} et {{ bName }}</h2>
+<div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px">
+<figure style="margin: 0; display: flex; flex-direction: column; gap: 8px">
+<div style="height: 200px; border-radius: 10px; background: #EDEBE6; border: 2px solid #2B50C8; box-sizing: border-box; display: flex; align-items: center; justify-content: center">
+<svg viewBox="0 0 100 100" aria-hidden="true" style="display: block; width: 170px; height: 170px"><g transform="{{ aTransform }}"><path d="{{ path }}" style="fill: none; stroke: #1D1C1A; stroke-width: 1.6; stroke-linecap: round; stroke-linejoin: round; vector-effect: non-scaling-stroke"></path></g></svg>
+</div>
+<figcaption style="font-size: 13px; font-weight: 600; color: #2B50C8">A · {{ aName }}</figcaption>
+</figure>
+<figure style="margin: 0; display: flex; flex-direction: column; gap: 8px">
+<div style="height: 200px; border-radius: 10px; background: #EDEBE6; border: 2px solid #5B3FA6; box-sizing: border-box; display: flex; align-items: center; justify-content: center">
+<svg viewBox="0 0 100 100" aria-hidden="true" style="display: block; width: 170px; height: 170px"><g transform="{{ bTransform }}"><path d="{{ path }}" style="fill: none; stroke: #1D1C1A; stroke-width: 1.6; stroke-linecap: round; stroke-linejoin: round; vector-effect: non-scaling-stroke"></path></g></svg>
+</div>
+<figcaption style="font-size: 13px; font-weight: 600; color: #5B3FA6">B · {{ bName }}</figcaption>
+</figure>
+</div>
+<div role="table" aria-label="Différences entre A et B" style="display: flex; flex-direction: column">
+<div role="row" style="display: grid; grid-template-columns: minmax(0, 0.8fr) minmax(0, 1.4fr) minmax(0, 1.4fr); gap: 12px; padding: 0 0 8px; font-size: 12px; font-weight: 600; letter-spacing: 0.04em; text-transform: uppercase; color: #5E5B55">
+<span role="columnheader">Critère</span><span role="columnheader">A</span><span role="columnheader">B</span>
+</div>
+<sc-for list="{{ cmpRows }}" as="r" hint-placeholder-count="6">
+<div role="row" style="display: grid; grid-template-columns: minmax(0, 0.8fr) minmax(0, 1.4fr) minmax(0, 1.4fr); gap: 12px; padding: 9px 0; border-top: 1px solid #ECEAE5; font-size: 13.5px">
+<span role="rowheader" style="color: #5E5B55">{{ r.label }}</span>
+<span role="cell" style="font-weight: {{ r.fw }}">{{ r.a }}</span>
+<span role="cell" style="font-weight: {{ r.fw }}">{{ r.b }}</span>
+</div>
+</sc-for>
+</div>
+<p style="margin: 0; font-size: 12.5px; color: #5E5B55">En gras : ce qui change entre les deux versions.</p>
+</section>
+</div>
+<aside aria-label="Détails de l'asset" style="flex: 1 1 300px; min-width: 0; display: flex; flex-direction: column; gap: 16px">
+<section aria-labelledby="st-h" style="background: #FFFFFF; border: 1px solid #E3E1DC; border-radius: 12px; padding: 18px; box-sizing: border-box; display: flex; flex-direction: column; gap: 12px">
+<h2 id="st-h" style="margin: 0; font-size: 15px; font-weight: 600">Publication</h2>
+<p style="margin: 0; font-size: 12.5px; line-height: 1.45; color: #5E5B55">Un asset est public quand il est dans un pack publié sur itch.io.</p>
+<ul role="list" style="list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 6px">
+<li style="display: flex; flex-wrap: wrap; align-items: center; gap: 4px 10px; padding: 10px 12px; border-radius: 8px; border: 1px solid #E3E1DC">
+<span style="flex: 1 1 auto; font-size: 14px; font-weight: 500">Pack itch.io #1</span>
+<span style="padding: 2px 8px; border-radius: 999px; font-size: 12px; font-weight: 600; background: #E3F2EA; color: #1F6B45">publié le 9 oct.</span>
+<span style="flex: 1 1 100%; font-size: 12.5px; color: #5E5B55">Contient la v1 de cet asset</span>
+</li>
+</ul>
+<sc-if value="{{ packStale }}" hint-placeholder-val="{{ true }}">
+<div style="padding: 10px 12px; border-radius: 8px; background: #FBEEDC; color: #5C3300; font-size: 12.5px; line-height: 1.45">La version active n'est pas encore dans le pack : elle partira à sa prochaine publication. <a href="Publish.dc.html" style="color: #5C3300; font-weight: 600">Republier le pack</a></div>
+</sc-if>
+<a href="Publish.dc.html" style="display: inline-flex; align-items: center; min-height: 36px; font-size: 13.5px; font-weight: 500">Ajouter à un autre pack</a>
+<button type="button" onClick="{{ toggleFav }}" aria-pressed="{{ fav }}" style="display: inline-flex; align-items: center; gap: 8px; min-height: 44px; padding: 0 12px; border-radius: 8px; background: #FFFFFF; color: #1D1C1A; border: 1px solid #CFCCC5; font-size: 14px; font-weight: 500; cursor: pointer">
+<svg width="18" height="18" viewBox="0 0 16 16" aria-hidden="true"><path d="M8 1.8 L9.9 5.8 L14.2 6.3 L11 9.2 L11.9 13.5 L8 11.3 L4.1 13.5 L5 9.2 L1.8 6.3 L6.1 5.8 Z" style="fill: {{ favFill }}; stroke: {{ favStroke }}; stroke-width: 1.3; stroke-linejoin: round"></path></svg>
+{{ favLabel }}
+</button>
+<div style="display: flex; flex-wrap: wrap; gap: 8px">
+<a href="Regenerate.dc.html" style="flex: 1 1 auto; display: inline-flex; align-items: center; justify-content: center; min-height: 44px; padding: 0 12px; border-radius: 8px; background: #2B50C8; color: #FFFFFF; text-decoration: none; font-size: 14px; font-weight: 600">Régénérer avec…</a>
+<button type="button" style="min-height: 44px; padding: 0 12px; border-radius: 8px; background: #FFFFFF; color: #8A4B00; border: 1px solid #CFCCC5; font-size: 14px; font-weight: 500; cursor: pointer">Archiver</button>
+</div>
+</section>
+<section aria-labelledby="tg-h" style="background: #FFFFFF; border: 1px solid #E3E1DC; border-radius: 12px; padding: 18px; box-sizing: border-box; display: flex; flex-direction: column; gap: 10px">
+<h2 id="tg-h" style="margin: 0; font-size: 15px; font-weight: 600">Étiquettes</h2>
+<p style="margin: 0; font-size: 12.5px; font-weight: 500">Les tiennes</p>
+<ul role="list" style="list-style: none; margin: 0; padding: 0; display: flex; flex-wrap: wrap; gap: 6px">
+<sc-for list="{{ tags }}" as="t" hint-placeholder-count="1">
+<li style="display: inline-flex; align-items: center; gap: 2px; min-height: 36px; padding: 0 2px 0 12px; border-radius: 999px; background: #E8EDFB; color: #2B50C8; font-size: 13px; font-weight: 500">{{ t.label }}<button type="button" onClick="{{ t.remove }}" aria-label="{{ t.removeLabel }}" style="width: 32px; height: 32px; padding: 0; border: 0; border-radius: 50%; background: transparent; color: #2B50C8; cursor: pointer; display: flex; align-items: center; justify-content: center"><svg width="10" height="10" viewBox="0 0 10 10" aria-hidden="true"><path d="M2 2 L8 8 M8 2 L2 8" style="fill: none; stroke: currentColor; stroke-width: 1.6; stroke-linecap: round"></path></svg></button></li>
+</sc-for>
+</ul>
+<label for="newtag" style="font-size: 12.5px; color: #5E5B55">Ajouter une étiquette</label>
+<div style="display: flex; gap: 8px">
+<input id="newtag" type="text" value="{{ draft }}" onChange="{{ onDraft }}" onKeyDown="{{ onDraftKey }}" placeholder="ex. fond de scène" style="flex: 1 1 auto; min-width: 0; height: 40px; padding: 0 10px; border: 1px solid #CFCCC5; border-radius: 8px; font-size: 14px; background: #FFFFFF; color: #1D1C1A; box-sizing: border-box">
+<button type="button" onClick="{{ addTag }}" style="min-height: 40px; padding: 0 12px; border-radius: 8px; background: #FFFFFF; color: #1D1C1A; border: 1px solid #CFCCC5; font-size: 14px; font-weight: 500; cursor: pointer">Ajouter</button>
+</div>
+<sc-if value="{{ hasSuggestions }}" hint-placeholder-val="{{ true }}">
+<div style="display: flex; flex-wrap: wrap; align-items: center; gap: 6px">
+<span style="font-size: 12.5px; color: #5E5B55">Déjà utilisées :</span>
+<sc-for list="{{ suggestions }}" as="sg" hint-placeholder-count="2">
+<button type="button" onClick="{{ sg.add }}" style="min-height: 32px; padding: 0 10px; border-radius: 999px; border: 1px dashed #9DB0EC; background: #FFFFFF; color: #2B50C8; font-size: 13px; cursor: pointer">{{ sg.label }}</button>
+</sc-for>
+</div>
+</sc-if>
+<p style="margin: 6px 0 0; font-size: 12.5px; font-weight: 500">Automatiques, depuis meta.json</p>
+<ul role="list" style="list-style: none; margin: 0; padding: 0; display: flex; flex-wrap: wrap; gap: 6px">
+<li style="padding: 6px 10px; border-radius: 999px; background: #F0EEEA; font-size: 13px; color: #3F3D38">armure</li>
+<li style="padding: 6px 10px; border-radius: 999px; background: #F0EEEA; font-size: 13px; color: #3F3D38">bronze</li>
+<li style="padding: 6px 10px; border-radius: 999px; background: #F0EEEA; font-size: 13px; color: #3F3D38">objet moyen</li>
+<li style="padding: 6px 10px; border-radius: 999px; background: #F0EEEA; font-size: 13px; color: #3F3D38">voie IA</li>
+</ul>
+</section>
+<section aria-labelledby="cl-h" style="background: #FFFFFF; border: 1px solid #E3E1DC; border-radius: 12px; padding: 18px; box-sizing: border-box; display: flex; flex-direction: column; gap: 4px">
+<h2 id="cl-h" style="margin: 0 0 4px; font-size: 15px; font-weight: 600">Collections</h2>
+<ul role="list" style="list-style: none; margin: 0; padding: 0">
+<sc-for list="{{ cols }}" as="c" hint-placeholder-count="2">
+<li style="display: flex; align-items: center; gap: 10px; min-height: 44px">
+<input type="checkbox" id="{{ c.id }}" checked="{{ c.on }}" onChange="{{ c.toggle }}" style="width: 20px; height: 20px; margin: 0; accent-color: #2B50C8; cursor: pointer">
+<label for="{{ c.id }}" style="flex: 1 1 auto; font-size: 14px; cursor: pointer">{{ c.label }}</label>
+<span style="padding: 2px 8px; border-radius: 999px; font-size: 11.5px; font-weight: 500; background: {{ c.kindBg }}; color: {{ c.kindFg }}">{{ c.kind }}</span>
+</li>
+</sc-for>
+</ul>
+<button type="button" style="align-self: flex-start; display: inline-flex; align-items: center; gap: 8px; min-height: 40px; padding: 0; border: 0; background: transparent; color: #2B50C8; font-size: 14px; font-weight: 500; cursor: pointer">
+<svg width="14" height="14" viewBox="0 0 14 14" aria-hidden="true"><path d="M7 2 V12 M2 7 H12" style="fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round"></path></svg>
+Nouvelle collection
+</button>
+</section>
+<section aria-labelledby="pv-h" style="background: #FFFFFF; border: 1px solid #E3E1DC; border-radius: 12px; padding: 18px; box-sizing: border-box">
+<h2 id="pv-h" style="margin: 0 0 10px; font-size: 15px; font-weight: 600">Provenance</h2>
+<dl style="margin: 0; display: grid; grid-template-columns: minmax(0, auto) minmax(0, 1fr); gap: 8px 14px; font-size: 13px">
+<dt style="color: #5E5B55">Intention</dt><dd style="margin: 0; font-family: 'IBM Plex Mono', monospace; font-size: 12px; overflow-wrap: anywhere">intents/ROM_PROP_Casque_A.yaml</dd>
+<dt style="color: #5E5B55">Référence</dt><dd style="margin: 0; font-family: 'IBM Plex Mono', monospace; font-size: 12px; overflow-wrap: anywhere">board/casque_03.png</dd>
+<dt style="color: #5E5B55">Style</dt><dd style="margin: 0; font-family: 'IBM Plex Mono', monospace; font-size: 12px">rome-stylise-v0</dd>
+<dt style="color: #5E5B55">Générateur</dt><dd style="margin: 0">{{ activeProv }}</dd>
+<dt style="color: #5E5B55">Licence</dt><dd style="margin: 0">CC0-1.0</dd>
+<dt style="color: #5E5B55">Déclaration IA</dt><dd style="margin: 0">Géométrie et textures générées</dd>
+</dl>
+</section>
+<section aria-labelledby="fi-h" style="background: #FFFFFF; border: 1px solid #E3E1DC; border-radius: 12px; padding: 18px; box-sizing: border-box; display: flex; flex-direction: column; gap: 8px">
+<h2 id="fi-h" style="margin: 0; font-size: 15px; font-weight: 600">Fichiers</h2>
+<p style="margin: 0; font-size: 12.5px; color: #5E5B55">Ceux de la version active ({{ activeLabel }}).</p>
+<ul role="list" style="list-style: none; margin: 0; padding: 0">
+<sc-for list="{{ files }}" as="fl" hint-placeholder-count="5">
+<li style="display: flex; align-items: center; gap: 10px; min-height: 44px; border-top: 1px solid #ECEAE5">
+<div style="flex: 1 1 auto; min-width: 0">
+<div style="font-family: 'IBM Plex Mono', monospace; font-size: 12.5px; overflow-wrap: anywhere">{{ fl.name }}</div>
+<div style="font-size: 12px; color: #5E5B55">{{ fl.desc }}</div>
+</div>
+<button type="button" aria-label="{{ fl.dl }}" style="width: 40px; height: 40px; flex: none; padding: 0; border-radius: 8px; background: #FFFFFF; color: #1D1C1A; border: 1px solid #CFCCC5; cursor: pointer; display: flex; align-items: center; justify-content: center">
+<svg width="14" height="14" viewBox="0 0 14 14" aria-hidden="true"><path d="M7 2 V9 M4 6.5 L7 9.5 L10 6.5 M2.5 12 H11.5" style="fill: none; stroke: currentColor; stroke-width: 1.6; stroke-linecap: round; stroke-linejoin: round"></path></svg>
+</button>
+</li>
+</sc-for>
+</ul>
+<button type="button" style="min-height: 44px; padding: 0 14px; border-radius: 8px; background: #FFFFFF; color: #1D1C1A; border: 1px solid #CFCCC5; font-size: 14px; font-weight: 500; cursor: pointer">Tout télécharger (.zip)</button>
+</section>
+</aside>
+</div>
+</main>
+</div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1440,"height":1850}}'>
+class Component extends DCLogic {
+  constructor(props) {
+    super(props);
+    this.state = { active: "v2", a: "v2", b: "v1", pub: true, fav: true, tags: ["héros"], draft: "", cols: { vie: true, pack1: true, camp: false } };
+  }
+  renderVals() {
+    const PATH = "M24 62 Q22 28 50 24 Q78 28 76 62 Z M24 62 V76 Q30 80 36 76 V64 M76 62 V76 Q70 80 64 76 V64 M50 24 V14 M38 14 H62";
+    const s = this.state;
+    const V = [
+      { id: "v2", label: "v2", prov: "Pixal3D · ComfyUI local", date: "10 oct.", verdict: "Gardée", kind: "kept", tests: "12/12", tris: "4 980", cost: "0 crédit", note: "Gagnante du banc d'essai : même qualité que la v1, sans crédit.", transform: "translate(50 50) scale(0.9) translate(-50 -50)", ink: "#1D1C1A" },
+      { id: "v1", label: "v1", prov: "Meshy 6", date: "9 oct.", verdict: "Gardée", kind: "kept", tests: "12/12", tris: "5 120", cost: "30 crédits", note: "Gardée en revue le 9 oct., publiée dans Pack itch.io #1.", transform: "translate(50 50) scale(0.86) rotate(-5) translate(-50 -50)", ink: "#3A3833" },
+      { id: "e2", label: "Essai 2", prov: "Meshy 6", date: "9 oct.", verdict: "Rejetée en revue", kind: "reject", tests: "12/12", tris: "5 300", cost: "30 crédits", note: "Motif : protège-joues fondus dans la calotte. Fichiers gardés jusqu'au 8 nov. ; ce motif et l'image restent ensuite.", transform: "translate(50 50) scale(0.95 0.78) translate(-50 -50)", ink: "#6B6760" },
+      { id: "e1", label: "Essai 1", prov: "Meshy 6", date: "9 oct.", verdict: "Échec des tests", kind: "fail", tests: "11/12", tris: "5 900", cost: "30 crédits", note: "Pièces flottantes : protège-joues détachés de la calotte, trop gros pour être supprimés en finition ; relancé automatiquement. Fichiers gardés jusqu'au 8 nov.", transform: "translate(50 50) scale(0.78 0.98) translate(-50 -50)", ink: "#6B6760" }
+    ];
+    const byId = (id) => V.find((v) => v.id === id);
+    const shown = (v) => (s.active === v.id ? "Active" : v.verdict);
+    const TONE = { active: ["#1F6B45", "#FFFFFF"], kept: ["#E3F2EA", "#1F6B45"], reject: ["#FDECEA", "#B42318"], fail: ["#FBEEDC", "#8A4B00"] };
+    const versions = V.map((v) => {
+      const isActive = s.active === v.id;
+      const t = TONE[isActive ? "active" : v.kind];
+      const aOn = s.a === v.id;
+      const bOn = s.b === v.id;
+      return {
+        label: v.label,
+        prov: v.prov,
+        date: v.date,
+        note: v.note,
+        tris: v.tris,
+        tests: v.tests,
+        path: PATH,
+        transform: v.transform,
+        ink: v.ink,
+        badge: shown(v),
+        badgeBg: t[0],
+        badgeFg: t[1],
+        rowBg: isActive ? "#F3F8F5" : "#FFFFFF",
+        canActivate: v.kind === "kept" && !isActive,
+        activate: () => this.setState({ active: v.id }),
+        aOn: aOn,
+        bOn: bOn,
+        aBg: aOn ? "#2B50C8" : "#FFFFFF",
+        aFg: aOn ? "#FFFFFF" : "#1D1C1A",
+        aBd: aOn ? "#2B50C8" : "#CFCCC5",
+        bBg: bOn ? "#5B3FA6" : "#FFFFFF",
+        bFg: bOn ? "#FFFFFF" : "#1D1C1A",
+        bBd: bOn ? "#5B3FA6" : "#CFCCC5",
+        pickA: () => this.setState({ a: v.id }),
+        pickB: () => this.setState({ b: v.id }),
+        aLabel: "Mettre " + v.label + " en A",
+        bLabel: "Mettre " + v.label + " en B"
+      };
+    });
+    const A = byId(s.a);
+    const B = byId(s.b);
+    const keys = [["Générateur", "prov"], ["Date", "date"], ["Triangles", "tris"], ["Tests", "tests"], ["Coût", "cost"]];
+    const cmpRows = keys
+      .map((k) => ({ label: k[0], a: A[k[1]], b: B[k[1]], fw: A[k[1]] !== B[k[1]] ? 600 : 400 }))
+      .concat([{ label: "Verdict", a: shown(A), b: shown(B), fw: shown(A) !== shown(B) ? 600 : 400 }]);
+    const act = byId(s.active);
+    const ALL_MANUAL = ["héros", "fond de scène", "à retravailler"];
+    const addTagValue = (val) => {
+      const v = (val || "").trim().toLowerCase();
+      if (!v || this.state.tags.includes(v)) {
+        this.setState({ draft: "" });
+        return;
+      }
+      this.setState({ tags: this.state.tags.concat([v]), draft: "" });
+    };
+    const tags = s.tags.map((t) => ({
+      label: t,
+      removeLabel: "Retirer l'étiquette " + t,
+      remove: () => this.setState({ tags: this.state.tags.filter((x) => x !== t) })
+    }));
+    const suggestions = ALL_MANUAL.filter((t) => !s.tags.includes(t)).map((t) => ({ label: "+ " + t, add: () => addTagValue(t) }));
+    const COLS = [
+      { k: "vie", label: "Vie du camp", kind: "lot", kindBg: "#F0EEEA", kindFg: "#5E5B55" },
+      { k: "pack1", label: "Pack itch.io #1", kind: "publiée", kindBg: "#E3F2EA", kindFg: "#1F6B45" },
+      { k: "camp", label: "Camp de légionnaires", kind: "lot", kindBg: "#F0EEEA", kindFg: "#5E5B55" }
+    ];
+    const cols = COLS.map((c) => ({
+      id: "col-" + c.k,
+      label: c.label,
+      kind: c.kind,
+      kindBg: c.kindBg,
+      kindFg: c.kindFg,
+      on: !!s.cols[c.k],
+      toggle: () => this.setState({ cols: { ...this.state.cols, [c.k]: !this.state.cols[c.k] } })
+    }));
+    const files = [
+      { name: "ROM_PROP_Casque_A.glb", desc: "glTF 2.0 · fichier maître" },
+      { name: "ROM_PROP_Casque_A.fbx", desc: "pour les moteurs qui le préfèrent" },
+      { name: "ROM_PROP_Casque_A.blend", desc: "source Blender" },
+      { name: "textures/", desc: "base color, normal, ORM" },
+      { name: "meta.json", desc: "provenance et paramètres" }
+    ].map((f) => ({ ...f, dl: "Télécharger " + f.name }));
+    const kept = V.filter((v) => v.kind === "kept").length;
+    return {
+      path: PATH,
+      versions: versions,
+      histSummary: V.length + " générations · " + kept + " gardées · 90 crédits",
+      activeLabel: act.label + " · " + act.prov,
+      activeMeta: act.tris + " tris · " + act.tests + " tests · 0,24 × 0,30 m",
+      activeTransform: act.transform,
+      activeProv: act.prov + " (" + act.label + ")",
+      aName: A.label,
+      bName: B.label,
+      aTransform: A.transform,
+      bTransform: B.transform,
+      cmpRows: cmpRows,
+      pubOn: s.pub,
+      packStale: s.pub && s.active !== "v1",
+      privOn: !s.pub,
+      pubBg: s.pub ? "#FFFFFF" : "transparent",
+      privBg: s.pub ? "transparent" : "#FFFFFF",
+      pubFw: s.pub ? 600 : 400,
+      privFw: s.pub ? 400 : 600,
+      setPub: () => this.setState({ pub: true }),
+      setPriv: () => this.setState({ pub: false }),
+      statusLabel: s.pub ? "Publié" : "Non publié",
+      statusBg: s.pub ? "#E3F2EA" : "#FFFFFF",
+      statusFg: s.pub ? "#1F6B45" : "#3F3D38",
+      statusHint: s.pub ? "Inclus dans tes prochains exports publics et packs publiés." : "Visible seulement par toi ; utilisable dans tes projets.",
+      fav: s.fav,
+      favLabel: s.fav ? "Dans tes favoris" : "Ajouter aux favoris",
+      favFill: s.fav ? "#B07A10" : "none",
+      favStroke: s.fav ? "#B07A10" : "#5E5B55",
+      toggleFav: () => this.setState({ fav: !this.state.fav }),
+      tags: tags,
+      draft: s.draft,
+      onDraft: (e) => this.setState({ draft: e.target.value }),
+      onDraftKey: (e) => { if (e.key === "Enter") addTagValue(this.state.draft); },
+      addTag: () => addTagValue(this.state.draft),
+      hasSuggestions: suggestions.length > 0,
+      suggestions: suggestions,
+      cols: cols,
+      files: files
+    };
+  }
+}
+</script>
+</body>
+</html>

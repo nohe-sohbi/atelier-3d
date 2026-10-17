@@ -1,0 +1,98 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<title>Demande pour Claude Code</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&amp;family=IBM+Plex+Sans:wght@400;500;600&amp;display=swap">
+<style>
+body{margin:0;background:#E7E5E0}
+a{color:#2B50C8}a:hover{color:#1E3A96}
+button,input,textarea,select{font-family:inherit}
+</style>
+</helmet>
+<div style="width: 760px; box-sizing: border-box; padding: 40px; background: #E7E5E0; color: #1D1C1A; font-family: 'IBM Plex Sans', system-ui, sans-serif">
+<div role="dialog" aria-labelledby="cr-title" style="background: #FFFFFF; border: 1px solid #DAD7D0; border-radius: 16px; box-sizing: border-box; overflow: hidden">
+<div style="display: flex; align-items: flex-start; gap: 12px; padding: 22px 24px 16px; border-bottom: 1px solid #ECEAE5">
+<div style="flex: 1 1 auto; min-width: 0">
+<h1 id="cr-title" style="margin: 0; font-size: 20px; font-weight: 600; letter-spacing: -0.01em">Demande pour Claude Code · Râtelier d'armes</h1>
+<p style="margin: 4px 0 0; font-size: 13.5px; line-height: 1.45; color: #5E5B55">Aucun générateur code ne sait fabriquer ce type d'objet. L'app prépare la demande ; Claude Code écrit le script dans ton dépôt.</p>
+</div>
+<a href="Brief.dc.html" aria-label="Fermer" style="width: 40px; height: 40px; flex: none; display: flex; align-items: center; justify-content: center; border-radius: 8px; color: #5E5B55; text-decoration: none"><svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><path d="M3.5 3.5 L12.5 12.5 M12.5 3.5 L3.5 12.5" style="fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round"></path></svg></a>
+</div>
+<div style="padding: 20px 24px; display: flex; flex-direction: column; gap: 14px">
+<div style="display: flex; align-items: center; gap: 8px">
+<span style="font-family: 'IBM Plex Mono', monospace; font-size: 13px; color: #1D1C1A">generators/demandes/ratelier.md</span>
+<span style="padding: 2px 8px; border-radius: 999px; font-size: 12px; font-weight: 600; background: {{ fileBg }}; color: {{ fileFg }}">{{ fileState }}</span>
+</div>
+<pre style="margin: 0; padding: 14px 16px; border-radius: 10px; background: #F7F6F3; border: 1px solid #E3E1DC; font-family: 'IBM Plex Mono', monospace; font-size: 12.5px; line-height: 1.6; color: #1D1C1A; white-space: pre-wrap">{{ md }}</pre>
+<div style="display: flex; flex-direction: column; gap: 6px">
+<span style="font-size: 14px; font-weight: 500">Texte à coller dans Claude Code</span>
+<div style="padding: 10px 14px; border-radius: 8px; border: 1px solid #E3E1DC; font-family: 'IBM Plex Mono', monospace; font-size: 12.5px; line-height: 1.55">Lis generators/demandes/ratelier.md et écris generators/ratelier.py en suivant generators/CONTRAT.md. Lance les tests de finition avant de rendre la main.</div>
+</div>
+<div role="status" style="display: flex; gap: 10px; padding: 12px 14px; border-radius: 10px; background: {{ stBg }}; border: 1px solid {{ stBd }}; font-size: 13.5px; line-height: 1.5">
+<span aria-hidden="true" style="width: 8px; height: 8px; flex: none; margin-top: 7px; border-radius: 50%; background: {{ stDot }}"></span>
+<span>{{ stText }}</span>
+</div>
+</div>
+<div style="display: flex; flex-wrap: wrap; align-items: center; gap: 8px; padding: 16px 24px; border-top: 1px solid #ECEAE5; background: #FAFAF8">
+<a href="Brief.dc.html" style="display: inline-flex; align-items: center; min-height: 44px; padding: 0 4px; font-size: 14px; font-weight: 500">Passer en voie IA à la place</a>
+<span style="flex: 1 1 auto"></span>
+<button type="button" onClick="{{ copy }}" style="min-height: 44px; padding: 0 16px; border-radius: 8px; background: #FFFFFF; color: #1D1C1A; border: 1px solid #CFCCC5; font-size: 14px; font-weight: 500; cursor: pointer">{{ copyLabel }}</button>
+<button type="button" onClick="{{ write }}" disabled="{{ written }}" style="min-height: 44px; padding: 0 18px; border-radius: 8px; background: {{ writeBg }}; color: #FFFFFF; border: 0; font-size: 14px; font-weight: 600; cursor: pointer">{{ writeLabel }}</button>
+</div>
+</div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":760,"height":880}}'>
+class Component extends DCLogic {
+  constructor(props) {
+    super(props);
+    this.state = { written: false, copied: false };
+  }
+  renderVals() {
+    const s = this.state;
+    const md = [
+      "# Générateur à écrire : râtelier d'armes",
+      "",
+      "type        : ratelier_armes",
+      "taille      : grand_prop",
+      "dimensions  : 1,20 × 1,60 m, profondeur 0,40 m",
+      "budget      : 15 000 tris (grand objet, style rome-stylise-v0)",
+      "matériaux   : Bois, Fer (palette du style)",
+      "pivot       : au sol, centré",
+      "référence   : aucune image, s'appuyer sur l'intention",
+      "",
+      "Intention : râtelier vertical en bois, deux traverses,",
+      "cinq emplacements pour pilums, ferrures aux angles.",
+      "",
+      "Paramètres attendus : emplacements, hauteur, usure.",
+      "Demandé par : lot Camp de légionnaires."
+    ].join("\n");
+    return {
+      md: md,
+      written: s.written,
+      fileState: s.written ? "Écrit dans le dépôt" : "Pas encore écrit",
+      fileBg: s.written ? "#E3F2EA" : "#F0EEEA",
+      fileFg: s.written ? "#1F6B45" : "#5E5B55",
+      writeLabel: s.written ? "Demande écrite" : "Écrire dans le dépôt",
+      writeBg: s.written ? "#7FB89A" : "#2B50C8",
+      write: () => this.setState({ written: true }),
+      copyLabel: s.copied ? "Texte copié" : "Copier le texte",
+      copy: () => this.setState({ copied: true }),
+      stText: s.written
+        ? "En attente de generators/ratelier.py. L'app surveille le dossier : dès que le script apparaît et passe ses tests, le râtelier rejoint le lot en voie code. Il apparaît aussi dans Générateurs, section « Générateurs à écrire »."
+        : "Une fois la demande écrite, l'app attend generators/ratelier.py et reprend l'objet tout seul.",
+      stBg: s.written ? "#FBF7EF" : "#F7F6F3",
+      stBd: s.written ? "#EFE2C8" : "#E3E1DC",
+      stDot: s.written ? "#C98A1B" : "#9A968D"
+    };
+  }
+}
+</script>
+</body>
+</html>

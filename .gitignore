@@ -1,0 +1,22 @@
+# Réglages locaux : clés d'API et chemins de ta machine
+config.local.yaml
+
+# Base locale
+atelier.db
+atelier.db-*
+
+# Python
+__pycache__/
+*.pyc
+.venv/
+
+# Node
+node_modules/
+dist/
+
+# Blender
+*.blend1
+
+# Système
+.DS_Store
+Thumbs.db
