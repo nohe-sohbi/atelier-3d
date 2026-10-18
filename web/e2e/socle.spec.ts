@@ -4,7 +4,6 @@ const ENTREES: Array<[string, string, number]> = [
   ["Lots", "Lots", 3],
   ["Bibliothèque", "Bibliothèque", 9],
   ["Générateurs", "Générateurs", 11],
-  ["Styles", "Styles", 2],
   ["Accueil", "Accueil", 11],
 ];
 

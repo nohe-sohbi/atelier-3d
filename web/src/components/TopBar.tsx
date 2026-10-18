@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useId, useRef, useState, type KeyboardEvent } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { api, messageErreur } from "../api/client";
+import { surChangement } from "../api/rafraichissement";
 import type { Notification, Notifications, Recherche, ResultatRecherche } from "../api/types";
 import "./TopBar.css";
 
@@ -173,6 +174,7 @@ function Notifications() {
 
   useEffect(() => {
     charger();
+    return surChangement(charger);
   }, [charger]);
 
   useEffect(() => {

@@ -19,7 +19,7 @@ const PREFIXE = "/api";
 export async function api<T>(chemin: string, init?: RequestInit): Promise<T> {
   const entetes = new Headers(init?.headers);
   entetes.set("Accept", "application/json");
-  if (init?.body !== undefined && !entetes.has("Content-Type")) {
+  if (init?.body !== undefined && !(init.body instanceof FormData) && !entetes.has("Content-Type")) {
     entetes.set("Content-Type", "application/json");
   }
 

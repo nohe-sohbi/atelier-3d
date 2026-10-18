@@ -29,3 +29,6 @@ sources/*/
 # Système
 .DS_Store
 Thumbs.db
+
+# Artefacts d'installation (pip/setuptools)
+build/

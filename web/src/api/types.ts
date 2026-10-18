@@ -194,3 +194,129 @@ export interface ResultatTest {
   message: string;
   details: Record<string, unknown>;
 }
+
+/* ---------- Styles (étape 2) ---------- */
+
+export interface Couleur {
+  nom: string;
+  hex: string;
+}
+
+export interface StyleResume {
+  id: number;
+  code: string;
+  nom: string;
+  version: number;
+  etat: "brouillon" | "valide";
+  direction: "stylise" | "semi_realiste";
+  description: string;
+  palette: Couleur[];
+  usage: { lots: number; assets: number };
+  cree_le: string;
+  valide_le: string | null;
+  /** Présent quand le fichier style.yaml ne se lit plus. */
+  erreur?: string;
+}
+
+export interface Styles {
+  styles: StyleResume[];
+}
+
+export interface MateriauStyle {
+  nom: string;
+  base: string;
+  hex: string;
+  roughness: number;
+  metallic: number;
+  usage_assets: number;
+}
+
+export interface BudgetStyle {
+  cle: string;
+  libelle: string;
+  tris: number | null;
+  textures_px: number | null;
+}
+
+export interface ImagePlanche {
+  id: number;
+  fichier: string;
+  objet: string;
+  gardee: boolean;
+  simule: boolean;
+  credits: number;
+  cree_le: string;
+  url: string;
+}
+
+export interface VersionStyle {
+  id: number;
+  code: string;
+  version: number;
+  note: string;
+  date: string;
+  etat: string;
+}
+
+export interface StyleDetail extends StyleResume {
+  theme: string;
+  note_version: string;
+  parent_id: number | null;
+  racine_id: number;
+  materiaux: MateriauStyle[];
+  budgets: BudgetStyle[];
+  texel_density: number;
+  unite: string;
+  tolerances: Record<string, number>;
+  dimensions_m: Record<string, number[]>;
+  objets_planche: string[];
+  prompts_reference: Record<string, string>;
+  planche: ImagePlanche[];
+  credits_planche: number;
+  inspirations: string[];
+  versions: VersionStyle[];
+  lots: { id: number; nom: string }[];
+  peut_modifier: boolean;
+}
+
+/** Corps de POST /api/styles. */
+export interface StyleEnvoye {
+  nom: string;
+  code?: string;
+  description: string;
+  direction?: "stylise" | "semi_realiste";
+  palette: Record<string, string>;
+  budgets_depuis: number | null;
+  budgets?: Record<string, number>;
+  texel_density?: number;
+  dimensions_m?: Record<string, number[]>;
+}
+
+/** Corps de PUT /api/styles/{id} (tous facultatifs). */
+export interface StyleModifie {
+  nom?: string;
+  description?: string;
+  palette?: Record<string, string>;
+  budgets_tris?: Record<string, number>;
+  texel_density_px_per_m?: number;
+}
+
+export interface TacheLancee {
+  tache_id: number;
+  credits_estimes: number;
+}
+
+/* ---------- Tâches ---------- */
+
+export type EtatTache = "en_attente" | "en_cours" | "terminee" | "echouee" | "annulee";
+
+export interface Tache {
+  id: number;
+  type: string;
+  file: string;
+  etat: EtatTache;
+  erreur: string | null;
+  tentatives: number;
+  max_tentatives: number;
+  resultat: { progression?: { pct: number; texte: string } } | null;
+}

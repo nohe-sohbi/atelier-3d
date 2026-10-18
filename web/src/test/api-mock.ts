@@ -1,5 +1,5 @@
 import { vi } from "vitest";
-import type { Menu, Notifications, Recherche, Reglages, ResultatTest } from "../api/types";
+import type { Menu, Notifications, Recherche, Reglages, ResultatTest, StyleDetail, Styles } from "../api/types";
 import contrat from "./contrat.json";
 
 type Reponse = unknown | ((init: RequestInit | undefined, url: URL) => unknown);
@@ -51,4 +51,6 @@ export const NOTIFICATIONS = depuis<Notifications>("GET /api/notifications#rempl
 export const RECHERCHE_VIDE = depuis<Recherche>("GET /api/recherche?q=");
 export const REGLAGES_DEFAUT = depuis<Reglages>("GET /api/reglages");
 export const REGLAGES = depuis<Reglages>("GET /api/reglages#rempli");
+export const STYLES = depuis<Styles>("GET /api/styles");
+export const STYLE_DETAIL = depuis<StyleDetail>("GET /api/styles/{id}");
 export const TEST_CONNEXION = (service: string) => depuis<ResultatTest>(`POST /api/reglages/tester/${service}`);

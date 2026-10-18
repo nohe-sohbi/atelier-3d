@@ -1,7 +1,7 @@
 /* Lance et arrête `python dev.py` pour les tests bout en bout. Rien ne touche la vraie base ni la
    vraie config : ATELIER_DB, ATELIER_CONFIG et ATELIER_LOTS pointent dans un dossier temporaire. */
 import { spawn, type ChildProcess } from "node:child_process";
-import { copyFileSync, existsSync, mkdirSync, mkdtempSync, openSync, readFileSync, rmSync, writeFileSync } from "node:fs";
+import { copyFileSync, cpSync, existsSync, mkdirSync, mkdtempSync, openSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
@@ -38,6 +38,8 @@ async function attendre(url: string, delaiMs: number): Promise<boolean> {
 export async function demarrer(): Promise<void> {
   const dossier = mkdtempSync(join(tmpdir(), "atelier-e2e-"));
   mkdirSync(join(dossier, "lots"));
+  // Les styles créés par les tests vont dans un dossier temporaire ; le style pilote du dépôt y est copié.
+  cpSync(join(RACINE, "style", "rome-stylise-v0"), join(dossier, "style", "rome-stylise-v0"), { recursive: true });
   const journal = join(dossier, "dev.log");
   const sortie = openSync(journal, "a");
   const env = {
@@ -45,6 +47,7 @@ export async function demarrer(): Promise<void> {
     ATELIER_DB: join(dossier, "atelier.db"),
     ATELIER_CONFIG: join(dossier, "config.local.yaml"),
     ATELIER_LOTS: join(dossier, "lots"),
+    ATELIER_STYLES: join(dossier, "style"),
     ATELIER_DEV_SANS_VENV: "1",
   };
   const proc: ChildProcess = spawn(python(), ["dev.py", "--sans-navigateur", "--sans-couleur"], {

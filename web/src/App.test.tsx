@@ -1,13 +1,15 @@
 import { screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { MENU_VIDE, NOTIFICATIONS, REGLAGES, mockApi } from "./test/api-mock";
+import { MENU_VIDE, NOTIFICATIONS, REGLAGES, STYLES, STYLE_DETAIL, mockApi } from "./test/api-mock";
 import { rendreApp } from "./test/rendre";
 
 const API = {
   "GET /api/menu": MENU_VIDE,
   "GET /api/notifications": NOTIFICATIONS,
   "GET /api/reglages": REGLAGES,
+  "GET /api/styles": STYLES,
+  [`GET /api/styles/${STYLE_DETAIL.id}`]: STYLE_DETAIL,
 };
 
 afterEach(() => vi.unstubAllGlobals());
@@ -34,7 +36,8 @@ describe("Navigation", () => {
     expect(screen.getByText("Arrive à l'étape 11 du plan")).toBeInTheDocument();
 
     await utilisateur.click(menu.getByRole("link", { name: "Styles" }));
-    expect(screen.getByText("Arrive à l'étape 2 du plan")).toBeInTheDocument();
+    expect(screen.getByRole("heading", { level: 1, name: "Styles" })).toBeInTheDocument();
+    expect(await screen.findByRole("button", { name: /Rome antique stylisée/ })).toBeInTheDocument();
 
     await utilisateur.click(menu.getByRole("link", { name: "Accueil" }));
     expect(screen.getByText("Arrive à l'étape 11 du plan")).toBeInTheDocument();
@@ -53,7 +56,6 @@ describe("Navigation", () => {
     ["/bibliotheque", "Bibliothèque", 9],
     ["/assets/ROM_PROP_Scutum_A", "Fiche asset", 9],
     ["/generateurs", "Générateurs", 11],
-    ["/styles", "Styles", 2],
   ])("%s (%s) affiche « Arrive à l'étape %i du plan »", async (chemin, titre, etape) => {
     mockApi(API);
     rendreApp(chemin);
