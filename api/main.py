@@ -80,7 +80,7 @@ def create_app() -> FastAPI:
         @app.get("/{chemin:path}", include_in_schema=False)
         async def spa(chemin: str):
             if chemin.startswith("api/"):
-                raise HTTPException(404, "route inconnue")
+                raise HTTPException(404, "Not Found")  # même réponse qu'en développement (sans web/dist)
             fichier = (dist / chemin).resolve() if chemin else index
             if chemin and fichier.is_file() and dist.resolve() in fichier.parents:
                 return FileResponse(fichier)
