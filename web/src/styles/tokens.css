@@ -1,0 +1,28 @@
+/* Couleurs et polices de la maquette (docs/maquette/README.md). Jamais de couleur en dur ailleurs. */
+:root {
+  --accent: #2b50c8;
+  --accent-sombre: #1e3a96;
+  --accent-clair: #e8edfb;
+  --texte: #1d1c1a;
+  --texte-secondaire: #5e5b55;
+  --bordure: #e3e1dc;
+  --bordure-forte: #cfccc5;
+  --fond: #f5f4f1;
+  --blanc: #ffffff;
+  --neutre: #f0eeea;
+  --separateur: #eceae5;
+  --succes: #1f6b45;
+  --succes-fond: #e3f2ea;
+  --alerte: #8a4b00;
+  --alerte-fond: #fbf7ef;
+  --erreur: #b42318;
+  --erreur-fond: #fbeae8;
+
+  --police: "IBM Plex Sans", system-ui, sans-serif;
+  --police-mono: "IBM Plex Mono", ui-monospace, monospace;
+
+  --rayon: 8px;
+  --rayon-carte: 12px;
+  --cible: 44px;
+  --sidebar-largeur: 240px;
+}
