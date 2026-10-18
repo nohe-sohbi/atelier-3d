@@ -135,10 +135,19 @@ export interface MeshySolde {
   mode: "simule" | "reel";
 }
 
+/** Présence des outils, sans les lancer (à l'ouverture de l'écran). Blender absent → un chemin suggéré. */
+export interface PresenceOutils {
+  blender: { present: boolean; suggestion: string | null };
+  gltf_validator: { present: boolean };
+  butler: { present: boolean };
+  git_lfs: { present: boolean };
+}
+
 export interface ReglagesEtat {
   meshy_solde: MeshySolde | null;
   /** Suivi des dépenses : arrive à l'étape 4 du plan. */
   claude_depense_mois: null;
+  outils: PresenceOutils;
 }
 
 export interface Reglages {
@@ -173,9 +182,11 @@ export type ServiceTestable =
   | "itchio"
   | "blender"
   | "gltf_validator"
-  | "butler";
+  | "butler"
+  | "git_lfs";
 
-export type EtatTest = "Connecté" | "Détecté" | "Joignable" | "Erreur";
+/** « Introuvable » : l'outil n'est pas sur la machine ; jamais affiché en vert. */
+export type EtatTest = "Connecté" | "Détecté" | "Joignable" | "Introuvable" | "Erreur";
 
 export interface ResultatTest {
   ok: boolean;

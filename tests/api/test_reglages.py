@@ -143,8 +143,11 @@ def test_tester_services_simules(client):
 
 def test_tester_blender_sans_chemin(client):
     j = client.post("/api/reglages/tester/blender").json()
-    assert j["ok"] is False and j["etat"] == "Erreur"
+    assert j["ok"] is False and j["etat"] == "Introuvable" and "suggestion" in j["details"]
     assert client.get("/api/sante").json()["blender"] is False
+    etat = client.get("/api/reglages").json()["etat"]["outils"]
+    assert set(etat) == {"blender", "gltf_validator", "butler", "git_lfs"}
+    assert etat["blender"]["present"] is False and "suggestion" in etat["blender"]
 
 
 def test_tester_gltf_validator_introuvable(client):
@@ -152,7 +155,7 @@ def test_tester_gltf_validator_introuvable(client):
     corps["outils"]["gltf_validator"]["chemin"] = "/chemin/qui/nexiste/pas"
     client.put("/api/reglages", json=corps)
     j = client.post("/api/reglages/tester/gltf_validator").json()
-    assert j["ok"] is False and j["etat"] == "Erreur" and "introuvable" in j["message"]
+    assert j["ok"] is False and j["etat"] == "Introuvable" and "introuvable" in j["message"]
 
 
 def test_reel_sans_cle_ne_casse_pas_la_route(client, conn):

@@ -94,7 +94,7 @@ class ReglagesIn(_Modele):
 
 def _etat(conn, cfg: dict) -> dict:
     solde = credits_svc.solde_meshy(conn, cfg)
-    return {"meshy_solde": solde, "claude_depense_mois": None}
+    return {"meshy_solde": solde, "claude_depense_mois": None, "outils": outils.presence_outils(cfg)}
 
 
 def _reponse(conn, cfg: dict) -> dict:
@@ -116,7 +116,7 @@ def ecrire_reglages(reglages: ReglagesIn, conn: Db, cfg: Config) -> dict:
 
 # --- tests de connexion ----------------------------------------------------
 
-Service = Literal["meshy", "claude", "comfyui", "itchio", "blender", "gltf_validator", "butler"]
+Service = Literal["meshy", "claude", "comfyui", "itchio", "blender", "gltf_validator", "butler", "git_lfs"]
 
 
 @router.post("/tester/{service}")
@@ -134,6 +134,8 @@ def tester(service: Service, conn: Db, cfg: Config) -> dict:
             res = outils.tester_blender(cfg)
         elif service == "gltf_validator":
             res = outils.tester_gltf_validator(cfg)
+        elif service == "git_lfs":
+            res = outils.tester_git_lfs()
         else:  # pragma: no cover
             raise HTTPException(404, f"service inconnu : {service}")
     except HTTPException:

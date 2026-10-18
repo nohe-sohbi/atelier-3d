@@ -88,7 +88,22 @@
         "utilises": 0,
         "mode": "simule"
       },
-      "claude_depense_mois": null
+      "claude_depense_mois": null,
+      "outils": {
+        "blender": {
+          "present": false,
+          "suggestion": null
+        },
+        "gltf_validator": {
+          "present": false
+        },
+        "butler": {
+          "present": false
+        },
+        "git_lfs": {
+          "present": true
+        }
+      }
     }
   },
   "POST /api/reglages/tester/meshy": {
@@ -144,14 +159,16 @@
   },
   "POST /api/reglages/tester/blender": {
     "ok": false,
-    "etat": "Erreur",
-    "message": "Aucun chemin Blender renseigné",
-    "details": {}
+    "etat": "Introuvable",
+    "message": "Aucun Blender renseigné : installe Blender 5.2 LTS (blender.org) ou colle le chemin de l'exécutable",
+    "details": {
+      "suggestion": null
+    }
   },
   "POST /api/reglages/tester/gltf_validator": {
     "ok": false,
-    "etat": "Erreur",
-    "message": "glTF-Validator introuvable (gltf_validator)",
+    "etat": "Introuvable",
+    "message": "glTF-Validator introuvable (gltf_validator) : installe-le depuis github.com/KhronosGroup/glTF-Validator et renseigne son chemin",
     "details": {}
   },
   "GET /api/nexistepas": {
@@ -266,7 +283,22 @@
         "utilises": 60,
         "mode": "simule"
       },
-      "claude_depense_mois": null
+      "claude_depense_mois": null,
+      "outils": {
+        "blender": {
+          "present": false,
+          "suggestion": null
+        },
+        "gltf_validator": {
+          "present": false
+        },
+        "butler": {
+          "present": false
+        },
+        "git_lfs": {
+          "present": true
+        }
+      }
     }
   }
 }

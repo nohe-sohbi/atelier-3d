@@ -192,4 +192,42 @@ describe("Réglages", () => {
     expect(await screen.findByRole("alert")).toHaveTextContent("Fichier illisible");
     expect(screen.getByRole("button", { name: "Réessayer" })).toBeInTheDocument();
   });
+
+  it("un outil absent est « Introuvable » dès l'ouverture ; le Blender trouvé sur la machine se colle d'un clic", async () => {
+    const sansBlender: ReglagesApi = {
+      ...REGLAGES,
+      outils: { ...REGLAGES.outils, blender: { chemin: "" } },
+      etat: {
+        ...REGLAGES.etat,
+        outils: { ...REGLAGES.etat.outils, blender: { present: false, suggestion: "/opt/blender/blender" }, gltf_validator: { present: false }, git_lfs: { present: true } },
+      },
+    };
+    monter({ "GET /api/reglages": sansBlender });
+    const utilisateur = userEvent.setup();
+    rendreApp("/reglages");
+    await screen.findByLabelText("Canal");
+    const carte = (nom: string) => within(screen.getByRole("heading", { level: 3, name: nom }).closest(".reglages__carte") as HTMLElement);
+    expect(carte("Blender").getByText("Introuvable")).toBeInTheDocument();
+    expect(carte("Blender").getByText("Introuvable")).not.toHaveClass("pastille--succes");
+    expect(carte("glTF-Validator").getByText("Introuvable")).toBeInTheDocument();
+    expect(carte("Bibliothèque").getByText("Non testé")).toBeInTheDocument();
+
+    await utilisateur.click(carte("Blender").getByRole("button", { name: /Utiliser ce chemin/ }));
+    expect(screen.getByLabelText("Exécutable", { selector: "#blender-path" })).toHaveValue("/opt/blender/blender");
+    expect(carte("Blender").queryByRole("button", { name: /Utiliser ce chemin/ })).not.toBeInTheDocument();
+  });
+
+  it("Tester Git LFS appelle /api/reglages/tester/git_lfs et affiche le résultat", async () => {
+    const { appels } = monter({
+      "POST /api/reglages/tester/git_lfs": { ok: true, etat: "Détecté", message: "Git LFS 3.4.1, suit .blend, .glb, .fbx, .png", details: {} },
+    });
+    const utilisateur = userEvent.setup();
+    rendreApp("/reglages");
+    await screen.findByLabelText("Canal");
+    const carte = within(screen.getByRole("heading", { level: 3, name: "Bibliothèque" }).closest(".reglages__carte") as HTMLElement);
+    await utilisateur.click(carte.getByRole("button", { name: "Tester Git LFS" }));
+    expect(await carte.findByText("Détecté")).toBeInTheDocument();
+    expect(carte.getByText(/suit \.blend/)).toBeInTheDocument();
+    expect(appels.some((a) => a.methode === "POST" && a.chemin === "/api/reglages/tester/git_lfs")).toBe(true);
+  });
 });

@@ -3,6 +3,7 @@ import { api, messageErreur } from "../../api/client";
 import type {
   AlertePct,
   ModeleClaude,
+  PresenceOutils,
   Reglages as ReglagesApi,
   ReglagesEnvoyes,
   RenouvellementJour,
@@ -22,8 +23,20 @@ interface EtatService {
   ok: boolean | null;
 }
 
-const SERVICES_TESTABLES: ServiceTestable[] = ["meshy", "claude", "comfyui", "itchio", "blender", "gltf_validator", "butler"];
+const SERVICES_TESTABLES: ServiceTestable[] = ["meshy", "claude", "comfyui", "itchio", "blender", "gltf_validator", "butler", "git_lfs"];
+const OUTILS = ["blender", "gltf_validator", "butler", "git_lfs"] as const;
 const ETAT_INITIAL: EtatService = { etat: "Non testé", message: "", ok: null };
+
+/** À l'ouverture : « Non testé », sauf un outil absent de la machine, dit « Introuvable » tout de suite. */
+function testsInitiaux(presence: PresenceOutils | undefined): Record<ServiceTestable, EtatService> {
+  const base = Object.fromEntries(SERVICES_TESTABLES.map((s) => [s, ETAT_INITIAL])) as Record<ServiceTestable, EtatService>;
+  if (presence) {
+    for (const outil of OUTILS) {
+      if (!presence[outil].present) base[outil] = { etat: "Introuvable", message: "", ok: false };
+    }
+  }
+  return base;
+}
 const DUREE_CONFIRMATION_MS = 4000;
 
 const formatNombre = new Intl.NumberFormat("fr-FR");
@@ -56,9 +69,7 @@ export function Reglages() {
   const [erreurEnregistrement, setErreurEnregistrement] = useState<string | null>(null);
   const [cles, setCles] = useState<Record<ServiceAvecCle, string>>({ meshy: "", claude: "", itchio: "" });
   const [effacees, setEffacees] = useState<Record<ServiceAvecCle, boolean>>({ meshy: false, claude: false, itchio: false });
-  const [tests, setTests] = useState<Record<ServiceTestable, EtatService>>(
-    () => Object.fromEntries(SERVICES_TESTABLES.map((s) => [s, ETAT_INITIAL])) as Record<ServiceTestable, EtatService>,
-  );
+  const [tests, setTests] = useState<Record<ServiceTestable, EtatService>>(() => testsInitiaux(undefined));
   const [enregistrement, setEnregistrement] = useState(false);
   const [confirmation, setConfirmation] = useState<string | null>(null);
   const refMinuteur = useRef<number | undefined>(undefined);
@@ -71,6 +82,7 @@ export function Reglages() {
       setBrouillon(sansEtat(r));
       setCles({ meshy: "", claude: "", itchio: "" });
       setEffacees({ meshy: false, claude: false, itchio: false });
+      setTests(testsInitiaux(r.etat.outils));
     } catch (e) {
       setErreurChargement(messageErreur(e));
     }
@@ -397,6 +409,15 @@ export function Reglages() {
               value={outils.blender.chemin}
               onChange={(e) => modifier((b) => (b.outils.blender.chemin = e.target.value))}
             />
+            {!outils.blender.chemin && etat.outils.blender.suggestion ? (
+              <button
+                type="button"
+                className="bouton bouton--petit"
+                onClick={() => modifier((b) => (b.outils.blender.chemin = etat.outils.blender.suggestion ?? ""))}
+              >
+                Utiliser ce chemin : <span className="mono">{etat.outils.blender.suggestion}</span>
+              </button>
+            ) : null}
             <p className="note">Générateurs code, finition, tests, rendus et export FBX. Version figée : tous les lots passent par le même Blender.</p>
           </div>
 
@@ -453,7 +474,11 @@ export function Reglages() {
           <div className="reglages__carte reglages__carte--outil">
             <div className="reglages__entete reglages__entete--outil">
               <h3>Bibliothèque</h3>
-              <span className="pastille pastille--succes">Git LFS</span>
+              <Pastille etat={tests.git_lfs.etat} />
+              <button type="button" className="bouton bouton--petit" onClick={() => tester("git_lfs")} disabled={tests.git_lfs.etat === "Test en cours…"}>
+                Tester Git LFS
+              </button>
+              {messageTest("git_lfs")}
             </div>
             <label htmlFor="lib-path" className="reglages__etiquette">
               Dossier

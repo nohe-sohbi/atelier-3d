@@ -12,6 +12,7 @@ from typing import Any
 import httpx
 
 from api import chemins
+from api.resultat import resultat_test  # noqa: F401 - réexporté pour les adaptateurs
 
 TIMEOUT_S = 30.0
 _cadenas = threading.RLock()
@@ -91,6 +92,3 @@ def erreur_http(e: Exception) -> str:
         return f"injoignable ({type(e).__name__})"
     return f"{type(e).__name__}: {e}"
 
-
-def resultat_test(ok: bool, etat: str, message: str, details: dict | None = None) -> dict:
-    return {"ok": ok, "etat": etat if ok else "Erreur", "message": message, "details": details or {}}

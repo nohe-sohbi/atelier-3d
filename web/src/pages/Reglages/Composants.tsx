@@ -5,7 +5,7 @@ export type EtatPastille = EtatTest | "Non testé" | "Test en cours…";
 
 export function Pastille({ etat }: { etat: EtatPastille }) {
   const ton =
-    etat === "Erreur" ? "erreur" : etat === "Non testé" || etat === "Test en cours…" ? "neutre" : "succes";
+    etat === "Erreur" || etat === "Introuvable" ? "erreur" : etat === "Non testé" || etat === "Test en cours…" ? "neutre" : "succes";
   return (
     <span className={`pastille pastille--${ton}`} role="status">
       {etat}
