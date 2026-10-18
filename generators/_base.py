@@ -724,3 +724,36 @@ def distance_point_segment(p: tuple[float, float], a: tuple[float, float],
     l2 = dx * dx + dy * dy
     t = 0.0 if l2 < 1e-18 else max(0.0, min(1.0, ((px - ax) * dx + (py - ay) * dy) / l2))
     return math.hypot(px - (ax + t * dx), py - (ay + t * dy))
+
+
+def profil_lisse(points: Sequence[tuple[float, float]], subdivisions: int = 2,
+                 tension: float = 0.5) -> list[tuple[float, float]]:
+    """Spline de Catmull-Rom passant par les points de contrôle (r, z) : `subdivisions`
+    points intermédiaires entre deux contrôles. Les points de contrôle sont conservés tels
+    quels (un rayon nul aux bouts reste un pôle)."""
+    pts = [(float(a), float(b)) for a, b in points]
+    if len(pts) < 3 or subdivisions <= 0:
+        return pts
+    etendu = [pts[0]] + pts + [pts[-1]]
+    resultat: list[tuple[float, float]] = []
+    for i in range(1, len(etendu) - 2):
+        p0, p1, p2, p3 = etendu[i - 1], etendu[i], etendu[i + 1], etendu[i + 2]
+        resultat.append(p1)
+        for k in range(1, subdivisions + 1):
+            t = k / (subdivisions + 1)
+            t2, t3 = t * t, t * t * t
+            coords = []
+            for d in (0, 1):
+                a0, a1, a2, a3 = p0[d], p1[d], p2[d], p3[d]
+                m1 = tension * (a2 - a0)
+                m2 = tension * (a3 - a1)
+                coords.append((2 * t3 - 3 * t2 + 1) * a1 + (t3 - 2 * t2 + t) * m1
+                              + (-2 * t3 + 3 * t2) * a2 + (t3 - t2) * m2)
+            resultat.append((max(0.0, coords[0]), coords[1]))
+    resultat.append(pts[-1])
+    return resultat
+
+
+def anneaux_depuis_sections(sections: Sequence[tuple], n: int) -> list[list[tuple[float, float, float]]]:
+    """[(z, forme, a, b), ...] -> anneaux polaires de n points (pour loft)."""
+    return [section_polaire(forme, n, a, b, z) for z, forme, a, b in sections]
