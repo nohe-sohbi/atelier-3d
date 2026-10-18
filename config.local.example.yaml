@@ -1,0 +1,48 @@
+# Copie ce fichier en config.local.yaml (ignoré par Git) et adapte les chemins et clés.
+# Les clés de l'exemple sont vides ; tout est en mode "simule" par défaut.
+
+blender:
+  # Chemin de l'exécutable Blender 5.2 LTS. Sous Windows :
+  # C:\Program Files\Blender Foundation\Blender 5.2\blender.exe
+  chemin: ""
+  # Alternative sans Blender installé : un Python qui a le module bpy (pip install bpy==5.2.2).
+  python_bpy: ""
+
+gltf_validator:
+  chemin: "gltf_validator"
+
+butler:
+  chemin: "butler"
+
+services:
+  meshy:
+    mode: simule          # simule | reel
+    cle_api: ""
+    credits_mensuels: 1000
+    renouvellement: ""    # date ISO, saisie à la main (l'API ne la donne pas)
+    alerte_pct: 80
+  claude:
+    mode: simule
+    cle_api: ""
+    modele: claude-sonnet-5-5
+    plafond_mensuel_usd: 5.0
+  comfyui:
+    mode: simule
+    url: "http://127.0.0.1:8188"
+  itchio:
+    mode: simule
+    compte: ""
+    cle_api: ""
+
+files:
+  # Trois files en parallèle : carte graphique (1 tâche), Meshy, Blender.
+  gpu: 1
+  meshy: 2
+  blender: 1
+  relances_max: 3
+
+notifications:
+  bureau: false
+
+stockage:
+  purge_rejets_jours: 30
