@@ -1,5 +1,6 @@
 import type { ReactElement } from "react";
 import { PageAVenir } from "./components/PageAVenir";
+import { Reglages } from "./pages/Reglages/Reglages";
 
 export interface Route {
   chemin: string;
@@ -15,6 +16,7 @@ export const ROUTES: Route[] = [
   { chemin: "/assets/:id", titre: "Fiche asset", element: <PageAVenir titre="Fiche asset" etape={9} /> },
   { chemin: "/generateurs", titre: "Générateurs", element: <PageAVenir titre="Générateurs" etape={11} /> },
   { chemin: "/styles", titre: "Styles", element: <PageAVenir titre="Styles" etape={2} /> },
+  { chemin: "/reglages", titre: "Réglages", element: <Reglages /> },
   { chemin: "/lots/:id/brief", titre: "Brief", element: <PageAVenir titre="Brief" etape={3} /> },
   { chemin: "/lots/:id/references", titre: "Références", element: <PageAVenir titre="Références" etape={6} /> },
   { chemin: "/lots/:id/generation", titre: "Génération", element: <PageAVenir titre="Génération" etape={4} /> },

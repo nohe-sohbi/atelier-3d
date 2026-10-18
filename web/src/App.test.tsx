@@ -38,6 +38,9 @@ describe("Navigation", () => {
 
     await utilisateur.click(menu.getByRole("link", { name: "Accueil" }));
     expect(screen.getByText("Arrive à l'étape 11 du plan")).toBeInTheDocument();
+
+    await utilisateur.click(screen.getByRole("link", { name: "Réglages" }));
+    expect(await screen.findByRole("heading", { level: 1, name: "Réglages" })).toBeInTheDocument();
   });
 
   it.each([

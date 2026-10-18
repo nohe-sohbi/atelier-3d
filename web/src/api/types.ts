@@ -96,7 +96,7 @@ export interface ReglagesServices {
 }
 
 export interface ReglagesOutils {
-  blender: { chemin: string; python_bpy: string };
+  blender: { chemin: string };
   gltf_validator: { chemin: string };
   butler: { chemin: string };
 }
@@ -121,12 +121,15 @@ export interface ReglagesNotifications {
 export interface MeshySolde {
   restants: number;
   total: number;
-  lu_le: string;
+  utilises: number;
+  /** Mode de l'adaptateur qui a donné ce solde : « simule » doit se voir à l'écran. */
+  mode: "simule" | "reel";
 }
 
 export interface ReglagesEtat {
   meshy_solde: MeshySolde | null;
-  claude_depense_mois: { usd: number; briefs: number; avis: number };
+  /** Suivi des dépenses : arrive à l'étape 4 du plan. */
+  claude_depense_mois: null;
 }
 
 export interface Reglages {

@@ -76,12 +76,12 @@ export const REGLAGES: Reglages = {
     comfyui: { mode: "simule", url: "http://127.0.0.1:8188" },
     itchio: { mode: "simule", cle_api_definie: true, cle_api_apercu: "••••zz99", compte: "mon-compte", canal: "assets" },
   },
-  outils: { blender: { chemin: "/usr/bin/blender", python_bpy: "" }, gltf_validator: { chemin: "gltf_validator" }, butler: { chemin: "butler" } },
+  outils: { blender: { chemin: "/usr/bin/blender" }, gltf_validator: { chemin: "gltf_validator" }, butler: { chemin: "butler" } },
   bibliotheque: { dossier: "assets/", purge_rejets_jours: 30 },
   files: { gpu: 1, meshy: 3, blender: 2, relances_max: 3 },
   notifications: { app: true, bureau: false },
   etat: {
-    meshy_solde: { restants: 574, total: 1000, lu_le: "2026-10-18T08:00:00Z" },
-    claude_depense_mois: { usd: 0.45, briefs: 5, avis: 14 },
+    meshy_solde: { restants: 574, total: 1000, utilises: 426, mode: "simule" },
+    claude_depense_mois: null,
   },
 };
