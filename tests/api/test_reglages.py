@@ -120,10 +120,12 @@ def test_put_validation_422(client):
     ]
     for modif in cas:
         c = copy.deepcopy(corps)
+        c["services"]["claude"]["cle_api"] = "sk-ant-secret-zz99"  # une clé dans un corps refusé ne doit jamais ressortir
         modif(c)
         r = client.put("/api/reglages", json=c)
         assert r.status_code == 422, (modif, r.text)
-        assert r.json()["erreur"] == "Valeurs invalides"
+        assert r.json()["erreur"] == "Valeurs invalides" and "secret" not in r.text
+        assert all(set(d) == {"type", "loc", "msg"} for d in r.json()["detail"])
     # Rien n'a été écrit entre-temps.
     assert client.get("/api/reglages").json()["files"] == corps["files"]
 
@@ -166,3 +168,15 @@ def test_reel_sans_cle_ne_casse_pas_la_route(client, conn):
     assert client.post("/api/reglages/tester/meshy").json()["ok"] is False
     assert conn.execute("SELECT 1 FROM evenements WHERE type = 'meshy_injoignable'").fetchall()
     assert client.get("/api/menu").json()["credits"] is None  # même source que la jauge du menu
+
+
+def test_section_vide_dans_le_yaml_ne_casse_rien(client, atelier):
+    """`blender:` laissé sans rien dessous à la main : les défauts s'appliquent, l'API répond."""
+    texte = atelier.config.read_text(encoding="utf-8").replace('  chemin: ""\n', "", 1)
+    assert "blender:\n\ngltf" in texte or "blender:\n" in texte
+    atelier.config.write_text(texte, encoding="utf-8")
+    assert client.get("/api/sante").status_code == 200
+    r = client.get("/api/reglages")
+    assert r.status_code == 200 and r.json()["outils"]["blender"] == {"chemin": ""}
+    corps = _base(client)
+    assert client.put("/api/reglages", json=corps).status_code == 200

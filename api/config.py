@@ -32,6 +32,8 @@ def _fusionner(defaut: dict, surcharge: dict) -> dict:
     for k, v in (surcharge or {}).items():
         if isinstance(v, dict) and isinstance(out.get(k), dict):
             out[k] = _fusionner(out[k], v)
+        elif v is None and isinstance(out.get(k), dict):
+            continue  # section laissée vide à la main (`blender:` sans rien dessous) : on garde les défauts
         else:
             out[k] = v
     return out
@@ -170,8 +172,12 @@ def appliquer_reglages(cfg: dict, reglages: dict) -> dict:
             elif k not in ("cle_api_definie", "cle_api_apercu"):
                 cible[k] = v
     for outil, champs in reglages.get("outils", {}).items():
-        cfg.setdefault(outil, {}).update(champs)
+        if not isinstance(cfg.get(outil), dict):
+            cfg[outil] = {}
+        cfg[outil].update(champs)
     for section in ("bibliotheque", "files", "notifications"):
         if section in reglages:
-            cfg.setdefault(section, {}).update(reglages[section])
+            if not isinstance(cfg.get(section), dict):
+                cfg[section] = {}
+            cfg[section].update(reglages[section])
     return cfg

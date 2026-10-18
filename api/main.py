@@ -70,12 +70,16 @@ def create_app() -> FastAPI:
 
     @app.exception_handler(RequestValidationError)
     async def _validation(request: Request, exc: RequestValidationError):
-        return JSONResponse({"erreur": "Valeurs invalides", "detail": exc.errors()}, status_code=422)
+        # Seulement type, loc et msg : `input` répéterait le corps envoyé, clés d'API comprises.
+        detail = [{k: e.get(k) for k in ("type", "loc", "msg")} for e in exc.errors()]
+        return JSONResponse({"erreur": "Valeurs invalides", "detail": detail}, status_code=422)
 
     @app.exception_handler(Exception)
     async def _interne(request: Request, exc: Exception):
         log.exception("erreur interne sur %s", request.url.path)
-        return JSONResponse({"erreur": f"{type(exc).__name__}: {exc}", "detail": None}, status_code=500)
+        # Le détail reste dans le journal : un message d'exception peut contenir un chemin ou un extrait de fichier.
+        return JSONResponse({"erreur": f"Erreur interne ({type(exc).__name__}) : voir le journal de l'API",
+                             "detail": None}, status_code=500)
 
     dist = chemins.dossier_web_dist()
     index = dist / "index.html"
@@ -85,7 +89,7 @@ def create_app() -> FastAPI:
 
         @app.get("/{chemin:path}", include_in_schema=False)
         async def spa(chemin: str):
-            if chemin.startswith("api/"):
+            if chemin == "api" or chemin.startswith("api/"):
                 raise HTTPException(404, "Not Found")  # même réponse qu'en développement (sans web/dist)
             fichier = (dist / chemin).resolve() if chemin else index
             if chemin and fichier.is_file() and dist.resolve() in fichier.parents:

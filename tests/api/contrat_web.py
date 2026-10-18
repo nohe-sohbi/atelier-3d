@@ -83,7 +83,11 @@ def generer() -> dict:
         shutil.copytree(chemins.racine() / "style" / "rome-stylise-v0", racine / "style" / "rome-stylise-v0")
         env = {"ATELIER_DB": str(racine / "atelier.db"), "ATELIER_CONFIG": str(config),
                "ATELIER_LOTS": str(racine / "lots"), "ATELIER_STYLES": str(racine / "style")}
-        with mock.patch.dict(os.environ, env), mock.patch("api.db.maintenant", return_value=DATE_FIGEE):
+        # Machine figée : git présent, aucun autre outil (Blender, glTF-Validator, butler) ; le contrat ne dépend
+        # pas de ce qui est installé là où il est généré ou vérifié.
+        which_fige = lambda nom, *a, **k: "/usr/bin/git" if nom == "git" else None
+        with mock.patch.dict(os.environ, env), mock.patch("api.db.maintenant", return_value=DATE_FIGEE), \
+                mock.patch("shutil.which", which_fige), mock.patch("api.services.outils.detecter_blender", lambda *a, **k: None):
             db.initialiser()
             from api.main import create_app
 

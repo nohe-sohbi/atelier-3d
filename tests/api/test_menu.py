@@ -1,4 +1,7 @@
+from datetime import UTC, datetime
+
 from api.adapters import get_meshy
+from api.routes.menu import texte_renouvellement
 
 
 def test_menu_vide(client):
@@ -24,3 +27,9 @@ def test_menu_depuis_la_base(client, conn, cfg):
     assert j["badges"] == {"lots": 1, "bibliotheque": 1, "generateurs": 1}
     assert j["collections"] == [{"id": 1, "nom": "Armes", "couleur": "#112233", "nombre": 1}]
     assert j["credits"]["utilises"] == 30 and j["credits"]["restants"] == 970
+
+
+def test_texte_renouvellement_le_jour_meme():
+    assert texte_renouvellement(15, datetime(2026, 11, 15, 10, tzinfo=UTC)) == "Renouvelés le 15 novembre"
+    assert texte_renouvellement(15, datetime(2026, 11, 16, 10, tzinfo=UTC)) == "Renouvelés le 15 décembre"
+    assert texte_renouvellement(1, datetime(2026, 12, 2, 10, tzinfo=UTC)) == "Renouvelés le 1er janvier"

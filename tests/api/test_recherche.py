@@ -17,6 +17,7 @@ def test_recherche_fts(client, conn):
     assert client.get('/api/recherche?q="(').json()["resultats"] == []
 
     conn.execute("UPDATE assets SET nom = 'Grand bouclier' WHERE id = 'ROM_PROP_Scutum_A'")
-    assert client.get("/api/recherche?q=scutum").json()["resultats"][0]["id"] == "ROM_PROP_Scutum_A"  # l'id reste indexé
+    r = client.get("/api/recherche?q=scutum").json()["resultats"][0]
+    assert r["id"] == "ROM_PROP_Scutum_A" and r["titre"] == "Grand bouclier"  # l'id reste indexé, le titre complet
     conn.execute("DELETE FROM assets WHERE id = 'ROM_PROP_Scutum_A'")
     assert client.get("/api/recherche?q=scutum").json()["resultats"] == []

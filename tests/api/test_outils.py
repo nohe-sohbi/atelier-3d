@@ -40,13 +40,18 @@ def test_detecter_blender_windows_version_attendue_d_abord(tmp_path):
     assert "Blender 5.1" in outils.detecter_blender("win32", which=lambda n: None, environ=environ, home=tmp_path)
 
 
-def test_detecter_blender_macos_et_linux(tmp_path):
+def test_detecter_blender_macos_et_linux(tmp_path, monkeypatch):
     app = _fichier(tmp_path / "Applications" / "Blender.app" / "Contents" / "MacOS" / "Blender")
     assert outils.detecter_blender("darwin", which=lambda n: None, environ={}, home=tmp_path) == str(app)
+    candidats = outils.candidats_blender("linux", {}, tmp_path)
+    assert tmp_path / ".local" / "share" / "flatpak" / "exports" / "bin" / "org.blender.Blender" in candidats
+    assert Path("/snap/bin/blender") in candidats and Path("/usr/bin/blender") in candidats
+    # Détection isolée de la machine : seuls des candidats sous tmp_path
     flatpak = _fichier(tmp_path / ".local" / "share" / "flatpak" / "exports" / "bin" / "org.blender.Blender")
-    trouve = outils.detecter_blender("linux", which=lambda n: None, environ={}, home=tmp_path)
-    assert trouve == str(flatpak) or Path(trouve).exists()  # sauf si la machine de test a un vrai Blender
-    assert outils.detecter_blender("linux", which=lambda n: None, environ={}, home=tmp_path / "vide") in (None, trouve)
+    monkeypatch.setattr(outils, "candidats_blender", lambda plateforme, environ, home: [home / "absent", flatpak])
+    assert outils.detecter_blender("linux", which=lambda n: None, environ={}, home=tmp_path) == str(flatpak)
+    flatpak.unlink()
+    assert outils.detecter_blender("linux", which=lambda n: None, environ={}, home=tmp_path) is None
 
 
 def _lancer_factice(stdout="", code=0):
@@ -116,6 +121,10 @@ def test_presence_outils(tmp_path):
     p = outils.presence_outils({"blender": {"chemin": ""}, "gltf_validator": {"chemin": "gltf_validator"}, "butler": {"chemin": "butler"}}, which=which)
     assert p["blender"]["present"] is False and "suggestion" in p["blender"]
     assert p["gltf_validator"] == {"present": False} and p["butler"] == {"present": True} and p["git_lfs"] == {"present": True}
+    # Git LFS : git suffit à l'ouverture (git-lfs.exe hors PATH sous Git for Windows) ; le test au clic tranche
+    sans_lfs = lambda n: "/usr/bin/git" if n == "git" else None
+    assert outils.presence_outils({}, which=sans_lfs)["git_lfs"] == {"present": True}
+    assert outils.presence_outils({}, which=lambda n: None)["git_lfs"] == {"present": False}
 
 
 @pytest.mark.blender

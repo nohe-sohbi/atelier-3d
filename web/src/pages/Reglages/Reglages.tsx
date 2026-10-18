@@ -23,8 +23,8 @@ interface EtatService {
   ok: boolean | null;
 }
 
-const SERVICES_TESTABLES: ServiceTestable[] = ["meshy", "claude", "comfyui", "itchio", "blender", "gltf_validator", "butler", "git_lfs"];
-const OUTILS = ["blender", "gltf_validator", "butler", "git_lfs"] as const;
+const SERVICES_TESTABLES: ServiceTestable[] = ["meshy", "claude", "comfyui", "itchio", "blender", "gltf_validator", "git_lfs"];
+const OUTILS = ["blender", "gltf_validator", "git_lfs"] as const;
 const ETAT_INITIAL: EtatService = { etat: "Non testé", message: "", ok: null };
 
 /** À l'ouverture : « Non testé », sauf un outil absent de la machine, dit « Introuvable » tout de suite. */
@@ -373,7 +373,10 @@ export function Reglages() {
                 value={outils.butler.chemin}
                 onChange={(e) => modifier((b) => (b.outils.butler.chemin = e.target.value))}
               />
-              <span className="note">Exécutable butler sur ta machine</span>
+              <span className="note">
+                Exécutable butler sur ta machine ·{" "}
+                {etat.outils.butler.present ? "présent" : "introuvable (le test en mode réel le dira ; en simulé, butler n'est pas appelé)"}
+              </span>
             </Ligne>
             <Ligne libelle="Déclaration IA">
               <span>

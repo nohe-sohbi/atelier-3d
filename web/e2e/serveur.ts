@@ -40,6 +40,8 @@ export async function demarrer(): Promise<void> {
   mkdirSync(join(dossier, "lots"));
   // Les styles créés par les tests vont dans un dossier temporaire ; le style pilote du dépôt y est copié.
   cpSync(join(RACINE, "style", "rome-stylise-v0"), join(dossier, "style", "rome-stylise-v0"), { recursive: true });
+  // Config écrite ici (copie de l'exemple, Blender vide) : les tests ne dépendent pas du Blender de la machine.
+  copyFileSync(join(RACINE, "config.local.example.yaml"), join(dossier, "config.local.yaml"));
   const journal = join(dossier, "dev.log");
   const sortie = openSync(journal, "a");
   const env = {

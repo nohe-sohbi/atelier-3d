@@ -18,3 +18,10 @@ def test_notifications(client, conn):
     assert client.post("/api/notifications/tout-lu").json() == {"ok": True, "marquees": 1}
     assert client.get("/api/notifications").json()["non_lues"] == 0
 
+
+
+def test_non_lues_compte_toutes_les_notifications(client, conn):
+    for i in range(60):
+        evenements.ecrire(conn, evenements.REVUE_PRETE, f"Revue {i}")
+    j = client.get("/api/notifications").json()
+    assert len(j["notifications"]) == 50 and j["non_lues"] == 60

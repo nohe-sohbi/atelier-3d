@@ -43,7 +43,7 @@
   background: var(--blanc);
   border: 1px solid var(--bordure);
   border-radius: var(--rayon-carte);
-  box-shadow: 0 8px 24px rgba(29, 28, 26, 0.12);
+  box-shadow: 0 8px 24px var(--ombre);
   padding: 6px;
   max-height: 360px;
   overflow: auto;
@@ -116,7 +116,7 @@
   background: var(--blanc);
   border: 1px solid var(--bordure);
   border-radius: var(--rayon-carte);
-  box-shadow: 0 8px 24px rgba(29, 28, 26, 0.12);
+  box-shadow: 0 8px 24px var(--ombre);
   padding: 8px;
 }
 .notifs__entete {

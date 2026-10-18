@@ -27,7 +27,7 @@ class MeshyReel(Meshy):
                                    headers={"Authorization": f"Bearer {self._cle}"})
 
     def solde(self) -> dict:
-        with self._client() as c:
+        with self._client(5.0) as c:  # lu à chaque ouverture d'écran : délai court
             r = c.get("/openapi/v1/balance")
             r.raise_for_status()
             data = r.json()

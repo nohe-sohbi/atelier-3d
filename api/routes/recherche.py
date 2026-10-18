@@ -36,7 +36,7 @@ def rechercher(conn: Db, q: str = Query("", max_length=200),
         (requete, limit))
     resultats = []
     for r in rows:
-        titre = r["nom"].split(" ")[0] if r["type"] == "asset" else r["nom"]
+        titre = r["nom"].rsplit(" ", 1)[0] if r["type"] == "asset" else r["nom"]  # l'id est collé en dernier
         resultats.append({"type": r["type"], "id": r["ref_id"], "titre": titre,
                           "lien": LIENS.get(r["type"], lambda rid: "/")(r["ref_id"])})
     return {"resultats": resultats}

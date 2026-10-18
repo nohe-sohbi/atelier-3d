@@ -4,8 +4,8 @@
 # n'en sortent jamais en clair. Tout est en mode "simule" par défaut.
 
 blender:
-  # Chemin de l'exécutable Blender 5.2 LTS (version figée pour tout le projet). Sous Windows :
-  # C:\Program Files\Blender Foundation\Blender 5.2\blender.exe
+  # Chemin de l'exécutable Blender 5.2 LTS (version figée pour tout le projet). Sous Windows, entre
+  # guillemets simples pour garder les antislashs : 'C:\Program Files\Blender Foundation\Blender 5.2\blender.exe'
   chemin: ""
 
 gltf_validator:

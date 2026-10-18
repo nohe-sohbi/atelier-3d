@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 from pathlib import Path
+from urllib.parse import urlsplit, urlunsplit
 
 from api.adapters import _commun
 from api.adapters.comfyui.base import ComfyUI
@@ -16,6 +17,15 @@ class ComfyUIReel(ComfyUI):
     def _client(self, timeout: float = 10.0):
         return _commun.client_http(timeout, base_url=self.url)
 
+    @property
+    def url_affichable(self) -> str:
+        """L'adresse sans identifiants (user:mdp@) : elle finit dans les messages et le journal."""
+        u = urlsplit(self.url)
+        hote = u.hostname or ""
+        if u.port:
+            hote += f":{u.port}"
+        return urlunsplit((u.scheme, hote, u.path, u.query, ""))
+
     def tester_connexion(self) -> dict:
         try:
             with self._client() as c:
@@ -23,7 +33,7 @@ class ComfyUIReel(ComfyUI):
                 r.raise_for_status()
                 stats = r.json()
         except Exception as e:  # noqa: BLE001 - un test de connexion répond toujours
-            return _commun.resultat_test(False, "Erreur", f"ComfyUI : {_commun.erreur_http(e)} ({self.url})")
+            return _commun.resultat_test(False, "Erreur", f"ComfyUI : {_commun.erreur_http(e)} ({self.url_affichable})")
         gpus = stats.get("devices", [])
         g = gpus[0] if gpus else {}
         details = {"mode": "reel", "gpu": g.get("name", "inconnue"),

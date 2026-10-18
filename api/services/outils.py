@@ -24,8 +24,14 @@ EXTENSIONS_LFS = (".blend", ".glb", ".fbx", ".png")
 Which = Callable[[str], str | None]
 
 
-def resoudre_chemin(chemin: str | None, which: Which = shutil.which) -> str | None:
+def _which(which: Which | None) -> Which:
+    # Résolu à l'appel (pas au chargement du module) : les tests et le contrat figé peuvent remplacer shutil.which.
+    return which or shutil.which
+
+
+def resoudre_chemin(chemin: str | None, which: Which | None = None) -> str | None:
     """Chemin de fichier existant ou commande du PATH ; None sinon."""
+    which = _which(which)
     chemin = (chemin or "").strip()
     if not chemin:
         return None
@@ -74,10 +80,10 @@ def candidats_blender(plateforme: str, environ: Mapping[str, str], home: Path) -
     return uniques
 
 
-def detecter_blender(plateforme: str | None = None, which: Which = shutil.which,
+def detecter_blender(plateforme: str | None = None, which: Which | None = None,
                      environ: Mapping[str, str] | None = None, home: Path | None = None) -> str | None:
     """Blender trouvé sur cette machine (PATH, puis emplacements connus), ou None."""
-    trouve = which("blender")
+    trouve = _which(which)("blender")
     if trouve:
         return trouve
     plateforme = plateforme or sys.platform
@@ -89,7 +95,7 @@ def detecter_blender(plateforme: str | None = None, which: Which = shutil.which,
     return None
 
 
-def chemin_blender(cfg: dict, which: Which = shutil.which) -> str | None:
+def chemin_blender(cfg: dict, which: Which | None = None) -> str | None:
     return resoudre_chemin(cfg.get("blender", {}).get("chemin", ""), which)
 
 
@@ -166,12 +172,12 @@ def extensions_lfs(gitattributes: Path) -> list[str]:
     return out
 
 
-def tester_git_lfs(racine: Path | None = None, lancer: Lancer = _lancer, which: Which = shutil.which) -> dict:
+def tester_git_lfs(racine: Path | None = None, lancer: Lancer = _lancer, which: Which | None = None) -> dict:
     """git présent, `git lfs version` répond, LFS activé dans ce dépôt, et les 4 extensions suivies."""
     from api import chemins
 
     racine = racine or chemins.racine()
-    git = which("git")
+    git = _which(which)("git")
     if git is None:
         return resultat_test(False, INTROUVABLE, "git introuvable : installe Git (git-scm.com) avec Git LFS")
     try:
@@ -201,8 +207,12 @@ def tester_git_lfs(racine: Path | None = None, lancer: Lancer = _lancer, which: 
 
 # --- présence sans sous-processus (pour l'ouverture de l'écran) ----------------
 
-def presence_outils(cfg: dict, which: Which = shutil.which) -> dict:
-    """{outil: {"present": bool, …}} sans lancer aucun programme. Blender absent → une suggestion."""
+def presence_outils(cfg: dict, which: Which | None = None) -> dict:
+    """{outil: {"present": bool, …}} sans lancer aucun programme. Blender absent → une suggestion.
+
+    Git LFS : seule la présence de git est regardée ici (sous Git for Windows, git-lfs.exe est hors du
+    PATH alors que `git lfs` marche) ; la vraie vérification, c'est `tester_git_lfs` au clic."""
+    which = _which(which)
     blender = chemin_blender(cfg, which)
     return {
         "blender": {"present": blender is not None,
@@ -211,5 +221,5 @@ def presence_outils(cfg: dict, which: Which = shutil.which) -> dict:
                                                       or "gltf_validator", which) is not None},
         "butler": {"present": resoudre_chemin(cfg.get("butler", {}).get("chemin", "") or "butler", which)
                    is not None},
-        "git_lfs": {"present": which("git") is not None and which("git-lfs") is not None},
+        "git_lfs": {"present": which("git") is not None},
     }

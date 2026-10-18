@@ -8,20 +8,26 @@ Le cahier des charges (docs/) reste la référence fonctionnelle ; docs/ ne se m
 ```
 api/            API FastAPI. Point d'entrée : api/main.py (app = create_app()).
   config.py     Lecture/écriture de config.local.yaml (jamais de secret renvoyé en clair).
-  chemins.py    Chemins de la base, de la config et des lots ; surchargeables par ATELIER_DB,
-                ATELIER_CONFIG, ATELIER_LOTS (tests, scripts).
+  chemins.py    Chemins de la base, de la config, des lots, des styles et de web/dist ; surchargeables par
+                ATELIER_DB, ATELIER_CONFIG, ATELIER_LOTS, ATELIER_STYLES, ATELIER_WEB_DIST (tests, scripts).
   db.py         Connexion SQLite (atelier.db, WAL), migrations versionnées, découpage des scripts.
   migrations/   NNN_nom.sql, appliquées dans l'ordre, enregistrées dans la table `migrations`.
   routes/       Un module par écran ou domaine ; chaque module expose `router = APIRouter(...)`.
                 api/main.py découvre et monte automatiquement tous les modules de api/routes/ sous /api.
-  services/     Logique métier réutilisée par les routes (et plus tard le worker).
+  services/     Logique métier réutilisée par les routes et le worker : taches.py (file), evenements.py
+                (journal et notifications), credits.py (solde Meshy, une seule source), outils.py (Blender,
+                glTF-Validator, butler, Git LFS), style_yaml.py (chargeur de style.yaml), styles.py (écran Styles).
   adapters/     Services externes : meshy/, claude/, comfyui/, itchio/. Chaque dossier a
                 base.py (interface), simule.py, reel.py et __init__.py avec `get_<service>(config)`.
                 Le simulé est le défaut ; il répond comme le vrai sans dépenser de crédits.
-worker/         File de tâches (étape 4 du plan) : vide pour l'instant.
+worker/         Worker : worker/main.py boucle sur la table `taches` (files gpu, meshy, blender, api ; limites
+                relues dans la config) ; worker/handlers/<type>.py expose TYPE et run(tache, ctx). Une
+                TacheDefinitive (outil absent, crédits insuffisants, étape non construite) échoue sans relance.
 pipeline/       Finition commune et scripts Blender (étape 5) : vide pour l'instant.
 generators/     Générateurs code (étape 5) : vide pour l'instant.
-style/          Styles (étape 2) : vide pour l'instant.
+style/          Un dossier par style et par version : style/<code>/style.yaml (seule source des couleurs,
+                matériaux, budgets, tolérances), board/ (planche de référence), inspiration/. Le style du
+                thème pilote est livré (rome-stylise-v0) ; les autres sont créés par l'écran Styles.
 assets/         Livrables gardés, un dossier par asset (Git LFS pour .blend, .glb, .fbx, .png).
 reports/        Rapports de tests et planches par lot.
 lots/           Travail des lots (ignoré par Git).
@@ -40,7 +46,8 @@ tests/          pytest : tests/api. Les tests qui exigent Blender sont marqués 
   un `id` textuel `<THEME>_<CATEGORIE>_<Nom>_<Variante>`.
 - L'API répond en JSON ; toute erreur, y compris une route inconnue, répond
   `{"erreur": "...", "detail": ...}` avec le bon code HTTP.
-- Tout ce qui dure plus d'une seconde devient une tâche (étape 4) ; la route répond immédiatement.
+- Tout ce qui dure plus d'une seconde devient une tâche (`taches.creer_tache`) ; la route répond 202 avec
+  l'id de la tâche, l'interface interroge /api/taches/{id}, et le worker signale la fin par un événement.
 - Les seuils (budgets, tolérances) viennent du style du lot, jamais du code.
 - Un écran ne lit que l'API ; pas de données inventées ; état vide ou erreur claire. Tout ce qui vient
   d'un adaptateur simulé est marqué « simulé » à l'écran.

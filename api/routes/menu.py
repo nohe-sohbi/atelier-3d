@@ -21,7 +21,7 @@ MOIS = ["janvier", "février", "mars", "avril", "mai", "juin", "juillet", "août
 def texte_renouvellement(jour: int, maintenant: datetime | None = None) -> str:
     m = maintenant or datetime.now(UTC)
     jour = 15 if int(jour) == 15 else 1
-    if m.day < jour:
+    if m.day <= jour:  # le jour même, le renouvellement est celui d'aujourd'hui
         prochain = m.replace(day=jour)
     else:
         mois, annee = (m.month + 1, m.year) if m.month < 12 else (1, m.year + 1)

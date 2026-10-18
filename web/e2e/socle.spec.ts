@@ -62,7 +62,8 @@ test.describe("Étape 1 · Socle", () => {
     await expect(page.getByLabel("Canal")).toHaveValue("assets");
   });
 
-  test("Réglages : les tests de connexion répondent, simulés Connecté, outils absents Introuvable, jamais verts", async ({ page }) => {
+  test("Réglages : les tests de connexion répondent, simulés Connecté, outils absents Introuvable, jamais verts", async ({ page, request }) => {
+    const presence = (await (await request.get("/api/reglages")).json()).etat.outils as Record<string, { present: boolean }>;
     await page.goto("/reglages");
     await expect(page.getByRole("heading", { level: 1, name: "Réglages" })).toBeVisible();
     const carte = (nom: string) => page.locator(".reglages__carte", { has: page.getByRole("heading", { level: 3, name: nom }) });
@@ -76,8 +77,8 @@ test.describe("Étape 1 · Socle", () => {
     await carte("itch.io").getByRole("button", { name: /Tester/ }).click();
     await expect(carte("itch.io").getByText("Connecté")).toBeVisible();
 
-    // Blender et glTF-Validator ne sont pas installés sur la machine de test : dits « Introuvable »
-    // dès l'ouverture, et toujours après le test, jamais en vert.
+    // La config de test laisse Blender vide : « Introuvable » dès l'ouverture, et toujours après le test, jamais en vert.
+    // glTF-Validator et Git LFS dépendent de la machine : l'attente suit ce que l'API dit de leur présence.
     const blender = carte("Blender");
     await expect(blender.getByRole("status")).toHaveText("Introuvable");
     await blender.getByRole("button", { name: "Tester" }).click();
@@ -85,10 +86,9 @@ test.describe("Étape 1 · Socle", () => {
     await expect(blender.getByRole("status")).not.toHaveClass(/pastille--succes/);
     await expect(blender.getByText(/Aucun Blender renseigné|introuvable/)).toBeVisible();
     await carte("glTF-Validator").getByRole("button", { name: "Tester" }).click();
-    await expect(carte("glTF-Validator").getByRole("status")).toHaveText("Introuvable");
+    await expect(carte("glTF-Validator").getByRole("status")).toHaveText(presence.gltf_validator!.present ? /Détecté|Erreur/ : "Introuvable");
 
-    // Git LFS est installé et activé dans ce dépôt.
     await carte("Bibliothèque").getByRole("button", { name: "Tester Git LFS" }).click();
-    await expect(carte("Bibliothèque").getByRole("status")).toHaveText("Détecté");
+    await expect(carte("Bibliothèque").getByRole("status")).toHaveText(presence.git_lfs!.present ? /Détecté|Erreur/ : "Introuvable");
   });
 });

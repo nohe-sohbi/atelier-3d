@@ -18,6 +18,12 @@
   --erreur: #b42318;
   --erreur-fond: #fdecea;
 
+  /* Ombres et voiles (la maquette : rgba(29,28,26,0.12) pour le panneau, rgba(0,0,0,0.08) pour les liserés) */
+  --ombre: rgba(29, 28, 26, 0.12);
+  --ombre-fenetre: rgba(29, 28, 26, 0.18);
+  --voile: rgba(29, 28, 26, 0.4);
+  --liseret: rgba(0, 0, 0, 0.08);
+
   --police: "IBM Plex Sans", system-ui, sans-serif;
   --police-mono: "IBM Plex Mono", ui-monospace, monospace;
 

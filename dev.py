@@ -12,6 +12,8 @@ Ctrl+C arrête tout proprement. Marche sous Windows, macOS et Linux ; relance de
 from __future__ import annotations
 
 import argparse
+import importlib.util
+import json
 import os
 import shutil
 import signal
@@ -37,16 +39,20 @@ def dire(texte: str) -> None:
 # --- environnement -----------------------------------------------------------
 
 def _dans_venv() -> bool:
+    """Vrai quand l'interpréteur courant est celui de .venv (sys.prefix, pas le lien symbolique de l'exécutable)."""
     try:
-        return Path(sys.executable).resolve() == PYTHON_VENV.resolve()
+        return Path(sys.prefix).resolve() == VENV.resolve()
     except OSError:
         return False
 
 
 def _relancer_dans_venv() -> None:
-    """Si .venv existe et qu'on n'y est pas, on s'y relance : `python dev.py` marche depuis n'importe quel Python."""
+    """Si .venv existe et qu'on n'y est pas, on relance dev.py avec son Python et on attend sa fin :
+    `python dev.py` marche depuis n'importe quel Python, sur toutes les plateformes (pas d'execv, qui
+    sous Windows rendrait la console avant la fin)."""
     if PYTHON_VENV.exists() and not _dans_venv() and not os.environ.get("ATELIER_DEV_SANS_VENV"):
-        os.execv(str(PYTHON_VENV), [str(PYTHON_VENV), str(RACINE / "dev.py"), *sys.argv[1:]])
+        env = {**os.environ, "ATELIER_DEV_SANS_VENV": "1"}
+        raise SystemExit(subprocess.call([str(PYTHON_VENV), str(RACINE / "dev.py"), *sys.argv[1:]], cwd=RACINE, env=env))
 
 
 def _python_312() -> list[str]:
@@ -85,10 +91,9 @@ def installer() -> int:
 
 
 def _verifier_installation() -> bool:
-    try:
-        import api  # noqa: F401
-    except ImportError:
-        dire("le paquet n'est pas installé dans cet environnement. Installe-le avec :")
+    manquants = [m for m in ("fastapi", "uvicorn", "yaml", "httpx") if importlib.util.find_spec(m) is None]
+    if manquants:
+        dire(f"dépendances absentes dans cet environnement ({', '.join(manquants)}). Installe-les avec :")
         for cmd in commandes_installation():
             print("    " + " ".join(cmd))
         print("    ou, en une fois : python dev.py --installer")
@@ -110,8 +115,9 @@ def preparer_config() -> Path:
     texte = chemins.chemin_config_exemple().read_text(encoding="utf-8")
     blender = outils.detecter_blender()
     if blender:
-        # La première clé `chemin: ""` du fichier d'exemple est celle de Blender.
-        texte = texte.replace('  chemin: ""', f'  chemin: "{blender}"', 1)
+        # La première clé `chemin: ""` du fichier d'exemple est celle de Blender. Valeur écrite en chaîne JSON :
+        # c'est une chaîne YAML valide même avec les antislashs d'un chemin Windows.
+        texte = texte.replace('  chemin: ""', f"  chemin: {json.dumps(blender)}", 1)
     chemin.write_text(texte, encoding="utf-8")
     dire(f"{chemin.name} créé depuis l'exemple (tout en mode simulé)")
     if blender:
@@ -140,6 +146,17 @@ def _lancer(nom: str, cmd: list[str], couleur: bool, env: dict) -> subprocess.Po
     return proc
 
 
+def _tuer_arbre(p: subprocess.Popen) -> None:
+    """Arrêt forcé du processus et de ses enfants : sous Windows, `npm.cmd` n'est que cmd.exe, Vite (node) est dessous."""
+    if os.name == "nt":
+        subprocess.run(["taskkill", "/PID", str(p.pid), "/T", "/F"], capture_output=True, check=False)
+    else:
+        try:
+            os.killpg(p.pid, signal.SIGKILL)
+        except (ProcessLookupError, OSError):
+            p.kill()
+
+
 def _arreter(procs: dict[str, subprocess.Popen]) -> None:
     for p in procs.values():
         if p.poll() is None:
@@ -156,12 +173,15 @@ def _arreter(procs: dict[str, subprocess.Popen]) -> None:
             p.wait(timeout=max(0.1, limite - time.monotonic()))
         except subprocess.TimeoutExpired:
             dire(f"{nom} ne répond pas : arrêt forcé")
-            p.kill()
+            _tuer_arbre(p)
 
 
-def _attendre_sante(url: str, delai_s: float) -> bool:
+def _attendre_sante(url: str, delai_s: float, procs: dict[str, subprocess.Popen] | None = None) -> bool:
+    """Attend que l'application réponde ; s'arrête tout de suite si l'API est morte entre-temps."""
     limite = time.monotonic() + delai_s
     while time.monotonic() < limite:
+        if procs and any(p.poll() is not None for p in procs.values()):
+            return False
         try:
             with urllib.request.urlopen(url, timeout=2) as r:
                 if r.status == 200:
@@ -216,11 +236,11 @@ def main(argv: list[str] | None = None) -> int:
 
     code = 0
     try:
-        if _attendre_sante(f"{adresse}/api/sante", 60):
+        if _attendre_sante(f"{adresse}/api/sante", 60, procs):
             dire(f"Ouvre {adresse}   (API : http://127.0.0.1:{args.port}/api/sante ; Ctrl+C pour tout arrêter)")
             if not args.sans_navigateur:
                 webbrowser.open(adresse)
-        else:
+        elif all(p.poll() is None for p in procs.values()):
             dire(f"l'application ne répond pas sur {adresse}/api/sante : regarde les lignes [api] ci-dessus")
         while True:
             for nom, p in procs.items():

@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import argparse
+from pathlib import Path
 
 import uvicorn
 
@@ -13,7 +14,7 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--reload", action="store_true", help="rechargement automatique (développement)")
     args = parser.parse_args(argv)
     uvicorn.run("api.main:create_app", factory=True, host=args.host, port=args.port, reload=args.reload,
-                reload_dirs=["api"] if args.reload else None, log_level="info")
+                reload_dirs=[str(Path(__file__).resolve().parent)] if args.reload else None, log_level="info")
     return 0
 
 

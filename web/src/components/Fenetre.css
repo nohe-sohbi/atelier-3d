@@ -2,7 +2,7 @@
   position: fixed;
   inset: 0;
   z-index: 40;
-  background: rgba(29, 28, 26, 0.4);
+  background: var(--voile);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -16,7 +16,7 @@
   background: var(--blanc);
   border: 1px solid var(--bordure);
   border-radius: var(--rayon-carte);
-  box-shadow: 0 16px 40px rgba(29, 28, 26, 0.18);
+  box-shadow: 0 16px 40px var(--ombre-fenetre);
   padding: 20px 24px 24px;
   display: flex;
   flex-direction: column;

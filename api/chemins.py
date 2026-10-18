@@ -38,4 +38,4 @@ def dossier_simule() -> Path:
 
 
 def dossier_web_dist() -> Path:
-    return RACINE / "web" / "dist"
+    return Path(os.environ.get("ATELIER_WEB_DIST") or RACINE / "web" / "dist")

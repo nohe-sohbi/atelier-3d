@@ -12,8 +12,8 @@ CHAMPS = ("id", "date", "type", "niveau", "titre", "texte", "lien", "lu")
 @router.get("")
 def lister(conn: Db) -> dict:
     rows = evenements.lister(conn, limit=50, notification=True)
-    return {"notifications": [{k: r[k] for k in CHAMPS} for r in rows],
-            "non_lues": sum(1 for r in rows if not r["lu"])}
+    non_lues = conn.execute("SELECT COUNT(*) AS n FROM evenements WHERE notification = 1 AND lu = 0").fetchone()["n"]
+    return {"notifications": [{k: r[k] for k in CHAMPS} for r in rows], "non_lues": int(non_lues)}
 
 
 @router.post("/tout-lu")
