@@ -90,7 +90,8 @@ def test_mode_reel_choisit_les_adaptateurs_reels(cfg):
     assert get_meshy(cfg).mode == get_claude(cfg).mode == get_comfyui(cfg).mode == get_itchio(cfg).mode == "reel"
     assert get_meshy(cfg).tester_connexion()["ok"] is False  # pas de clé → refus propre, sans réseau
     assert get_claude(cfg).tester_connexion()["ok"] is False
-    assert get_itchio(cfg).tester_butler()["etat"] == "Erreur" or cfgmod.service(cfg, "itchio")  # butler absent ici
+    cfg["butler"]["chemin"] = "/nulle/part/butler"
+    assert get_itchio(cfg).tester_butler()["etat"] == "Introuvable"
 
 
 def test_apercu_cle():

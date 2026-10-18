@@ -15,7 +15,7 @@ class ItchioSimule(Itchio):
     def __init__(self, config: dict, dossier_etat: Path | None = None) -> None:
         itch = config.get("services", {}).get("itchio", {})
         self.compte = str(itch.get("compte", "") or "")
-        self.canal = str(itch.get("canal", "html") or "html")
+        self.canal = str(itch.get("canal", "assets") or "assets")
         self.etat = _commun.EtatSimule("itchio", dossier_etat)
 
     def tester_butler(self) -> dict:
