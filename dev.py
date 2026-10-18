@@ -1,8 +1,8 @@
 #!/usr/bin/env python
-"""Une seule commande : lance l'API (uvicorn, rechargement) et l'interface Vite, puis ouvre le navigateur.
+"""Une seule commande : lance l'API (uvicorn, rechargement), le worker et l'interface Vite, puis ouvre le navigateur.
 
-    python dev.py                 # API + Vite, ouvre http://127.0.0.1:5173
-    python dev.py --sans-web      # API seule (sert web/dist/ si l'interface a été construite)
+    python dev.py                 # API + worker + Vite, ouvre http://127.0.0.1:5173
+    python dev.py --sans-web      # API + worker (sert web/dist/ si l'interface a été construite)
     python dev.py --installer     # crée .venv, installe le paquet et les dépendances web, puis quitte
 
 Au premier lancement : copie config.local.example.yaml vers config.local.yaml et y écrit le chemin de
@@ -26,7 +26,7 @@ from pathlib import Path
 RACINE = Path(__file__).resolve().parent
 VENV = RACINE / ".venv"
 PYTHON_VENV = VENV / ("Scripts/python.exe" if os.name == "nt" else "bin/python")
-COULEURS = {"api": "\033[36m", "web": "\033[35m"}
+COULEURS = {"api": "\033[36m", "worker": "\033[33m", "web": "\033[35m"}
 FIN = "\033[0m"
 
 
@@ -196,6 +196,7 @@ def main(argv: list[str] | None = None) -> int:
 
     procs: dict[str, subprocess.Popen] = {}
     procs["api"] = _lancer("api", [sys.executable, "-m", "api", "--port", str(args.port), "--reload"], couleur, env)
+    procs["worker"] = _lancer("worker", [sys.executable, "-m", "worker"], couleur, env)
     adresse = f"http://127.0.0.1:{args.port}"
     if not args.sans_web:
         npm = _npm()

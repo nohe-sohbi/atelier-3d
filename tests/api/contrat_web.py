@@ -80,8 +80,9 @@ def generer() -> dict:
         config = racine / "config.local.yaml"
         shutil.copy(chemins.chemin_config_exemple(), config)
         (racine / "lots").mkdir()
+        shutil.copytree(chemins.racine() / "style" / "rome-stylise-v0", racine / "style" / "rome-stylise-v0")
         env = {"ATELIER_DB": str(racine / "atelier.db"), "ATELIER_CONFIG": str(config),
-               "ATELIER_LOTS": str(racine / "lots")}
+               "ATELIER_LOTS": str(racine / "lots"), "ATELIER_STYLES": str(racine / "style")}
         with mock.patch.dict(os.environ, env), mock.patch("api.db.maintenant", return_value=DATE_FIGEE):
             db.initialiser()
             from api.main import create_app
@@ -96,6 +97,9 @@ def generer() -> dict:
                 for service in SERVICES_TESTES:
                     contrat[f"POST /api/reglages/tester/{service}"] = client.post(f"/api/reglages/tester/{service}").json()
                 contrat["GET /api/nexistepas"] = client.get("/api/nexistepas").json()
+                contrat["GET /api/styles"] = client.get("/api/styles").json()
+                pilote = contrat["GET /api/styles"]["styles"][0]["id"]
+                contrat["GET /api/styles/{id}"] = client.get(f"/api/styles/{pilote}").json()
 
                 conn = db.connexion()
                 try:

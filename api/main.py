@@ -41,6 +41,12 @@ def decouvrir_routeurs() -> list:
 async def _cycle_de_vie(app: FastAPI):
     db.initialiser()
     chemins.dossier_lots().mkdir(parents=True, exist_ok=True)
+    conn = db.connexion()
+    try:
+        from api.services import styles
+        styles.importer_dossier(conn)
+    finally:
+        conn.close()
     yield
 
 

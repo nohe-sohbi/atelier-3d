@@ -27,6 +27,11 @@ def dossier_lots() -> Path:
     return Path(os.environ.get("ATELIER_LOTS") or RACINE / "lots")
 
 
+def dossier_styles() -> Path:
+    """Un dossier par style : style/<code>/style.yaml, board/, inspiration/."""
+    return Path(os.environ.get("ATELIER_STYLES") or RACINE / "style")
+
+
 def dossier_simule() -> Path:
     """État des adaptateurs simulés (soldes, tâches)."""
     return dossier_lots() / ".simule"

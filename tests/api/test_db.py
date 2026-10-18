@@ -14,13 +14,14 @@ def _initialiser(chemin: str) -> list[int]:
 
 TABLES = {"styles", "lots", "objets", "essais", "assets", "versions", "collections", "collections_assets",
           "etiquettes", "etiquettes_assets", "generateurs", "regles_routage", "taches", "evenements",
-          "couts", "bancs", "publications", "publications_versions", "recherche", "migrations"}
+          "couts", "bancs", "publications", "publications_versions", "recherche", "migrations",
+          "planche_images"}
 
 
 def test_migrations_appliquees_et_idempotentes(atelier, conn):
-    assert db.versions_appliquees(conn) == [0]
+    assert db.versions_appliquees(conn) == [0, 10]
     assert db.appliquer_migrations(conn) == []
-    assert db.versions_appliquees(conn) == [0]
+    assert db.versions_appliquees(conn) == [0, 10]
     noms = {r["name"] for r in conn.execute("SELECT name FROM sqlite_master WHERE type IN ('table')")}
     assert TABLES <= noms
     assert conn.execute("PRAGMA foreign_keys").fetchone()["foreign_keys"] == 1
@@ -46,11 +47,11 @@ def test_initialisation_concurrente(tmp_path):
     chemin = str(tmp_path / "atelier.db")
     with ProcessPoolExecutor(4) as pool:
         resultats = list(pool.map(_initialiser, [chemin] * 4))
-    assert sorted(len(r) for r in resultats) == [0, 0, 0, 1], resultats
+    assert sorted(len(r) for r in resultats) == [0, 0, 0, 2], resultats
     conn = db.connexion(Path(chemin))
     try:
-        assert db.versions_appliquees(conn) == [0]
-        assert conn.execute("SELECT COUNT(*) AS n FROM migrations").fetchone()["n"] == 1
+        assert db.versions_appliquees(conn) == [0, 10]
+        assert conn.execute("SELECT COUNT(*) AS n FROM migrations").fetchone()["n"] == 2
     finally:
         conn.close()
 

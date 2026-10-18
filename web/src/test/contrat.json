@@ -175,6 +175,348 @@
     "erreur": "Not Found",
     "detail": null
   },
+  "GET /api/styles": {
+    "styles": [
+      {
+        "id": 1,
+        "code": "rome-stylise-v0",
+        "nom": "Rome antique stylisée",
+        "version": 0,
+        "etat": "valide",
+        "direction": "stylise",
+        "description": "Formes simples et lisibles, arêtes légèrement arrondies, couleurs franches, usure discrète.",
+        "palette": [
+          {
+            "nom": "terre_cuite",
+            "hex": "#B5582E"
+          },
+          {
+            "nom": "ocre",
+            "hex": "#C8902A"
+          },
+          {
+            "nom": "bronze",
+            "hex": "#8C6A2F"
+          },
+          {
+            "nom": "marbre",
+            "hex": "#E8E3D8"
+          },
+          {
+            "nom": "fer",
+            "hex": "#5B5E63"
+          },
+          {
+            "nom": "cuir",
+            "hex": "#6E4A2B"
+          },
+          {
+            "nom": "bois",
+            "hex": "#8A5F3A"
+          },
+          {
+            "nom": "pourpre",
+            "hex": "#6B2D4C"
+          },
+          {
+            "nom": "lin",
+            "hex": "#D9CBA8"
+          },
+          {
+            "nom": "pierre",
+            "hex": "#A39F93"
+          }
+        ],
+        "usage": {
+          "lots": 0,
+          "assets": 0
+        },
+        "cree_le": "2026-10-18T08:00:00Z",
+        "valide_le": "2026-10-18T08:00:00Z"
+      }
+    ]
+  },
+  "GET /api/styles/{id}": {
+    "id": 1,
+    "code": "rome-stylise-v0",
+    "nom": "Rome antique stylisée",
+    "version": 0,
+    "etat": "valide",
+    "direction": "stylise",
+    "description": "Formes simples et lisibles, arêtes légèrement arrondies, couleurs franches, usure discrète.",
+    "palette": [
+      {
+        "nom": "terre_cuite",
+        "hex": "#B5582E"
+      },
+      {
+        "nom": "ocre",
+        "hex": "#C8902A"
+      },
+      {
+        "nom": "bronze",
+        "hex": "#8C6A2F"
+      },
+      {
+        "nom": "marbre",
+        "hex": "#E8E3D8"
+      },
+      {
+        "nom": "fer",
+        "hex": "#5B5E63"
+      },
+      {
+        "nom": "cuir",
+        "hex": "#6E4A2B"
+      },
+      {
+        "nom": "bois",
+        "hex": "#8A5F3A"
+      },
+      {
+        "nom": "pourpre",
+        "hex": "#6B2D4C"
+      },
+      {
+        "nom": "lin",
+        "hex": "#D9CBA8"
+      },
+      {
+        "nom": "pierre",
+        "hex": "#A39F93"
+      }
+    ],
+    "usage": {
+      "lots": 0,
+      "assets": 0
+    },
+    "cree_le": "2026-10-18T08:00:00Z",
+    "valide_le": "2026-10-18T08:00:00Z",
+    "theme": "ROM",
+    "note_version": "Version initiale du thème pilote.",
+    "parent_id": null,
+    "racine_id": 1,
+    "materiaux": [
+      {
+        "nom": "bois",
+        "base": "bois",
+        "hex": "#8A5F3A",
+        "roughness": 0.75,
+        "metallic": 0.0,
+        "usage_assets": 0
+      },
+      {
+        "nom": "cuir",
+        "base": "cuir",
+        "hex": "#6E4A2B",
+        "roughness": 0.6,
+        "metallic": 0.0,
+        "usage_assets": 0
+      },
+      {
+        "nom": "bronze",
+        "base": "bronze",
+        "hex": "#8C6A2F",
+        "roughness": 0.35,
+        "metallic": 1.0,
+        "usage_assets": 0
+      },
+      {
+        "nom": "fer",
+        "base": "fer",
+        "hex": "#5B5E63",
+        "roughness": 0.45,
+        "metallic": 1.0,
+        "usage_assets": 0
+      },
+      {
+        "nom": "marbre",
+        "base": "marbre",
+        "hex": "#E8E3D8",
+        "roughness": 0.3,
+        "metallic": 0.0,
+        "usage_assets": 0
+      },
+      {
+        "nom": "terre_cuite",
+        "base": "terre_cuite",
+        "hex": "#B5582E",
+        "roughness": 0.8,
+        "metallic": 0.0,
+        "usage_assets": 0
+      },
+      {
+        "nom": "tissu",
+        "base": "lin",
+        "hex": "#D9CBA8",
+        "roughness": 0.9,
+        "metallic": 0.0,
+        "usage_assets": 0
+      },
+      {
+        "nom": "pierre",
+        "base": "pierre",
+        "hex": "#A39F93",
+        "roughness": 0.85,
+        "metallic": 0.0,
+        "usage_assets": 0
+      },
+      {
+        "nom": "pourpre",
+        "base": "pourpre",
+        "hex": "#6B2D4C",
+        "roughness": 0.85,
+        "metallic": 0.0,
+        "usage_assets": 0
+      },
+      {
+        "nom": "ocre",
+        "base": "ocre",
+        "hex": "#C8902A",
+        "roughness": 0.8,
+        "metallic": 0.0,
+        "usage_assets": 0
+      }
+    ],
+    "budgets": [
+      {
+        "cle": "petit_prop",
+        "libelle": "Petit objet",
+        "tris": 2000,
+        "textures_px": 1024
+      },
+      {
+        "cle": "prop_moyen",
+        "libelle": "Objet moyen",
+        "tris": 6000,
+        "textures_px": 1024
+      },
+      {
+        "cle": "grand_prop",
+        "libelle": "Grand objet",
+        "tris": 15000,
+        "textures_px": 2048
+      },
+      {
+        "cle": "module_archi",
+        "libelle": "Module d'architecture",
+        "tris": 8000,
+        "textures_px": 2048
+      }
+    ],
+    "texel_density": 512.0,
+    "unite": "1 = 1 m",
+    "tolerances": {
+      "dimensions_pct": 5.0,
+      "texel_pct": 15.0,
+      "symetrie_m": 0.005,
+      "lod_pct": 10.0
+    },
+    "dimensions_m": {
+      "scutum": [
+        0.65,
+        0.2,
+        1.1
+      ],
+      "gladius": [
+        0.08,
+        0.04,
+        0.65
+      ],
+      "pilum": [
+        0.06,
+        0.06,
+        2.0
+      ],
+      "amphore": [
+        0.35,
+        0.35,
+        0.9
+      ],
+      "colonne": [
+        0.6,
+        0.6,
+        4.5
+      ],
+      "brasero": [
+        0.6,
+        0.6,
+        0.9
+      ],
+      "table": [
+        1.2,
+        0.7,
+        0.75
+      ],
+      "banc": [
+        1.2,
+        0.35,
+        0.45
+      ],
+      "arche": [
+        3.0,
+        0.6,
+        4.0
+      ],
+      "mur": [
+        3.0,
+        0.4,
+        3.0
+      ],
+      "sol": [
+        2.0,
+        2.0,
+        0.1
+      ],
+      "casque": [
+        0.24,
+        0.3,
+        0.28
+      ],
+      "lampe": [
+        0.12,
+        0.08,
+        0.06
+      ],
+      "caisse": [
+        0.6,
+        0.4,
+        0.4
+      ],
+      "ratelier": [
+        1.2,
+        0.4,
+        1.6
+      ]
+    },
+    "objets_planche": [
+      "caisse",
+      "amphore",
+      "lampe",
+      "banc",
+      "casque",
+      "table"
+    ],
+    "prompts_reference": {
+      "prop": "{objet}, Rome antique stylisée, prop de jeu vidéo, formes lisibles, couleurs {palette}, fond neutre uni, éclairage doux, vue trois-quarts, sans texte",
+      "archi": "{objet}, module d'architecture romaine stylisée, jeu vidéo, proportions nettes, couleurs {palette}, fond neutre uni, vue trois-quarts, sans texte"
+    },
+    "planche": [],
+    "credits_planche": 0,
+    "inspirations": [],
+    "versions": [
+      {
+        "id": 1,
+        "code": "rome-stylise-v0",
+        "version": 0,
+        "note": "Version initiale du thème pilote.",
+        "date": "2026-10-18T08:00:00Z",
+        "etat": "valide"
+      }
+    ],
+    "lots": [],
+    "peut_modifier": true
+  },
   "GET /api/menu#rempli": {
     "badges": {
       "lots": 3,
