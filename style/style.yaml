@@ -1,0 +1,96 @@
+# Moodboard exécutable du thème pilote : Rome antique stylisée, version 0.
+# Tous les scripts (générateurs, finition, tests, rendus) lisent ce fichier via pipeline/style.py.
+# Aucune de ces valeurs n'est recopiée en dur dans le code.
+style: rome-stylise-v0
+nom: Rome antique stylisée
+theme: ROM
+version: 0
+direction: stylise            # stylise | semi_realiste (décision du 17 oct. : stylisé)
+units: meters                 # 1 unité Blender = 1 m
+conventions:
+  haut: "+Z"
+  face_avant: "-Y"
+texel_density_px_per_m: 512
+materials_lib: style/materials.blend
+
+# 8 à 12 couleurs nommées
+palette:
+  terre_cuite: "#B5582E"
+  ocre: "#C8902A"
+  bronze: "#8C6A2F"
+  marbre: "#E8E3D8"
+  fer: "#5B5E63"
+  cuir: "#6E4A2B"
+  bois: "#8A5F3A"
+  pourpre: "#6B2D4C"
+  lin: "#D9CBA8"
+  pierre: "#A39F93"
+
+# Matériaux partagés (voie code). `base` est une couleur de la palette.
+materiaux:
+  bois:        {base: bois,        roughness: 0.75, metallic: 0.0}
+  cuir:        {base: cuir,        roughness: 0.60, metallic: 0.0}
+  bronze:      {base: bronze,      roughness: 0.35, metallic: 1.0}
+  fer:         {base: fer,         roughness: 0.45, metallic: 1.0}
+  marbre:      {base: marbre,      roughness: 0.30, metallic: 0.0}
+  terre_cuite: {base: terre_cuite, roughness: 0.80, metallic: 0.0}
+  tissu:       {base: lin,         roughness: 0.90, metallic: 0.0}
+  pierre:      {base: pierre,      roughness: 0.85, metallic: 0.0}
+  pourpre:     {base: pourpre,     roughness: 0.85, metallic: 0.0}
+  ocre:        {base: ocre,        roughness: 0.80, metallic: 0.0}
+
+# Budgets de triangles du LOD0 par catégorie
+budgets_tris:
+  petit_prop: 2000
+  prop_moyen: 6000
+  grand_prop: 15000
+  module_archi: 8000
+
+# Taille des textures par catégorie (carrées, en pixels)
+textures_px:
+  petit_prop: 1024
+  prop_moyen: 1024
+  grand_prop: 2048
+  module_archi: 2048
+
+lod_ratios: [1.0, 0.5, 0.25]
+
+usure:
+  aretes: 0.4
+  cavites: 0.3
+
+# Tolérances des tests automatiques (cahier des charges, « Contrôles qualité »)
+tolerances:
+  dimensions_pct: 5         # écart max avec les dimensions réelles du type
+  texel_pct: 15             # alerte seulement, non bloquant
+  symetrie_m: 0.005         # écart max avec le miroir, objets déclarés symétriques
+  lod_pct: 10               # tolérance autour de 50 % et 25 % pour LOD1 et LOD2
+
+# Dimensions réelles par type d'objet, en mètres : [largeur X, profondeur Y, hauteur Z]
+dimensions_m:
+  scutum:   [0.65, 0.20, 1.10]
+  gladius:  [0.08, 0.04, 0.65]
+  pilum:    [0.06, 0.06, 2.00]
+  amphore:  [0.35, 0.35, 0.90]
+  colonne:  [0.60, 0.60, 4.50]
+  brasero:  [0.60, 0.60, 0.90]
+  table:    [1.20, 0.70, 0.75]
+  banc:     [1.20, 0.35, 0.45]
+  arche:    [3.00, 0.60, 4.00]
+  mur:      [3.00, 0.40, 3.00]
+  sol:      [2.00, 2.00, 0.10]
+  casque:   [0.24, 0.30, 0.28]
+  lampe:    [0.12, 0.08, 0.06]
+  caisse:   [0.60, 0.40, 0.40]
+  ratelier: [1.20, 0.40, 1.60]
+
+# Où va le pivot selon le type (sol_centre ou poignee)
+pivot:
+  defaut: sol_centre
+  armes: poignee
+  outils: poignee
+
+# Gabarits de prompts pour les images de référence 2D (voie IA), un par catégorie
+prompts_reference:
+  prop: "{objet}, Rome antique stylisée, prop de jeu vidéo, formes lisibles, couleurs {palette}, fond neutre uni, éclairage doux, vue trois-quarts, sans texte"
+  archi: "{objet}, module d'architecture romaine stylisée, jeu vidéo, proportions nettes, couleurs {palette}, fond neutre uni, vue trois-quarts, sans texte"
