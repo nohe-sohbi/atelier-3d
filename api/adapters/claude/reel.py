@@ -38,7 +38,7 @@ class ClaudeReel(Claude):
                 r = c.get("/v1/models")
                 r.raise_for_status()
                 modeles = [m.get("id") for m in r.json().get("data", [])]
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001 - un test de connexion répond toujours
             return _commun.resultat_test(False, "Erreur", f"API Claude : {_commun.erreur_http(e)}")
         ok_modele = self.modele in modeles
         message = f"API Claude : {len(modeles)} modèle{'s' if len(modeles) > 1 else ''} accessible"

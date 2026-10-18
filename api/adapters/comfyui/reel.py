@@ -22,7 +22,7 @@ class ComfyUIReel(ComfyUI):
                 r = c.get("/system_stats")
                 r.raise_for_status()
                 stats = r.json()
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001 - un test de connexion répond toujours
             return _commun.resultat_test(False, "Erreur", f"ComfyUI : {_commun.erreur_http(e)} ({self.url})")
         gpus = stats.get("devices", [])
         g = gpus[0] if gpus else {}

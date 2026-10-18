@@ -471,11 +471,12 @@ def joindre(objets: Sequence[Any], nom: str | None = None):
         bm.from_mesh(me)
     for obj in objets[1:]:
         supprimer(obj)
+    # les slots manquants sont ajoutés AVANT d'écrire le maillage : materials.clear() remettrait
+    # tous les indices de matériau à zéro
+    for mat in mats[len(cible.data.materials):]:
+        cible.data.materials.append(mat)
     bm.to_mesh(cible.data)
     bm.free()
-    cible.data.materials.clear()
-    for mat in mats:
-        cible.data.materials.append(mat)
     cible.data.update()
     return cible
 

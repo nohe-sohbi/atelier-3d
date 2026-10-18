@@ -3,11 +3,11 @@ from __future__ import annotations
 
 from datetime import UTC, datetime
 
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter
 
 from api import config as cfgmod
 from api import db
-from api.dependances import get_config, get_db
+from api.dependances import Config, Db
 from api.services import couts
 
 router = APIRouter(tags=["menu"])
@@ -28,8 +28,10 @@ def texte_renouvellement(jour: int, maintenant: datetime | None = None) -> str:
 
 
 @router.get("/menu")
-def menu(conn=Depends(get_db), cfg: dict = Depends(get_config)) -> dict:
-    n = lambda sql, p=(): int(db.une(conn, sql, p)["n"])  # noqa: E731
+def menu(conn: Db, cfg: Config) -> dict:
+    def n(sql: str) -> int:
+        return int(db.une(conn, sql)["n"])
+
     badges = {
         "lots": n("SELECT COUNT(*) AS n FROM lots WHERE etat = 'en_cours'"),
         "bibliotheque": n("SELECT COUNT(*) AS n FROM assets WHERE statut = 'garde'"),

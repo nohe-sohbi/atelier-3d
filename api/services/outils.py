@@ -19,7 +19,7 @@ def _executable(chemin: str) -> str | None:
 
 
 def _lancer(args: list[str], timeout: float) -> subprocess.CompletedProcess:
-    return subprocess.run(args, capture_output=True, text=True, timeout=timeout)
+    return subprocess.run(args, capture_output=True, text=True, timeout=timeout, check=False)
 
 
 def blender_disponible(cfg: dict) -> bool:

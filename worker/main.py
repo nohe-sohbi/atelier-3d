@@ -112,7 +112,7 @@ class Worker:
         while not self.arret.is_set():
             try:
                 self.tour()
-            except Exception:  # la boucle ne meurt jamais sur une erreur passagère
+            except Exception:  # noqa: BLE001 - la boucle ne meurt jamais sur une erreur passagère
                 log.error("erreur dans la boucle :\n%s", traceback.format_exc())
             self.arret.wait(self.tick_s)
         self.arreter()
@@ -200,11 +200,11 @@ class Worker:
             except InterruptedError as e:
                 taches.remettre_en_attente(conn, t["id"], f"interrompue : {e}")
                 log.info("tâche %s (%s) remise en attente", t["id"], t["type"])
-            except Exception as e:
+            except Exception as e:  # noqa: BLE001 - toute erreur du handler = échec de la tâche
                 erreur = f"{type(e).__name__}: {e}"
                 etat = taches.echouer_tache(conn, t["id"], erreur, self.backoff_base_s)
                 log.warning("tâche %s (%s) échouée → %s : %s", t["id"], t["type"], etat, erreur)
-        except Exception:
+        except Exception:  # noqa: BLE001 - le thread ne doit jamais mourir en silence
             log.error("erreur interne sur la tâche %s :\n%s", t["id"], traceback.format_exc())
         finally:
             conn.close()

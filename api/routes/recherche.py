@@ -3,10 +3,10 @@ from __future__ import annotations
 
 import re
 
-from fastapi import APIRouter, Depends, Query
+from fastapi import APIRouter, Query
 
 from api import db
-from api.dependances import get_db
+from api.dependances import Db
 
 router = APIRouter(tags=["recherche"])
 _MOT = re.compile(r"[\w'-]+", re.UNICODE)
@@ -26,8 +26,8 @@ def requete_fts(q: str) -> str:
 
 
 @router.get("/recherche")
-def rechercher(q: str = Query("", max_length=200), limit: int = Query(20, ge=1, le=100),
-               conn=Depends(get_db)) -> dict:
+def rechercher(conn: Db, q: str = Query("", max_length=200),
+               limit: int = Query(20, ge=1, le=100)) -> dict:
     requete = requete_fts(q)
     if not requete:
         return {"resultats": []}

@@ -28,7 +28,8 @@ class ItchioReel(Itchio):
 
     def _lancer(self, *args: str, timeout: float = 60) -> subprocess.CompletedProcess:
         exe = shutil.which(self.butler) or self.butler
-        return subprocess.run([exe, *args], capture_output=True, text=True, timeout=timeout, env=self._env())
+        return subprocess.run([exe, *args], capture_output=True, text=True, timeout=timeout,
+                              env=self._env(), check=False)
 
     def tester_butler(self) -> dict:
         if not shutil.which(self.butler) and not Path(self.butler).exists():

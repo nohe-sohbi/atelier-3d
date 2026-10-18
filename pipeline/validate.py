@@ -287,8 +287,8 @@ def chevauchements_uv(faces_uv: np.ndarray, cellules: int = 64) -> tuple[int, in
         return 0, 0
     # dédoublonner les triangles identiques (miroirs empilés)
     cle = np.round(t, 5)
-    ordre = np.lexsort((cle[:, :, 1].T, cle[:, :, 0].T))  # (3, n) -> tri des sommets par (x, y)
-    cle_triee = np.take_along_axis(cle, ordre.T[:, :, None], axis=1).reshape(len(t), -1)
+    ordre = np.lexsort((cle[:, :, 1], cle[:, :, 0]), axis=1)  # sommets de chaque triangle triés par (x, y)
+    cle_triee = np.take_along_axis(cle, ordre[:, :, None], axis=1).reshape(len(t), -1)
     _, premiers = np.unique(cle_triee, axis=0, return_index=True)
     t = t[np.sort(premiers)]
     n = len(t)

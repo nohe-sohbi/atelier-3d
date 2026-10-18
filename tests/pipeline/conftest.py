@@ -115,7 +115,7 @@ def dossier_asset(tmp_path: Path, id_asset: str, lod0: trimesh.Trimesh, lod1=Non
     if lod2 is None:
         lod2 = lod0
     if col is None:
-        col = lod0.convex_hull
+        col = lod0.bounding_box.to_mesh()
     scene = trimesh.Scene()
     for suffixe, m in (("_LOD0", lod0), ("_LOD1", lod1), ("_LOD2", lod2), ("_COL", col)):
         scene.add_geometry(m, node_name=id_asset + suffixe, geom_name=id_asset + suffixe)

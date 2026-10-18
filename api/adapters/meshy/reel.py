@@ -37,7 +37,7 @@ class MeshyReel(Meshy):
     def tester_connexion(self) -> dict:
         try:
             s = self.solde()
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001 - un test de connexion répond toujours
             return _commun.resultat_test(False, "Erreur", f"Meshy : {_commun.erreur_http(e)}")
         return _commun.resultat_test(True, "Connecté", f"Meshy : {s['restants']} / {s['total']} crédits",
                                      {"mode": "reel", "solde": s})

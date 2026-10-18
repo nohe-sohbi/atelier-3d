@@ -3,13 +3,13 @@ from __future__ import annotations
 
 from typing import Literal
 
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel, ConfigDict, Field
 
 from api import config as cfgmod
 from api import db
 from api.adapters import get_claude, get_comfyui, get_itchio, get_meshy
-from api.dependances import get_config, get_db
+from api.dependances import Config, Db
 from api.services import couts, evenements, outils
 
 router = APIRouter(prefix="/reglages", tags=["reglages"])
@@ -102,7 +102,7 @@ def _etat(conn, cfg: dict) -> dict:
     try:
         s = get_meshy(cfg).solde()
         solde = {"restants": int(s["restants"]), "total": int(s["total"]), "lu_le": db.maintenant()}
-    except Exception as e:
+    except Exception as e:  # noqa: BLE001 - la route ne doit pas tomber si Meshy est injoignable
         titre = "Solde Meshy illisible"
         if not evenements.recent_existe(conn, "meshy_injoignable", minutes=10):
             evenements.ecrire(conn, "meshy_injoignable", titre, f"{type(e).__name__}: {e}"[:300],
@@ -115,12 +115,12 @@ def _reponse(conn, cfg: dict) -> dict:
 
 
 @router.get("")
-def lire_reglages(conn=Depends(get_db), cfg: dict = Depends(get_config)) -> dict:
+def lire_reglages(conn: Db, cfg: Config) -> dict:
     return _reponse(conn, cfg)
 
 
 @router.put("")
-def ecrire_reglages(reglages: ReglagesIn, conn=Depends(get_db), cfg: dict = Depends(get_config)) -> dict:
+def ecrire_reglages(reglages: ReglagesIn, conn: Db, cfg: Config) -> dict:
     nouveau = cfgmod.appliquer_reglages(cfg, reglages.model_dump(exclude_unset=False))
     cfgmod.enregistrer(nouveau)
     evenements.ecrire(conn, "reglages_enregistres", "Réglages enregistrés", niveau="debug")
@@ -133,7 +133,7 @@ Service = Literal["meshy", "claude", "comfyui", "itchio", "blender", "gltf_valid
 
 
 @router.post("/tester/{service}")
-def tester(service: Service, conn=Depends(get_db), cfg: dict = Depends(get_config)) -> dict:
+def tester(service: Service, conn: Db, cfg: Config) -> dict:
     try:
         if service == "meshy":
             res = get_meshy(cfg).tester_connexion()
@@ -151,7 +151,7 @@ def tester(service: Service, conn=Depends(get_db), cfg: dict = Depends(get_confi
             raise HTTPException(404, f"service inconnu : {service}")
     except HTTPException:
         raise
-    except Exception as e:
+    except Exception as e:  # noqa: BLE001 - un test de connexion répond toujours
         res = {"ok": False, "etat": "Erreur", "message": f"{type(e).__name__}: {e}"[:300], "details": {}}
     if not res.get("ok"):
         evenements.ecrire(conn, "test_connexion_echec", f"Test {service} : {res.get('message', '')}"[:200],
