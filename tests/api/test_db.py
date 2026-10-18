@@ -57,3 +57,22 @@ def test_initialisation_concurrente(tmp_path):
 
 def test_fts5_present(conn):
     db.verifier_fts5(conn)
+
+
+def test_connexion_utilisable_depuis_un_autre_thread(atelier):
+    """FastAPI ouvre et ferme la connexion d'une requête dans des threads différents."""
+    import threading
+
+    conn = db.connexion()
+    erreurs = []
+
+    def fermer():
+        try:
+            conn.execute("SELECT 1").fetchone()
+            conn.close()
+        except Exception as e:  # noqa: BLE001
+            erreurs.append(e)
+    t = threading.Thread(target=fermer)
+    t.start()
+    t.join()
+    assert erreurs == []

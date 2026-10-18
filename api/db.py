@@ -35,7 +35,10 @@ def connexion(chemin: Path | None = None) -> sqlite3.Connection:
     """Ouvre une connexion (une par thread : ne pas la partager)."""
     chemin = chemin or chemins.chemin_db()
     chemin.parent.mkdir(parents=True, exist_ok=True)
-    conn = sqlite3.connect(str(chemin), timeout=30, isolation_level=None)
+    # check_same_thread=False : FastAPI exécute une dépendance synchrone dans un pool de threads et
+    # peut la fermer dans un autre thread que celui qui l'a ouverte. Une connexion ne sert qu'à une
+    # requête à la fois : aucun partage concurrent.
+    conn = sqlite3.connect(str(chemin), timeout=30, isolation_level=None, check_same_thread=False)
     conn.row_factory = _dict_factory
     conn.execute("PRAGMA journal_mode=WAL")
     conn.execute("PRAGMA foreign_keys=ON")
