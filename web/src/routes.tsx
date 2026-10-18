@@ -12,6 +12,7 @@ export interface Route {
 export const ROUTES: Route[] = [
   { chemin: "/", titre: "Accueil", element: <PageAVenir titre="Accueil" etape={11} /> },
   { chemin: "/lots", titre: "Lots", element: <PageAVenir titre="Lots" etape={3} /> },
+  { chemin: "/lots/nouveau", titre: "Nouveau lot", element: <PageAVenir titre="Nouveau lot" etape={3} /> },
   { chemin: "/bibliotheque", titre: "Bibliothèque", element: <PageAVenir titre="Bibliothèque" etape={9} /> },
   { chemin: "/assets/:id", titre: "Fiche asset", element: <PageAVenir titre="Fiche asset" etape={9} /> },
   { chemin: "/generateurs", titre: "Générateurs", element: <PageAVenir titre="Générateurs" etape={11} /> },

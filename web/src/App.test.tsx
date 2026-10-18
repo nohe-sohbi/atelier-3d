@@ -64,12 +64,13 @@ describe("Navigation", () => {
     await screen.findByRole("button", { name: "Notifications : 1 nouvelle" });
   });
 
-  it("le bouton Nouveau lot mène aux lots", async () => {
+  it("le bouton Nouveau lot mène à la création d'un lot (étape 3), pas à la liste", async () => {
     mockApi(API);
     const utilisateur = userEvent.setup();
     rendreApp("/styles");
     await screen.findByText("Aucune collection épinglée");
     await utilisateur.click(screen.getByRole("link", { name: "Nouveau lot" }));
-    expect(screen.getByRole("heading", { level: 1, name: "Lots" })).toBeInTheDocument();
+    expect(screen.getByRole("heading", { level: 1, name: "Nouveau lot" })).toBeInTheDocument();
+    expect(screen.getByText("Arrive à l'étape 3 du plan")).toBeInTheDocument();
   });
 });
