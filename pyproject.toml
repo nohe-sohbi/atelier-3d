@@ -1,0 +1,37 @@
+[build-system]
+requires = ["setuptools>=69"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "atelier-3d"
+version = "0.1.0"
+description = "Application locale pour fabriquer une bibliothèque d'assets 3D de jeu"
+requires-python = ">=3.12"
+dependencies = [
+  "fastapi>=0.115",
+  "uvicorn[standard]>=0.30",
+  "pyyaml>=6.0",
+  "httpx>=0.27",
+  "pydantic>=2.7",
+  # GLB et PNG produits par les adaptateurs simulés
+  "trimesh>=4.4",
+  "numpy>=1.26",
+  "pillow>=10",
+]
+
+[project.optional-dependencies]
+dev = ["pytest>=8", "ruff>=0.5"]
+
+[tool.setuptools.packages.find]
+include = ["api*"]
+
+[tool.setuptools.package-data]
+api = ["migrations/*.sql"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+markers = ["blender: exige un Blender 5.2 configuré ; sauté sinon"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py312"
