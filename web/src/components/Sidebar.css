@@ -176,3 +176,8 @@
   font-size: 12px;
   color: var(--texte-secondaire);
 }
+
+.sidebar__simule {
+  color: var(--texte-secondaire);
+  font-weight: 400;
+}

@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useId, useRef, useState, type KeyboardEvent } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { api, messageErreur } from "../api/client";
-import type { Notification, Recherche, ResultatRecherche } from "../api/types";
+import type { Notification, Notifications, Recherche, ResultatRecherche } from "../api/types";
 import "./TopBar.css";
 
 const DELAI_RECHERCHE_MS = 200;
@@ -154,6 +154,7 @@ function RechercheGlobale() {
 
 function Notifications() {
   const [liste, setListe] = useState<Notification[]>([]);
+  const [nonLues, setNonLues] = useState(0);
   const [erreur, setErreur] = useState<string | null>(null);
   const [ouvert, setOuvert] = useState(false);
   const refBloc = useRef<HTMLDivElement>(null);
@@ -161,9 +162,10 @@ function Notifications() {
   const navigate = useNavigate();
 
   const charger = useCallback(() => {
-    api<Notification[]>("/notifications")
-      .then((n) => {
-        setListe(n);
+    api<Notifications>("/notifications")
+      .then((r) => {
+        setListe(r.notifications);
+        setNonLues(r.non_lues);
         setErreur(null);
       })
       .catch((e) => setErreur(messageErreur(e)));
@@ -192,17 +194,16 @@ function Notifications() {
     };
   }, [ouvert]);
 
-  const nonLues = liste.filter((n) => !n.lu).length;
-
   const marquerLu = async (n: Notification) => {
     if (!n.lu) {
       setListe((l) => l.map((x) => (x.id === n.id ? { ...x, lu: true } : x)));
+      setNonLues((v) => Math.max(0, v - 1));
       try {
         await api(`/notifications/${encodeURIComponent(String(n.id))}/lu`, { method: "POST" });
       } catch (e) {
         setErreur(messageErreur(e));
-        charger();
       }
+      charger();
     }
     setOuvert(false);
     if (n.lien) navigate(n.lien);
@@ -210,6 +211,7 @@ function Notifications() {
 
   const toutLu = async () => {
     setListe((l) => l.map((x) => ({ ...x, lu: true })));
+    setNonLues(0);
     try {
       await api("/notifications/tout-lu", { method: "POST" });
     } catch (e) {

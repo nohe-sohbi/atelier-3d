@@ -1,0 +1,271 @@
+{
+  "GET /api/sante": {
+    "statut": "ok",
+    "version": "0.1.0",
+    "blender": false,
+    "db": "ok"
+  },
+  "GET /api/menu": {
+    "badges": {
+      "lots": 0,
+      "bibliotheque": 0,
+      "generateurs": 0
+    },
+    "collections": [],
+    "credits": {
+      "restants": 1000,
+      "total": 1000,
+      "utilises": 0,
+      "mode": "simule",
+      "renouvellement": "Renouvelés le 1er novembre"
+    }
+  },
+  "GET /api/notifications": {
+    "notifications": [],
+    "non_lues": 0
+  },
+  "GET /api/recherche?q=": {
+    "resultats": []
+  },
+  "GET /api/reglages": {
+    "services": {
+      "meshy": {
+        "mode": "simule",
+        "cle_api_definie": false,
+        "cle_api_apercu": "",
+        "credits_mensuels": 1000,
+        "renouvellement_jour": 1,
+        "alerte_pct": 80
+      },
+      "claude": {
+        "mode": "simule",
+        "cle_api_definie": false,
+        "cle_api_apercu": "",
+        "modele": "claude-sonnet-5-5",
+        "plafond_mensuel_usd": 5.0
+      },
+      "comfyui": {
+        "mode": "simule",
+        "url": "http://127.0.0.1:8188"
+      },
+      "itchio": {
+        "mode": "simule",
+        "cle_api_definie": false,
+        "cle_api_apercu": "",
+        "compte": "",
+        "canal": "assets"
+      }
+    },
+    "outils": {
+      "blender": {
+        "chemin": ""
+      },
+      "gltf_validator": {
+        "chemin": "gltf_validator"
+      },
+      "butler": {
+        "chemin": "butler"
+      }
+    },
+    "bibliotheque": {
+      "dossier": "assets",
+      "purge_rejets_jours": 30
+    },
+    "files": {
+      "gpu": 1,
+      "meshy": 3,
+      "blender": 2,
+      "relances_max": 3
+    },
+    "notifications": {
+      "app": true,
+      "bureau": false
+    },
+    "etat": {
+      "meshy_solde": {
+        "restants": 1000,
+        "total": 1000,
+        "utilises": 0,
+        "mode": "simule"
+      },
+      "claude_depense_mois": null
+    }
+  },
+  "POST /api/reglages/tester/meshy": {
+    "ok": true,
+    "etat": "Connecté",
+    "message": "Meshy simulé : 1000 / 1000 crédits",
+    "details": {
+      "mode": "simule",
+      "solde": {
+        "restants": 1000,
+        "total": 1000
+      }
+    }
+  },
+  "POST /api/reglages/tester/claude": {
+    "ok": true,
+    "etat": "Connecté",
+    "message": "API Claude simulée, modèle claude-sonnet-5-5",
+    "details": {
+      "mode": "simule",
+      "modeles": [
+        "claude-sonnet-5-5",
+        "claude-haiku-5-5"
+      ],
+      "modele": "claude-sonnet-5-5"
+    }
+  },
+  "POST /api/reglages/tester/comfyui": {
+    "ok": true,
+    "etat": "Joignable",
+    "message": "ComfyUI simulé (GPU simulée, 12 Go)",
+    "details": {
+      "mode": "simule",
+      "gpu": "GPU simulée",
+      "vram_total_mo": 12288,
+      "vram_libre_mo": 11264,
+      "modeles": [
+        "Pixal3D",
+        "Trellis.2"
+      ],
+      "version": "simule"
+    }
+  },
+  "POST /api/reglages/tester/itchio": {
+    "ok": true,
+    "etat": "Connecté",
+    "message": "butler simulé 15.24.0 (simulé), compte (compte non renseigné)",
+    "details": {
+      "mode": "simule",
+      "version": "15.24.0 (simulé)",
+      "compte": ""
+    }
+  },
+  "POST /api/reglages/tester/blender": {
+    "ok": false,
+    "etat": "Erreur",
+    "message": "Aucun chemin Blender renseigné",
+    "details": {}
+  },
+  "POST /api/reglages/tester/gltf_validator": {
+    "ok": false,
+    "etat": "Erreur",
+    "message": "glTF-Validator introuvable (gltf_validator)",
+    "details": {}
+  },
+  "GET /api/nexistepas": {
+    "detail": "Not Found"
+  },
+  "GET /api/menu#rempli": {
+    "badges": {
+      "lots": 3,
+      "bibliotheque": 2,
+      "generateurs": 1
+    },
+    "collections": [
+      {
+        "id": 1,
+        "nom": "Collection test",
+        "couleur": "#B5582E",
+        "nombre": 2
+      }
+    ],
+    "credits": {
+      "restants": 940,
+      "total": 1000,
+      "utilises": 60,
+      "mode": "simule",
+      "renouvellement": "Renouvelés le 1er novembre"
+    }
+  },
+  "GET /api/notifications#rempli": {
+    "notifications": [
+      {
+        "id": 4,
+        "date": "2026-10-18T08:00:00Z",
+        "type": "banc_termine",
+        "niveau": "info",
+        "titre": "Banc d'essai terminé",
+        "texte": "",
+        "lien": "/generateurs",
+        "lu": true
+      },
+      {
+        "id": 3,
+        "date": "2026-10-18T08:00:00Z",
+        "type": "revue_prete",
+        "niveau": "info",
+        "titre": "Revue prête · Lot test",
+        "texte": "4 objets à juger",
+        "lien": "/lots/1/revue",
+        "lu": false
+      }
+    ],
+    "non_lues": 1
+  },
+  "GET /api/reglages#rempli": {
+    "services": {
+      "meshy": {
+        "mode": "simule",
+        "cle_api_definie": true,
+        "cle_api_apercu": "••••ab12",
+        "credits_mensuels": 1000,
+        "renouvellement_jour": 1,
+        "alerte_pct": 80
+      },
+      "claude": {
+        "mode": "simule",
+        "cle_api_definie": false,
+        "cle_api_apercu": "",
+        "modele": "claude-sonnet-5-5",
+        "plafond_mensuel_usd": 5.0
+      },
+      "comfyui": {
+        "mode": "simule",
+        "url": "http://127.0.0.1:8188"
+      },
+      "itchio": {
+        "mode": "simule",
+        "cle_api_definie": true,
+        "cle_api_apercu": "••••zz99",
+        "compte": "mon-compte",
+        "canal": "assets"
+      }
+    },
+    "outils": {
+      "blender": {
+        "chemin": "/usr/bin/blender"
+      },
+      "gltf_validator": {
+        "chemin": "gltf_validator"
+      },
+      "butler": {
+        "chemin": "butler"
+      }
+    },
+    "bibliotheque": {
+      "dossier": "assets",
+      "purge_rejets_jours": 30
+    },
+    "files": {
+      "gpu": 1,
+      "meshy": 3,
+      "blender": 2,
+      "relances_max": 3
+    },
+    "notifications": {
+      "app": true,
+      "bureau": false
+    },
+    "etat": {
+      "meshy_solde": {
+        "restants": 940,
+        "total": 1000,
+        "utilises": 60,
+        "mode": "simule"
+      },
+      "claude_depense_mois": null
+    }
+  }
+}

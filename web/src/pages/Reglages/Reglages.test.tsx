@@ -2,7 +2,7 @@ import { screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import type { Reglages as ReglagesApi, ReglagesEnvoyes } from "../../api/types";
-import { MENU_VIDE, REGLAGES, mockApi, reponseErreur } from "../../test/api-mock";
+import { MENU_VIDE, NOTIFICATIONS_VIDES, REGLAGES, mockApi, reponseErreur } from "../../test/api-mock";
 import { rendreApp } from "../../test/rendre";
 
 afterEach(() => vi.unstubAllGlobals());
@@ -10,7 +10,7 @@ afterEach(() => vi.unstubAllGlobals());
 function monter(extra: Record<string, unknown> = {}) {
   return mockApi({
     "GET /api/menu": MENU_VIDE,
-    "GET /api/notifications": [],
+    "GET /api/notifications": NOTIFICATIONS_VIDES,
     "GET /api/reglages": REGLAGES,
     "PUT /api/reglages": (init: RequestInit | undefined) => {
       const corps = JSON.parse(String(init?.body)) as ReglagesEnvoyes;
@@ -32,7 +32,7 @@ describe("Réglages", () => {
     expect(screen.getByLabelText("Clé API", { selector: "#claude-key" })).toHaveAttribute("placeholder", "Aucune clé");
 
     const solde = screen.getByText(/crédits restants/);
-    expect(solde).toHaveTextContent(/574 \/ 1[\s\u202f\u00a0]000 crédits restants/);
+    expect(solde).toHaveTextContent(/940 \/ 1[\s\u202f\u00a0]000 crédits restants/);
     expect(solde).toHaveTextContent("lu par l'API à l'ouverture de l'app");
     expect(screen.getByText("Suivi des dépenses : arrive à l'étape 4 du plan.")).toBeInTheDocument();
     expect(screen.getByLabelText("Renouvellement")).toHaveValue("1");
@@ -43,7 +43,7 @@ describe("Réglages", () => {
     expect(screen.getByLabelText("Canal")).toHaveValue("assets");
     expect(screen.getByLabelText("Exécutable", { selector: "#blender-path" })).toHaveValue("/usr/bin/blender");
     expect(screen.getByLabelText("Adresse")).toHaveValue("http://127.0.0.1:8188");
-    expect(screen.getByLabelText("Dossier")).toHaveValue("assets/");
+    expect(screen.getByLabelText("Dossier")).toHaveValue("assets");
     expect(screen.getByLabelText("File Meshy")).toHaveValue("3");
     expect(screen.getByLabelText("File Blender")).toHaveValue("2");
     expect(screen.getByLabelText("Relances automatiques")).toHaveValue(3);
@@ -91,7 +91,7 @@ describe("Réglages", () => {
     expect(corps.files).toEqual({ gpu: 1, meshy: 5, blender: 2, relances_max: 2 });
     expect(corps.notifications).toEqual({ app: true, bureau: true });
     expect(corps.outils.blender.chemin).toBe("/usr/bin/blender");
-    expect(corps.bibliotheque).toEqual({ dossier: "assets/", purge_rejets_jours: 30 });
+    expect(corps.bibliotheque).toEqual({ dossier: "assets", purge_rejets_jours: 30 });
     // Champs de clé vides : aucune cle_api envoyée
     expect("cle_api" in corps.services.meshy).toBe(false);
     expect("cle_api" in corps.services.claude).toBe(false);

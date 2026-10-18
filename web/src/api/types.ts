@@ -22,13 +22,16 @@ export interface MenuCredits {
   utilises: number;
   total: number;
   restants: number;
+  /** Mode de l'adaptateur qui a donné ce solde : « simule » doit se voir à l'écran. */
+  mode: "simule" | "reel";
   renouvellement: string | null;
 }
 
 export interface Menu {
   badges: MenuBadges;
   collections: MenuCollection[];
-  credits: MenuCredits;
+  /** null quand le solde Meshy n'a pas pu être lu : on le dit, on n'invente rien. */
+  credits: MenuCredits | null;
 }
 
 export interface Notification {
@@ -40,6 +43,12 @@ export interface Notification {
   texte: string;
   lien: string | null;
   lu: boolean;
+}
+
+/** Réponse de GET /api/notifications. */
+export interface Notifications {
+  notifications: Notification[];
+  non_lues: number;
 }
 
 export interface ResultatRecherche {

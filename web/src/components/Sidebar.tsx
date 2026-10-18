@@ -146,9 +146,9 @@ export function Sidebar() {
       <div className="sidebar__pied">
         <div className="sidebar__credits" aria-live="polite">
           <div className="sidebar__credits-ligne">
-            <span>Crédits Meshy</span>
+            <span>Crédits Meshy{credits?.mode === "simule" ? <span className="sidebar__simule"> · simulé</span> : null}</span>
             <span className="sidebar__nombre">
-              {credits ? `${formatNombre.format(credits.utilises)} / ${formatNombre.format(credits.total)}` : erreur ? "—" : "…"}
+              {credits ? `${formatNombre.format(credits.utilises)} / ${formatNombre.format(credits.total)}` : menu || erreur ? "—" : "…"}
             </span>
           </div>
           <div
@@ -162,6 +162,7 @@ export function Sidebar() {
             <div className="sidebar__jauge-barre" style={{ width: `${pct}%` }} />
           </div>
           {credits?.renouvellement ? <div className="sidebar__credits-note">{credits.renouvellement}</div> : null}
+          {menu && !credits ? <div className="sidebar__credits-note">Solde Meshy non lu (voir Réglages)</div> : null}
           {erreur ? <div className="sidebar__credits-note">Menu non chargé : {erreur}</div> : null}
         </div>
         <NavLink to="/reglages" className="sidebar__lien">
