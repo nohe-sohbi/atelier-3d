@@ -22,6 +22,11 @@ def _lancer(args: list[str], timeout: float) -> subprocess.CompletedProcess:
     return subprocess.run(args, capture_output=True, text=True, timeout=timeout, check=False)
 
 
+def detecter_blender() -> str | None:
+    """Chemin de Blender trouvé sur cette machine, ou None. Sert au premier lancement (dev.py)."""
+    return shutil.which("blender")
+
+
 def blender_disponible(cfg: dict) -> bool:
     return _executable(cfg.get("blender", {}).get("chemin", "")) is not None
 

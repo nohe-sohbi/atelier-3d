@@ -71,8 +71,8 @@ def create_app() -> FastAPI:
     dist = chemins.dossier_web_dist()
     index = dist / "index.html"
     if index.exists():
-        if (dist / "assets").is_dir():
-            app.mount("/assets", StaticFiles(directory=dist / "assets"), name="assets")
+        if (dist / "statique").is_dir():
+            app.mount("/statique", StaticFiles(directory=dist / "statique"), name="statique")
 
         @app.get("/{chemin:path}", include_in_schema=False)
         async def spa(chemin: str):
