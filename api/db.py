@@ -66,22 +66,39 @@ def lister_migrations() -> list[tuple[int, str, Path]]:
     return out
 
 
+class FTS5Absent(RuntimeError):
+    """Le SQLite de cette machine n'a pas FTS5 : la recherche globale ne peut pas être créée."""
+
+
+def verifier_fts5(conn: sqlite3.Connection) -> None:
+    r = conn.execute("SELECT sqlite_compileoption_used('ENABLE_FTS5') AS fts5").fetchone()
+    if not r or not r["fts5"]:
+        raise FTS5Absent(
+            f"SQLite {sqlite3.sqlite_version} sans FTS5 : la recherche globale ne peut pas être créée. "
+            "Utilise un Python 3.12 de python.org (Windows) ou le paquet sqlite3 de ta distribution.")
+
+
 def appliquer_migrations(conn: sqlite3.Connection) -> list[int]:
-    """Applique les migrations manquantes ; renvoie les versions appliquées."""
+    """Applique les migrations manquantes ; renvoie les versions appliquées.
+
+    Sûr quand deux processus démarrent en même temps : la vérification « déjà appliquée » se fait
+    DANS la transaction BEGIN IMMEDIATE (verrou d'écriture), donc le second attend puis constate que
+    la version est consignée et passe. Le verrou de thread couvre les threads d'un même processus.
+    """
+    verifier_fts5(conn)
     with _verrou_migrations:
         conn.execute(
             "CREATE TABLE IF NOT EXISTS migrations ("
             " version INTEGER PRIMARY KEY, nom TEXT NOT NULL, applique_le TEXT NOT NULL)"
         )
-        faites = {r["version"] for r in conn.execute("SELECT version FROM migrations")}
         appliquees = []
         for version, nom, fichier in lister_migrations():
-            if version in faites:
-                continue
-            sql = fichier.read_text(encoding="utf-8")
             conn.execute("BEGIN IMMEDIATE")
             try:
-                _executer_script(conn, sql)
+                if conn.execute("SELECT 1 FROM migrations WHERE version = ?", (version,)).fetchone():
+                    conn.execute("ROLLBACK")
+                    continue
+                _executer_script(conn, fichier.read_text(encoding="utf-8"))
                 conn.execute(
                     "INSERT INTO migrations(version, nom, applique_le) VALUES (?, ?, ?)",
                     (version, nom, maintenant()),

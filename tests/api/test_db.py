@@ -1,4 +1,16 @@
+from concurrent.futures import ProcessPoolExecutor
+from pathlib import Path
+
 from api import db
+
+
+def _initialiser(chemin: str) -> list[int]:
+    """Au niveau du module : indispensable pour le démarrage « spawn » de Windows."""
+    conn = db.connexion(Path(chemin))
+    try:
+        return db.appliquer_migrations(conn)
+    finally:
+        conn.close()
 
 TABLES = {"styles", "lots", "objets", "essais", "assets", "versions", "collections", "collections_assets",
           "etiquettes", "etiquettes_assets", "generateurs", "regles_routage", "taches", "evenements",
@@ -27,3 +39,21 @@ def test_cles_etrangeres(conn):
 
     with pytest.raises(sqlite3.IntegrityError):
         conn.execute("INSERT INTO objets(lot_id, nom) VALUES (999, 'x')")
+
+
+def test_initialisation_concurrente(tmp_path):
+    """Quatre processus migrent la même base neuve en même temps (API et worker au premier lancement)."""
+    chemin = str(tmp_path / "atelier.db")
+    with ProcessPoolExecutor(4) as pool:
+        resultats = list(pool.map(_initialiser, [chemin] * 4))
+    assert sorted(len(r) for r in resultats) == [0, 0, 0, 1], resultats
+    conn = db.connexion(Path(chemin))
+    try:
+        assert db.versions_appliquees(conn) == [0]
+        assert conn.execute("SELECT COUNT(*) AS n FROM migrations").fetchone()["n"] == 1
+    finally:
+        conn.close()
+
+
+def test_fts5_present(conn):
+    db.verifier_fts5(conn)
