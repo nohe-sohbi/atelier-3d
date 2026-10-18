@@ -16,6 +16,7 @@ from fastapi.exceptions import RequestValidationError
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse, JSONResponse
 from fastapi.staticfiles import StaticFiles
+from starlette.exceptions import HTTPException as StarletteHTTPException
 
 from api import VERSION, chemins, db
 from api import routes as paquet_routes
@@ -54,8 +55,10 @@ def create_app() -> FastAPI:
     from api.routes import sante as route_sante
     app.include_router(route_sante.router)
 
-    @app.exception_handler(HTTPException)
-    async def _http(request: Request, exc: HTTPException):
+    # Enregistré sur la classe de Starlette : c'est elle qui est levée pour une route inconnue (404)
+    # ou une méthode refusée (405) ; fastapi.HTTPException en hérite, donc tout passe ici.
+    @app.exception_handler(StarletteHTTPException)
+    async def _http(request: Request, exc: StarletteHTTPException):
         return JSONResponse({"erreur": str(exc.detail), "detail": None}, status_code=exc.status_code,
                             headers=exc.headers)
 

@@ -155,7 +155,8 @@
     "details": {}
   },
   "GET /api/nexistepas": {
-    "detail": "Not Found"
+    "erreur": "Not Found",
+    "detail": null
   },
   "GET /api/menu#rempli": {
     "badges": {
