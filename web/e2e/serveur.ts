@@ -1,5 +1,6 @@
-/* Lance et arrête `python dev.py` pour les tests bout en bout. Rien ne touche la vraie base ni la
-   vraie config : ATELIER_DB, ATELIER_CONFIG et ATELIER_LOTS pointent dans un dossier temporaire. */
+/* Lance et arrête `python dev.py` pour les tests bout en bout. Rien ne touche la vraie base, la vraie config ni
+   le dépôt : ATELIER_DB, ATELIER_CONFIG, ATELIER_LOTS, ATELIER_STYLES et ATELIER_GENERATEURS (les demandes pour
+   Claude Code y sont écrites) pointent dans un dossier temporaire. */
 import { spawn, type ChildProcess } from "node:child_process";
 import { copyFileSync, cpSync, existsSync, mkdirSync, mkdtempSync, openSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
@@ -52,6 +53,7 @@ export async function demarrer(): Promise<void> {
   }
   const dossier = mkdtempSync(join(tmpdir(), "atelier-e2e-"));
   mkdirSync(join(dossier, "lots"));
+  mkdirSync(join(dossier, "generators"));
   // Les styles créés par les tests vont dans un dossier temporaire ; le style pilote du dépôt y est copié.
   cpSync(join(RACINE, "style", "rome-stylise-v0"), join(dossier, "style", "rome-stylise-v0"), { recursive: true });
   // Config écrite ici (copie de l'exemple, Blender vide) : les tests ne dépendent pas du Blender de la machine.
@@ -64,6 +66,7 @@ export async function demarrer(): Promise<void> {
     ATELIER_CONFIG: join(dossier, "config.local.yaml"),
     ATELIER_LOTS: join(dossier, "lots"),
     ATELIER_STYLES: join(dossier, "style"),
+    ATELIER_GENERATEURS: join(dossier, "generators"),
     ATELIER_DEV_SANS_VENV: "1",
   };
   const proc: ChildProcess = spawn(python(), ["dev.py", "--sans-navigateur", "--sans-couleur"], {

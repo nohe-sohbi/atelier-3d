@@ -1,5 +1,21 @@
 import { vi } from "vitest";
-import type { EstimationPlanche, Menu, Notifications, Recherche, Reglages, ResultatTest, StyleDetail, Styles, Tache, TacheLancee } from "../api/types";
+import type {
+  DemandeClaudeCode,
+  EnTeteLot,
+  EstimationAppliquerStyle,
+  EstimationPlanche,
+  Lots,
+  Menu,
+  Notifications,
+  ObjetsLot,
+  Recherche,
+  Reglages,
+  ResultatTest,
+  StyleDetail,
+  Styles,
+  Tache,
+  TacheLancee,
+} from "../api/types";
 import contrat from "./contrat.json";
 
 type Reponse = unknown | ((init: RequestInit | undefined, url: URL) => unknown);
@@ -61,3 +77,24 @@ export const STYLE_PLANCHE = depuis<StyleDetail>("GET /api/styles/{id}#planche")
 export const TACHE_TERMINEE = depuis<Tache>("GET /api/taches/{id}");
 export const TACHE_ECHOUEE = depuis<Tache>("GET /api/taches/{id}#echouee");
 export const TEST_CONNEXION = (service: string) => depuis<ResultatTest>(`POST /api/reglages/tester/${service}`);
+
+/* Un lot de bout en bout (vraie API, Claude simulé, vrai passage du worker) : créé vide, brief rempli, liste proposée,
+   demande pour Claude Code écrite, un objet décoché, validation refusée puis acceptée, version plus récente du style. */
+export const LOTS_VIDES = depuis<Lots>("GET /api/lots");
+export const LOTS = depuis<Lots>("GET /api/lots#rempli");
+export const LOT_CREE = depuis<EnTeteLot>("POST /api/lots");
+export const LOT_MODIFIE = depuis<EnTeteLot>("PATCH /api/lots/{id}");
+export const LOT_ENTETE = depuis<EnTeteLot>("GET /api/lots/{id}");
+export const LOT_ENTETE_PROPOSE = depuis<EnTeteLot>("GET /api/lots/{id}#propose");
+export const LOT_ENTETE_STYLE_PLUS_RECENT = depuis<EnTeteLot>("GET /api/lots/{id}#style_plus_recent");
+export const LOT_DUPLIQUE = depuis<EnTeteLot>("POST /api/lots/{id}/dupliquer");
+export const LOT_VALIDE = depuis<EnTeteLot>("POST /api/lots/{id}/valider-brief");
+export const REFUS_VALIDATION = depuis<{ erreur: string; detail: unknown }>("POST /api/lots/{id}/valider-brief#409");
+export const OBJETS_VIDES = depuis<ObjetsLot>("GET /api/lots/{id}/objets");
+export const OBJETS = depuis<ObjetsLot>("GET /api/lots/{id}/objets#propose");
+export const OBJETS_UN_DECOCHE = depuis<ObjetsLot>("PATCH /api/lots/{id}/objets/{oid}");
+export const OBJETS_PASSE_EN_IA = depuis<ObjetsLot>("PATCH /api/lots/{id}/objets/{oid}#ia");
+export const PROPOSITION_LANCEE = depuis<{ tache_id: number }>("POST /api/lots/{id}/proposition");
+export const DEMANDE = depuis<DemandeClaudeCode>("GET /api/lots/{id}/objets/{oid}/demande");
+export const DEMANDE_ECRITE = depuis<DemandeClaudeCode>("POST /api/lots/{id}/objets/{oid}/demande");
+export const ESTIMATION_APPLIQUER = depuis<EstimationAppliquerStyle>("GET /api/lots/{id}/appliquer-style");

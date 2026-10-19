@@ -3,7 +3,6 @@ import { expect, test } from "./garde-fous";
 import { RACINE } from "./serveur";
 
 const ENTREES: Array<[string, string, number]> = [
-  ["Lots", "Lots", 3],
   ["Bibliothèque", "Bibliothèque", 9],
   ["Générateurs", "Générateurs", 11],
   ["Accueil", "Accueil", 11],
@@ -30,9 +29,11 @@ test.describe("Étape 1 · Socle", () => {
       await expect(page.getByText(`Arrive à l'étape ${etape} du plan`)).toBeVisible();
       await expect(menu.getByRole("link", { name: libelle })).toHaveAttribute("aria-current", "page");
     }
-    await page.getByRole("link", { name: "Nouveau lot" }).click();
-    await expect(page.getByRole("heading", { level: 1, name: "Nouveau lot" })).toBeVisible();
-    await expect(page.getByText("Arrive à l'étape 3 du plan")).toBeVisible();
+    // Lots est construit (étape 3) : la page s'ouvre sur ses filtres.
+    await menu.getByRole("link", { name: "Lots" }).click();
+    await expect(page.getByRole("heading", { level: 1, name: "Lots" })).toBeVisible();
+    await expect(page.getByRole("group", { name: "Filtrer les lots" })).toBeVisible();
+    await expect(menu.getByRole("link", { name: "Lots" })).toHaveAttribute("aria-current", "page");
     // La jauge vient du simulateur et le dit ; aucune collection n'est inventée.
     await expect(page.getByText("· simulé")).toBeVisible();
     await expect(page.getByText("Aucune collection épinglée")).toBeVisible();

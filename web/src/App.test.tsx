@@ -1,7 +1,19 @@
 import { screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { MENU_VIDE, NOTIFICATIONS, REGLAGES, STYLES, STYLE_DETAIL, mockApi } from "./test/api-mock";
+import {
+  LOTS_VIDES,
+  LOT_CREE,
+  LOT_ENTETE_PROPOSE,
+  MENU_VIDE,
+  NOTIFICATIONS,
+  OBJETS,
+  OBJETS_VIDES,
+  REGLAGES,
+  STYLES,
+  STYLE_DETAIL,
+  mockApi,
+} from "./test/api-mock";
 import { rendreApp } from "./test/rendre";
 
 const API = {
@@ -10,6 +22,9 @@ const API = {
   "GET /api/reglages": REGLAGES,
   "GET /api/styles": STYLES,
   [`GET /api/styles/${STYLE_DETAIL.id}`]: STYLE_DETAIL,
+  "GET /api/lots": LOTS_VIDES,
+  [`GET /api/lots/${LOT_ENTETE_PROPOSE.id}`]: LOT_ENTETE_PROPOSE,
+  [`GET /api/lots/${LOT_ENTETE_PROPOSE.id}/objets`]: OBJETS,
 };
 
 afterEach(() => vi.unstubAllGlobals());
@@ -26,7 +41,7 @@ describe("Navigation", () => {
 
     await utilisateur.click(menu.getByRole("link", { name: "Lots" }));
     expect(screen.getByRole("heading", { level: 1, name: "Lots" })).toBeInTheDocument();
-    expect(screen.getByText("Arrive à l'étape 3 du plan")).toBeInTheDocument();
+    expect(await screen.findByText("Aucun lot pour l'instant")).toBeInTheDocument();
     expect(menu.getByRole("link", { name: "Lots" })).toHaveAttribute("aria-current", "page");
 
     await utilisateur.click(menu.getByRole("link", { name: "Bibliothèque" }));
@@ -48,11 +63,6 @@ describe("Navigation", () => {
 
   it.each([
     ["/", "Accueil", 11],
-    ["/lots", "Lots", 3],
-    ["/lots/4/brief", "Brief", 3],
-    ["/lots/4/references", "Références", 6],
-    ["/lots/4/generation", "Génération", 4],
-    ["/lots/4/revue", "Revue", 8],
     ["/bibliotheque", "Bibliothèque", 9],
     ["/assets/ROM_PROP_Scutum_A", "Fiche asset", 9],
     ["/generateurs", "Générateurs", 11],
@@ -66,13 +76,29 @@ describe("Navigation", () => {
     await screen.findByRole("button", { name: "Notifications : 1 nouvelle" });
   });
 
-  it("le bouton Nouveau lot mène à la création d'un lot (étape 3), pas à la liste", async () => {
+  it.each([
+    ["references", 6],
+    ["generation", 4],
+    ["revue", 8],
+  ])("/lots/:id/%s : l'en-tête du lot, puis « Arrive à l'étape %i du plan »", async (etape, numero) => {
     mockApi(API);
+    rendreApp(`/lots/${LOT_ENTETE_PROPOSE.id}/${etape}`);
+    expect(await screen.findByRole("heading", { level: 1, name: LOT_ENTETE_PROPOSE.nom })).toBeInTheDocument();
+    expect(screen.getByText(`Arrive à l'étape ${numero} du plan`)).toBeInTheDocument();
+  });
+
+  it("le bouton Nouveau lot crée un lot et ouvre son Brief, pas la liste", async () => {
+    mockApi({
+      ...API,
+      "POST /api/lots": LOT_CREE,
+      [`GET /api/lots/${LOT_CREE.id}`]: LOT_CREE,
+      [`GET /api/lots/${LOT_CREE.id}/objets`]: OBJETS_VIDES,
+    });
     const utilisateur = userEvent.setup();
     rendreApp("/styles");
     await screen.findByText("Aucune collection épinglée");
     await utilisateur.click(screen.getByRole("link", { name: "Nouveau lot" }));
-    expect(screen.getByRole("heading", { level: 1, name: "Nouveau lot" })).toBeInTheDocument();
-    expect(screen.getByText("Arrive à l'étape 3 du plan")).toBeInTheDocument();
+    expect(await screen.findByRole("heading", { level: 2, name: "Brief" })).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: /Brief/ })).toHaveAttribute("aria-current", "step");
   });
 });

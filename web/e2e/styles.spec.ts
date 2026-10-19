@@ -45,10 +45,17 @@ test.describe("Étape 2 · Styles", () => {
     await expect(page.getByText("Dupliquer en v2")).toBeVisible();
   });
 
-  test("Modifier change la description et le budget, et l'écran le montre", async ({ page }) => {
-    await page.goto("/styles?style=rome-stylise-v0");
-    await expect(page.getByRole("heading", { level: 2, name: "Rome antique stylisée" })).toBeVisible();
-    await page.getByRole("button", { name: "Modifier" }).click();
+  test("Modifier change la description et le budget, et l'écran le montre", async ({ page, request }) => {
+    // Un style à ce scénario : une version qu'un lot utilise (créé par un autre scénario) ne se modifie plus.
+    const { styles } = (await (await request.get("/api/styles")).json()) as { styles: Array<{ id: number; code: string; palette: Array<{ nom: string; hex: string }> }> };
+    const pilote = styles.find((s) => s.code === "rome-stylise-v0")!;
+    const r = await request.post("/api/styles", {
+      data: { nom: "Style à modifier", palette: Object.fromEntries(pilote.palette.map((c) => [c.nom, c.hex])), budgets_depuis: pilote.id },
+    });
+    expect(r.ok()).toBe(true);
+    await page.goto(`/styles?style=${((await r.json()) as { code: string }).code}`);
+    await expect(page.getByRole("heading", { level: 2, name: "Style à modifier" })).toBeVisible();
+    await page.getByRole("button", { name: "Modifier", exact: true }).click();
     const fenetre = page.getByRole("dialog");
     await fenetre.getByLabel("Petit objet (tris)").fill("2500");
     await fenetre.getByLabel("Description", { exact: true }).fill("Description modifiée par le test.");

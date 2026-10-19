@@ -175,6 +175,15 @@
     "erreur": "Not Found",
     "detail": null
   },
+  "GET /api/lots": {
+    "compteurs": {
+      "tous": 0,
+      "en_cours": 0,
+      "termines": 0,
+      "brouillons": 0
+    },
+    "lots": []
+  },
   "GET /api/styles": {
     "styles": [
       {
@@ -1355,5 +1364,1511 @@
       "message": "Meshy a échoué sur « caisse » : contenu refusé"
     },
     "resultat": null
+  },
+  "POST /api/lots": {
+    "id": 5,
+    "nom": "",
+    "theme": "",
+    "besoin": "",
+    "style": {
+      "id": 1,
+      "code": "rome-stylise-v0",
+      "nom": "Rome antique stylisée",
+      "version": 0,
+      "racine_id": 1
+    },
+    "style_plus_recent": null,
+    "etat": "brouillon",
+    "cree_le": "2026-10-18T08:00:00Z",
+    "maj_le": "2026-10-18T08:00:00Z",
+    "duplique_de_id": null,
+    "credits_prevus": 0,
+    "proposition_tache_id": null,
+    "nom_propose": "",
+    "etape_courante": 1,
+    "etapes": [
+      {
+        "cle": "brief",
+        "libelle": "Brief",
+        "numero": 1,
+        "lien": "/lots/5/brief",
+        "atteinte": true,
+        "faite": false
+      },
+      {
+        "cle": "references",
+        "libelle": "Références",
+        "numero": 2,
+        "lien": "/lots/5/references",
+        "atteinte": false,
+        "faite": false
+      },
+      {
+        "cle": "generation",
+        "libelle": "Génération",
+        "numero": 3,
+        "lien": "/lots/5/generation",
+        "atteinte": false,
+        "faite": false
+      },
+      {
+        "cle": "revue",
+        "libelle": "Revue",
+        "numero": 4,
+        "lien": "/lots/5/revue",
+        "atteinte": false,
+        "faite": false
+      }
+    ],
+    "ligne_etat": "0 objet · créé le 18 oct.",
+    "etape": 1,
+    "libelle_etape": "Étape 1 sur 4 · Brief",
+    "statut": "Brouillon",
+    "ton": "idle",
+    "detail": "aucun objet pour l'instant",
+    "lien": "/lots/5/brief",
+    "action": "Reprendre",
+    "compteurs": {
+      "total": 0,
+      "fabriques": 0,
+      "reutilises": 0,
+      "hors_perimetre": 0,
+      "a_creer": 0,
+      "references_a_choisir": 0,
+      "en_generation": 0,
+      "prets_revue": 0,
+      "gardes": 0,
+      "rejetes": 0,
+      "finis": 0
+    }
+  },
+  "PATCH /api/lots/{id}": {
+    "id": 5,
+    "nom": "",
+    "theme": "Thème de test",
+    "besoin": "Un besoin de test : des contenants, du mobilier et un peu de décor.",
+    "style": {
+      "id": 1,
+      "code": "rome-stylise-v0",
+      "nom": "Rome antique stylisée",
+      "version": 0,
+      "racine_id": 1
+    },
+    "style_plus_recent": null,
+    "etat": "brouillon",
+    "cree_le": "2026-10-18T08:00:00Z",
+    "maj_le": "2026-10-18T08:00:00Z",
+    "duplique_de_id": null,
+    "credits_prevus": 0,
+    "proposition_tache_id": null,
+    "nom_propose": "",
+    "etape_courante": 1,
+    "etapes": [
+      {
+        "cle": "brief",
+        "libelle": "Brief",
+        "numero": 1,
+        "lien": "/lots/5/brief",
+        "atteinte": true,
+        "faite": false
+      },
+      {
+        "cle": "references",
+        "libelle": "Références",
+        "numero": 2,
+        "lien": "/lots/5/references",
+        "atteinte": false,
+        "faite": false
+      },
+      {
+        "cle": "generation",
+        "libelle": "Génération",
+        "numero": 3,
+        "lien": "/lots/5/generation",
+        "atteinte": false,
+        "faite": false
+      },
+      {
+        "cle": "revue",
+        "libelle": "Revue",
+        "numero": 4,
+        "lien": "/lots/5/revue",
+        "atteinte": false,
+        "faite": false
+      }
+    ],
+    "ligne_etat": "0 objet · créé le 18 oct.",
+    "etape": 1,
+    "libelle_etape": "Étape 1 sur 4 · Brief",
+    "statut": "Brouillon",
+    "ton": "idle",
+    "detail": "aucun objet pour l'instant",
+    "lien": "/lots/5/brief",
+    "action": "Reprendre",
+    "compteurs": {
+      "total": 0,
+      "fabriques": 0,
+      "reutilises": 0,
+      "hors_perimetre": 0,
+      "a_creer": 0,
+      "references_a_choisir": 0,
+      "en_generation": 0,
+      "prets_revue": 0,
+      "gardes": 0,
+      "rejetes": 0,
+      "finis": 0
+    }
+  },
+  "GET /api/lots/{id}": {
+    "id": 5,
+    "nom": "",
+    "theme": "Thème de test",
+    "besoin": "Un besoin de test : des contenants, du mobilier et un peu de décor.",
+    "style": {
+      "id": 1,
+      "code": "rome-stylise-v0",
+      "nom": "Rome antique stylisée",
+      "version": 0,
+      "racine_id": 1
+    },
+    "style_plus_recent": null,
+    "etat": "brouillon",
+    "cree_le": "2026-10-18T08:00:00Z",
+    "maj_le": "2026-10-18T08:00:00Z",
+    "duplique_de_id": null,
+    "credits_prevus": 0,
+    "proposition_tache_id": null,
+    "nom_propose": "",
+    "etape_courante": 1,
+    "etapes": [
+      {
+        "cle": "brief",
+        "libelle": "Brief",
+        "numero": 1,
+        "lien": "/lots/5/brief",
+        "atteinte": true,
+        "faite": false
+      },
+      {
+        "cle": "references",
+        "libelle": "Références",
+        "numero": 2,
+        "lien": "/lots/5/references",
+        "atteinte": false,
+        "faite": false
+      },
+      {
+        "cle": "generation",
+        "libelle": "Génération",
+        "numero": 3,
+        "lien": "/lots/5/generation",
+        "atteinte": false,
+        "faite": false
+      },
+      {
+        "cle": "revue",
+        "libelle": "Revue",
+        "numero": 4,
+        "lien": "/lots/5/revue",
+        "atteinte": false,
+        "faite": false
+      }
+    ],
+    "ligne_etat": "0 objet · créé le 18 oct.",
+    "etape": 1,
+    "libelle_etape": "Étape 1 sur 4 · Brief",
+    "statut": "Brouillon",
+    "ton": "idle",
+    "detail": "aucun objet pour l'instant",
+    "lien": "/lots/5/brief",
+    "action": "Reprendre",
+    "compteurs": {
+      "total": 0,
+      "fabriques": 0,
+      "reutilises": 0,
+      "hors_perimetre": 0,
+      "a_creer": 0,
+      "references_a_choisir": 0,
+      "en_generation": 0,
+      "prets_revue": 0,
+      "gardes": 0,
+      "rejetes": 0,
+      "finis": 0
+    }
+  },
+  "GET /api/lots/{id}/objets": {
+    "lot_id": 5,
+    "objets": [],
+    "resume": {
+      "retenus": 0,
+      "a_fabriquer": 0,
+      "cc0": 0,
+      "reutilises": 0,
+      "hors_perimetre": 0,
+      "a_creer": 0,
+      "credits_estimes": 0,
+      "credits_par_objet_ia": 42
+    },
+    "proposition": null,
+    "simule": false
+  },
+  "POST /api/lots/{id}/proposition": {
+    "tache_id": 3
+  },
+  "GET /api/lots/{id}/objets#propose": {
+    "lot_id": 5,
+    "objets": [
+      {
+        "id": 1,
+        "lot_id": 5,
+        "nom": "Objet simulé 1 (géométrique, type connu)",
+        "type_objet": "scutum",
+        "description": "Réponse simulée de l'API Claude : objet géométrique, type connu d'exemple, prop moyen. En mode réel, Claude décrit ici l'objet demandé.",
+        "categorie": "prop_moyen",
+        "nature": "geometrique",
+        "voie": "a_creer",
+        "voie_forcee": false,
+        "raison_voie": "Aucun générateur pour ce type : à écrire avec Claude Code, ou passer en voie IA",
+        "regle_id": 6,
+        "generateur": null,
+        "etape": "brief",
+        "retire": false,
+        "reutilise_asset_id": null,
+        "symetrique": "X",
+        "famille": "props",
+        "cc0_ref": null,
+        "ordre": 1,
+        "dimensions": {
+          "largeur": 0.65,
+          "profondeur": 0.2,
+          "hauteur": 1.1,
+          "source": "style"
+        },
+        "pieces": [],
+        "materiaux": [
+          "materiau"
+        ],
+        "parametres": [
+          "largeur",
+          "hauteur",
+          "usure"
+        ]
+      },
+      {
+        "id": 2,
+        "lot_id": 5,
+        "nom": "Objet simulé 2 (géométrique, type inconnu)",
+        "type_objet": "objet simule 43",
+        "description": "Réponse simulée de l'API Claude : objet géométrique, type inconnu d'exemple, grand prop. En mode réel, Claude décrit ici l'objet demandé.",
+        "categorie": "grand_prop",
+        "nature": "geometrique",
+        "voie": "a_creer",
+        "voie_forcee": false,
+        "raison_voie": "Aucun générateur pour ce type : à écrire avec Claude Code, ou passer en voie IA",
+        "regle_id": 6,
+        "generateur": null,
+        "etape": "brief",
+        "retire": false,
+        "reutilise_asset_id": null,
+        "symetrique": "X",
+        "famille": "mobilier",
+        "cc0_ref": null,
+        "ordre": 2,
+        "dimensions": {
+          "largeur": 0.99,
+          "profondeur": 0.47,
+          "hauteur": 1.28,
+          "source": "claude"
+        },
+        "pieces": [],
+        "materiaux": [
+          "materiau"
+        ],
+        "parametres": [
+          "emplacements",
+          "hauteur",
+          "usure"
+        ]
+      },
+      {
+        "id": 3,
+        "lot_id": 5,
+        "nom": "Objet simulé 3 (ornemental)",
+        "type_objet": "ornement simule 18",
+        "description": "Réponse simulée de l'API Claude : objet ornemental d'exemple, prop moyen. En mode réel, Claude décrit ici l'objet demandé.",
+        "categorie": "prop_moyen",
+        "nature": "ornemental",
+        "voie": "ia",
+        "voie_forcee": false,
+        "raison_voie": "",
+        "regle_id": 5,
+        "generateur": "meshy",
+        "etape": "brief",
+        "retire": false,
+        "reutilise_asset_id": null,
+        "symetrique": null,
+        "famille": "contenants",
+        "cc0_ref": null,
+        "ordre": 3,
+        "dimensions": {
+          "largeur": 0.45,
+          "profondeur": 0.33,
+          "hauteur": 0.96,
+          "source": "claude"
+        },
+        "pieces": [],
+        "materiaux": [
+          "materiau"
+        ],
+        "parametres": []
+      },
+      {
+        "id": 4,
+        "lot_id": 5,
+        "nom": "Objet simulé 4 (mixte)",
+        "type_objet": "mixte simule 25",
+        "description": "Réponse simulée de l'API Claude : objet mixte d'exemple, module archi. En mode réel, Claude décrit ici l'objet demandé.",
+        "categorie": "module_archi",
+        "nature": "mixte",
+        "voie": "a_creer",
+        "voie_forcee": false,
+        "raison_voie": "Mixte : pièce « fût simulé » sans générateur : à écrire avec Claude Code, ou passer en voie IA",
+        "regle_id": 4,
+        "generateur": null,
+        "etape": "brief",
+        "retire": false,
+        "reutilise_asset_id": null,
+        "symetrique": "X",
+        "famille": "archi",
+        "cc0_ref": null,
+        "ordre": 4,
+        "dimensions": {
+          "largeur": 0.53,
+          "profondeur": 0.54,
+          "hauteur": 3.52,
+          "source": "claude"
+        },
+        "pieces": [
+          {
+            "id": 1,
+            "ordre": 1,
+            "nom": "Fût simulé",
+            "nature": "geometrique",
+            "type_objet": "fut simule 25",
+            "voie": "a_creer",
+            "generateur": null,
+            "etape": "brief"
+          },
+          {
+            "id": 2,
+            "ordre": 2,
+            "nom": "Chapiteau simulé",
+            "nature": "ornemental",
+            "type_objet": "chapiteau simule 25",
+            "voie": "ia",
+            "generateur": "meshy",
+            "etape": "brief"
+          }
+        ],
+        "materiaux": [
+          "materiau"
+        ],
+        "parametres": [
+          "hauteur",
+          "cannelures"
+        ]
+      },
+      {
+        "id": 5,
+        "lot_id": 5,
+        "nom": "Objet simulé 5 (personnage)",
+        "type_objet": "personnage simule 63",
+        "description": "Réponse simulée de l'API Claude : objet personnage d'exemple, prop moyen. En mode réel, Claude décrit ici l'objet demandé.",
+        "categorie": "prop_moyen",
+        "nature": "personnage",
+        "voie": "hors_perimetre",
+        "voie_forcee": false,
+        "raison_voie": "Personnage ou créature : hors périmètre pour l'instant",
+        "regle_id": 7,
+        "generateur": null,
+        "etape": "brief",
+        "retire": true,
+        "reutilise_asset_id": null,
+        "symetrique": null,
+        "famille": "props",
+        "cc0_ref": null,
+        "ordre": 5,
+        "dimensions": {
+          "largeur": 0.61,
+          "profondeur": 0.38,
+          "hauteur": 1.92,
+          "source": "claude"
+        },
+        "pieces": [],
+        "materiaux": [
+          "materiau"
+        ],
+        "parametres": []
+      }
+    ],
+    "resume": {
+      "retenus": 4,
+      "a_fabriquer": 4,
+      "cc0": 0,
+      "reutilises": 0,
+      "hors_perimetre": 0,
+      "a_creer": 3,
+      "credits_estimes": 42,
+      "credits_par_objet_ia": 42
+    },
+    "proposition": {
+      "id": 3,
+      "etat": "terminee",
+      "erreur": null
+    },
+    "simule": true
+  },
+  "GET /api/lots/{id}#propose": {
+    "id": 5,
+    "nom": "Lot simulé e1a6",
+    "theme": "Thème de test",
+    "besoin": "Un besoin de test : des contenants, du mobilier et un peu de décor.",
+    "style": {
+      "id": 1,
+      "code": "rome-stylise-v0",
+      "nom": "Rome antique stylisée",
+      "version": 0,
+      "racine_id": 1
+    },
+    "style_plus_recent": null,
+    "etat": "brouillon",
+    "cree_le": "2026-10-18T08:00:00Z",
+    "maj_le": "2026-10-18T08:00:00Z",
+    "duplique_de_id": null,
+    "credits_prevus": 0,
+    "proposition_tache_id": 3,
+    "nom_propose": "Lot simulé e1a6",
+    "etape_courante": 1,
+    "etapes": [
+      {
+        "cle": "brief",
+        "libelle": "Brief",
+        "numero": 1,
+        "lien": "/lots/5/brief",
+        "atteinte": true,
+        "faite": false
+      },
+      {
+        "cle": "references",
+        "libelle": "Références",
+        "numero": 2,
+        "lien": "/lots/5/references",
+        "atteinte": false,
+        "faite": false
+      },
+      {
+        "cle": "generation",
+        "libelle": "Génération",
+        "numero": 3,
+        "lien": "/lots/5/generation",
+        "atteinte": false,
+        "faite": false
+      },
+      {
+        "cle": "revue",
+        "libelle": "Revue",
+        "numero": 4,
+        "lien": "/lots/5/revue",
+        "atteinte": false,
+        "faite": false
+      }
+    ],
+    "ligne_etat": "4 objets · créé le 18 oct.",
+    "etape": 1,
+    "libelle_etape": "Étape 1 sur 4 · Brief",
+    "statut": "Brouillon",
+    "ton": "idle",
+    "detail": "liste à valider",
+    "lien": "/lots/5/brief",
+    "action": "Reprendre",
+    "compteurs": {
+      "total": 4,
+      "fabriques": 4,
+      "reutilises": 0,
+      "hors_perimetre": 0,
+      "a_creer": 3,
+      "references_a_choisir": 0,
+      "en_generation": 0,
+      "prets_revue": 0,
+      "gardes": 0,
+      "rejetes": 0,
+      "finis": 0
+    }
+  },
+  "GET /api/lots/{id}/objets/{oid}/demande": {
+    "lot_id": 5,
+    "objet_id": 1,
+    "objet": "Objet simulé 1 (géométrique, type connu)",
+    "type_objet": "scutum",
+    "chemin_md": "generators/demandes/scutum.md",
+    "script_attendu": "generators/scutum.py",
+    "markdown": "# Générateur à écrire : objet simulé 1 (géométrique, type connu)\n\ntype        : scutum\ntaille      : prop_moyen\ndimensions  : 0,65 × 1,10 m, profondeur 0,20 m\nbudget      : 6 000 tris (objet moyen, style rome-stylise-v0)\nmatériaux   : bois, cuir (palette du style)\npivot       : au sol, centré\nsymétrie    : X\nréférence   : aucune image, s'appuyer sur l'intention\n\nIntention : Réponse simulée de l'API Claude : objet géométrique, type connu d'exemple, prop moyen. En mode réel, Claude décrit ici l'objet demandé.\n\nParamètres attendus : largeur, hauteur, usure.\nDemandé par : lot Lot simulé e1a6.\n\nContrat : generators/CONTRAT.md (MANIFESTE + build(params, style, seed) ; 1 unité = 1 m, haut +Z, face -Y ;\ncouleurs, matériaux et budgets lus dans le style, jamais en dur).\n",
+    "texte_a_coller": "Lis generators/demandes/scutum.md et écris generators/scutum.py en suivant generators/CONTRAT.md. Lance les tests de finition avant de rendre la main.",
+    "etat": "a_ecrire",
+    "libelle_etat": "Pas encore écrite",
+    "ecrite_le": null,
+    "script_detecte_le": null,
+    "tests": {
+      "disponibles": false,
+      "raison": "Les tests du script (finition, Blender) arrivent à l'étape 5 du plan"
+    },
+    "voie_objet": "a_creer"
+  },
+  "POST /api/lots/{id}/objets/{oid}/demande": {
+    "lot_id": 5,
+    "objet_id": 1,
+    "objet": "Objet simulé 1 (géométrique, type connu)",
+    "type_objet": "scutum",
+    "chemin_md": "generators/demandes/scutum.md",
+    "script_attendu": "generators/scutum.py",
+    "markdown": "# Générateur à écrire : objet simulé 1 (géométrique, type connu)\n\ntype        : scutum\ntaille      : prop_moyen\ndimensions  : 0,65 × 1,10 m, profondeur 0,20 m\nbudget      : 6 000 tris (objet moyen, style rome-stylise-v0)\nmatériaux   : bois, cuir (palette du style)\npivot       : au sol, centré\nsymétrie    : X\nréférence   : aucune image, s'appuyer sur l'intention\n\nIntention : Réponse simulée de l'API Claude : objet géométrique, type connu d'exemple, prop moyen. En mode réel, Claude décrit ici l'objet demandé.\n\nParamètres attendus : largeur, hauteur, usure.\nDemandé par : lot Lot simulé e1a6.\n\nContrat : generators/CONTRAT.md (MANIFESTE + build(params, style, seed) ; 1 unité = 1 m, haut +Z, face -Y ;\ncouleurs, matériaux et budgets lus dans le style, jamais en dur).\n",
+    "texte_a_coller": "Lis generators/demandes/scutum.md et écris generators/scutum.py en suivant generators/CONTRAT.md. Lance les tests de finition avant de rendre la main.",
+    "etat": "ecrite",
+    "libelle_etat": "Écrite dans le dépôt",
+    "ecrite_le": "2026-10-18T08:00:00Z",
+    "script_detecte_le": null,
+    "tests": {
+      "disponibles": false,
+      "raison": "Les tests du script (finition, Blender) arrivent à l'étape 5 du plan"
+    },
+    "voie_objet": "a_creer"
+  },
+  "PATCH /api/lots/{id}/objets/{oid}": {
+    "lot_id": 5,
+    "objets": [
+      {
+        "id": 1,
+        "lot_id": 5,
+        "nom": "Objet simulé 1 (géométrique, type connu)",
+        "type_objet": "scutum",
+        "description": "Réponse simulée de l'API Claude : objet géométrique, type connu d'exemple, prop moyen. En mode réel, Claude décrit ici l'objet demandé.",
+        "categorie": "prop_moyen",
+        "nature": "geometrique",
+        "voie": "a_creer",
+        "voie_forcee": false,
+        "raison_voie": "Aucun générateur pour ce type : à écrire avec Claude Code, ou passer en voie IA",
+        "regle_id": 6,
+        "generateur": null,
+        "etape": "brief",
+        "retire": false,
+        "reutilise_asset_id": null,
+        "symetrique": "X",
+        "famille": "props",
+        "cc0_ref": null,
+        "ordre": 1,
+        "dimensions": {
+          "largeur": 0.65,
+          "profondeur": 0.2,
+          "hauteur": 1.1,
+          "source": "style"
+        },
+        "pieces": [],
+        "materiaux": [
+          "materiau"
+        ],
+        "parametres": [
+          "largeur",
+          "hauteur",
+          "usure"
+        ]
+      },
+      {
+        "id": 2,
+        "lot_id": 5,
+        "nom": "Objet simulé 2 (géométrique, type inconnu)",
+        "type_objet": "objet simule 43",
+        "description": "Réponse simulée de l'API Claude : objet géométrique, type inconnu d'exemple, grand prop. En mode réel, Claude décrit ici l'objet demandé.",
+        "categorie": "grand_prop",
+        "nature": "geometrique",
+        "voie": "a_creer",
+        "voie_forcee": false,
+        "raison_voie": "Aucun générateur pour ce type : à écrire avec Claude Code, ou passer en voie IA",
+        "regle_id": 6,
+        "generateur": null,
+        "etape": "brief",
+        "retire": false,
+        "reutilise_asset_id": null,
+        "symetrique": "X",
+        "famille": "mobilier",
+        "cc0_ref": null,
+        "ordre": 2,
+        "dimensions": {
+          "largeur": 0.99,
+          "profondeur": 0.47,
+          "hauteur": 1.28,
+          "source": "claude"
+        },
+        "pieces": [],
+        "materiaux": [
+          "materiau"
+        ],
+        "parametres": [
+          "emplacements",
+          "hauteur",
+          "usure"
+        ]
+      },
+      {
+        "id": 3,
+        "lot_id": 5,
+        "nom": "Objet simulé 3 (ornemental)",
+        "type_objet": "ornement simule 18",
+        "description": "Réponse simulée de l'API Claude : objet ornemental d'exemple, prop moyen. En mode réel, Claude décrit ici l'objet demandé.",
+        "categorie": "prop_moyen",
+        "nature": "ornemental",
+        "voie": "ia",
+        "voie_forcee": false,
+        "raison_voie": "",
+        "regle_id": 5,
+        "generateur": "meshy",
+        "etape": "brief",
+        "retire": true,
+        "reutilise_asset_id": null,
+        "symetrique": null,
+        "famille": "contenants",
+        "cc0_ref": null,
+        "ordre": 3,
+        "dimensions": {
+          "largeur": 0.45,
+          "profondeur": 0.33,
+          "hauteur": 0.96,
+          "source": "claude"
+        },
+        "pieces": [],
+        "materiaux": [
+          "materiau"
+        ],
+        "parametres": []
+      },
+      {
+        "id": 4,
+        "lot_id": 5,
+        "nom": "Objet simulé 4 (mixte)",
+        "type_objet": "mixte simule 25",
+        "description": "Réponse simulée de l'API Claude : objet mixte d'exemple, module archi. En mode réel, Claude décrit ici l'objet demandé.",
+        "categorie": "module_archi",
+        "nature": "mixte",
+        "voie": "a_creer",
+        "voie_forcee": false,
+        "raison_voie": "Mixte : pièce « fût simulé » sans générateur : à écrire avec Claude Code, ou passer en voie IA",
+        "regle_id": 4,
+        "generateur": null,
+        "etape": "brief",
+        "retire": false,
+        "reutilise_asset_id": null,
+        "symetrique": "X",
+        "famille": "archi",
+        "cc0_ref": null,
+        "ordre": 4,
+        "dimensions": {
+          "largeur": 0.53,
+          "profondeur": 0.54,
+          "hauteur": 3.52,
+          "source": "claude"
+        },
+        "pieces": [
+          {
+            "id": 1,
+            "ordre": 1,
+            "nom": "Fût simulé",
+            "nature": "geometrique",
+            "type_objet": "fut simule 25",
+            "voie": "a_creer",
+            "generateur": null,
+            "etape": "brief"
+          },
+          {
+            "id": 2,
+            "ordre": 2,
+            "nom": "Chapiteau simulé",
+            "nature": "ornemental",
+            "type_objet": "chapiteau simule 25",
+            "voie": "ia",
+            "generateur": "meshy",
+            "etape": "brief"
+          }
+        ],
+        "materiaux": [
+          "materiau"
+        ],
+        "parametres": [
+          "hauteur",
+          "cannelures"
+        ]
+      },
+      {
+        "id": 5,
+        "lot_id": 5,
+        "nom": "Objet simulé 5 (personnage)",
+        "type_objet": "personnage simule 63",
+        "description": "Réponse simulée de l'API Claude : objet personnage d'exemple, prop moyen. En mode réel, Claude décrit ici l'objet demandé.",
+        "categorie": "prop_moyen",
+        "nature": "personnage",
+        "voie": "hors_perimetre",
+        "voie_forcee": false,
+        "raison_voie": "Personnage ou créature : hors périmètre pour l'instant",
+        "regle_id": 7,
+        "generateur": null,
+        "etape": "brief",
+        "retire": true,
+        "reutilise_asset_id": null,
+        "symetrique": null,
+        "famille": "props",
+        "cc0_ref": null,
+        "ordre": 5,
+        "dimensions": {
+          "largeur": 0.61,
+          "profondeur": 0.38,
+          "hauteur": 1.92,
+          "source": "claude"
+        },
+        "pieces": [],
+        "materiaux": [
+          "materiau"
+        ],
+        "parametres": []
+      }
+    ],
+    "resume": {
+      "retenus": 3,
+      "a_fabriquer": 3,
+      "cc0": 0,
+      "reutilises": 0,
+      "hors_perimetre": 0,
+      "a_creer": 3,
+      "credits_estimes": 0,
+      "credits_par_objet_ia": 42
+    },
+    "proposition": {
+      "id": 3,
+      "etat": "terminee",
+      "erreur": null
+    },
+    "simule": true
+  },
+  "GET /api/routage/regles": {
+    "regles": [
+      {
+        "id": 1,
+        "ordre": 1,
+        "condition": "deja_en_bibliotheque",
+        "quand": "Déjà dans ta bibliothèque",
+        "alors": "Réutiliser, rien à fabriquer",
+        "voie": "reutilise",
+        "generateur": null,
+        "generateur_secours": null,
+        "actif": true,
+        "operationnelle": true
+      },
+      {
+        "id": 2,
+        "ordre": 2,
+        "condition": "equivalent_cc0",
+        "quand": "Équivalent CC0 déjà disponible",
+        "alors": "Catalogue CC0, puis finition, tests et revue",
+        "voie": "cc0",
+        "generateur": "cc0",
+        "generateur_secours": null,
+        "actif": true,
+        "operationnelle": false
+      },
+      {
+        "id": 3,
+        "ordre": 3,
+        "condition": "geometrique_avec_generateur",
+        "quand": "Géométrique, symétrique ou fin, avec un générateur écrit : bouclier, arme, mobilier simple",
+        "alors": "Générateurs par code",
+        "voie": "code",
+        "generateur": "code",
+        "generateur_secours": null,
+        "actif": true,
+        "operationnelle": true
+      },
+      {
+        "id": 4,
+        "ordre": 4,
+        "condition": "geometrique_ornemental",
+        "quand": "Géométrique avec une partie ornementale : colonne à chapiteau",
+        "alors": "Mixte : code + Meshy 6",
+        "voie": "mixte",
+        "generateur": "meshy",
+        "generateur_secours": null,
+        "actif": true,
+        "operationnelle": true
+      },
+      {
+        "id": 5,
+        "ordre": 5,
+        "condition": "ornemental",
+        "quand": "Ornemental ou organique non déformable",
+        "alors": "Meshy 6",
+        "voie": "ia",
+        "generateur": "meshy",
+        "generateur_secours": null,
+        "actif": true,
+        "operationnelle": true
+      },
+      {
+        "id": 6,
+        "ordre": 6,
+        "condition": "geometrique_sans_generateur",
+        "quand": "Géométrique sans générateur écrit",
+        "alors": "À créer avec Claude Code, ou voie IA",
+        "voie": "a_creer",
+        "generateur": null,
+        "generateur_secours": "meshy",
+        "actif": true,
+        "operationnelle": true
+      },
+      {
+        "id": 7,
+        "ordre": 7,
+        "condition": "personnage",
+        "quand": "Personnage ou créature",
+        "alors": "Hors périmètre pour l'instant",
+        "voie": "hors_perimetre",
+        "generateur": null,
+        "generateur_secours": null,
+        "actif": true,
+        "operationnelle": true
+      }
+    ],
+    "generateurs_code": [],
+    "generateurs_invalides": {}
+  },
+  "POST /api/lots/{id}/valider-brief#409": {
+    "erreur": "générateur à écrire avant de lancer : Objet simulé 1 (géométrique, type connu), Objet simulé 2 (géométrique, type inconnu), Objet simulé 4 (mixte) (prépare la demande pour Claude Code, ou passe l'objet en voie IA)",
+    "detail": null
+  },
+  "PATCH /api/lots/{id}/objets/{oid}#ia": {
+    "lot_id": 5,
+    "objets": [
+      {
+        "id": 1,
+        "lot_id": 5,
+        "nom": "Objet simulé 1 (géométrique, type connu)",
+        "type_objet": "scutum",
+        "description": "Réponse simulée de l'API Claude : objet géométrique, type connu d'exemple, prop moyen. En mode réel, Claude décrit ici l'objet demandé.",
+        "categorie": "prop_moyen",
+        "nature": "geometrique",
+        "voie": "ia",
+        "voie_forcee": true,
+        "raison_voie": "Voie choisie à la main",
+        "regle_id": 6,
+        "generateur": "meshy",
+        "etape": "brief",
+        "retire": false,
+        "reutilise_asset_id": null,
+        "symetrique": "X",
+        "famille": "props",
+        "cc0_ref": null,
+        "ordre": 1,
+        "dimensions": {
+          "largeur": 0.65,
+          "profondeur": 0.2,
+          "hauteur": 1.1,
+          "source": "style"
+        },
+        "pieces": [],
+        "materiaux": [
+          "materiau"
+        ],
+        "parametres": [
+          "largeur",
+          "hauteur",
+          "usure"
+        ]
+      },
+      {
+        "id": 2,
+        "lot_id": 5,
+        "nom": "Objet simulé 2 (géométrique, type inconnu)",
+        "type_objet": "objet simule 43",
+        "description": "Réponse simulée de l'API Claude : objet géométrique, type inconnu d'exemple, grand prop. En mode réel, Claude décrit ici l'objet demandé.",
+        "categorie": "grand_prop",
+        "nature": "geometrique",
+        "voie": "ia",
+        "voie_forcee": true,
+        "raison_voie": "Voie choisie à la main",
+        "regle_id": 6,
+        "generateur": "meshy",
+        "etape": "brief",
+        "retire": false,
+        "reutilise_asset_id": null,
+        "symetrique": "X",
+        "famille": "mobilier",
+        "cc0_ref": null,
+        "ordre": 2,
+        "dimensions": {
+          "largeur": 0.99,
+          "profondeur": 0.47,
+          "hauteur": 1.28,
+          "source": "claude"
+        },
+        "pieces": [],
+        "materiaux": [
+          "materiau"
+        ],
+        "parametres": [
+          "emplacements",
+          "hauteur",
+          "usure"
+        ]
+      },
+      {
+        "id": 3,
+        "lot_id": 5,
+        "nom": "Objet simulé 3 (ornemental)",
+        "type_objet": "ornement simule 18",
+        "description": "Réponse simulée de l'API Claude : objet ornemental d'exemple, prop moyen. En mode réel, Claude décrit ici l'objet demandé.",
+        "categorie": "prop_moyen",
+        "nature": "ornemental",
+        "voie": "ia",
+        "voie_forcee": false,
+        "raison_voie": "",
+        "regle_id": 5,
+        "generateur": "meshy",
+        "etape": "brief",
+        "retire": true,
+        "reutilise_asset_id": null,
+        "symetrique": null,
+        "famille": "contenants",
+        "cc0_ref": null,
+        "ordre": 3,
+        "dimensions": {
+          "largeur": 0.45,
+          "profondeur": 0.33,
+          "hauteur": 0.96,
+          "source": "claude"
+        },
+        "pieces": [],
+        "materiaux": [
+          "materiau"
+        ],
+        "parametres": []
+      },
+      {
+        "id": 4,
+        "lot_id": 5,
+        "nom": "Objet simulé 4 (mixte)",
+        "type_objet": "mixte simule 25",
+        "description": "Réponse simulée de l'API Claude : objet mixte d'exemple, module archi. En mode réel, Claude décrit ici l'objet demandé.",
+        "categorie": "module_archi",
+        "nature": "mixte",
+        "voie": "ia",
+        "voie_forcee": true,
+        "raison_voie": "Voie choisie à la main",
+        "regle_id": 4,
+        "generateur": "meshy",
+        "etape": "brief",
+        "retire": false,
+        "reutilise_asset_id": null,
+        "symetrique": "X",
+        "famille": "archi",
+        "cc0_ref": null,
+        "ordre": 4,
+        "dimensions": {
+          "largeur": 0.53,
+          "profondeur": 0.54,
+          "hauteur": 3.52,
+          "source": "claude"
+        },
+        "pieces": [
+          {
+            "id": 1,
+            "ordre": 1,
+            "nom": "Fût simulé",
+            "nature": "geometrique",
+            "type_objet": "fut simule 25",
+            "voie": "a_creer",
+            "generateur": null,
+            "etape": "brief"
+          },
+          {
+            "id": 2,
+            "ordre": 2,
+            "nom": "Chapiteau simulé",
+            "nature": "ornemental",
+            "type_objet": "chapiteau simule 25",
+            "voie": "ia",
+            "generateur": "meshy",
+            "etape": "brief"
+          }
+        ],
+        "materiaux": [
+          "materiau"
+        ],
+        "parametres": [
+          "hauteur",
+          "cannelures"
+        ]
+      },
+      {
+        "id": 5,
+        "lot_id": 5,
+        "nom": "Objet simulé 5 (personnage)",
+        "type_objet": "personnage simule 63",
+        "description": "Réponse simulée de l'API Claude : objet personnage d'exemple, prop moyen. En mode réel, Claude décrit ici l'objet demandé.",
+        "categorie": "prop_moyen",
+        "nature": "personnage",
+        "voie": "hors_perimetre",
+        "voie_forcee": false,
+        "raison_voie": "Personnage ou créature : hors périmètre pour l'instant",
+        "regle_id": 7,
+        "generateur": null,
+        "etape": "brief",
+        "retire": true,
+        "reutilise_asset_id": null,
+        "symetrique": null,
+        "famille": "props",
+        "cc0_ref": null,
+        "ordre": 5,
+        "dimensions": {
+          "largeur": 0.61,
+          "profondeur": 0.38,
+          "hauteur": 1.92,
+          "source": "claude"
+        },
+        "pieces": [],
+        "materiaux": [
+          "materiau"
+        ],
+        "parametres": []
+      }
+    ],
+    "resume": {
+      "retenus": 3,
+      "a_fabriquer": 3,
+      "cc0": 0,
+      "reutilises": 0,
+      "hors_perimetre": 0,
+      "a_creer": 0,
+      "credits_estimes": 126,
+      "credits_par_objet_ia": 42
+    },
+    "proposition": {
+      "id": 3,
+      "etat": "terminee",
+      "erreur": null
+    },
+    "simule": true
+  },
+  "POST /api/lots/{id}/valider-brief": {
+    "id": 5,
+    "nom": "Lot simulé e1a6",
+    "theme": "Thème de test",
+    "besoin": "Un besoin de test : des contenants, du mobilier et un peu de décor.",
+    "style": {
+      "id": 1,
+      "code": "rome-stylise-v0",
+      "nom": "Rome antique stylisée",
+      "version": 0,
+      "racine_id": 1
+    },
+    "style_plus_recent": null,
+    "etat": "en_cours",
+    "cree_le": "2026-10-18T08:00:00Z",
+    "maj_le": "2026-10-18T08:00:00Z",
+    "duplique_de_id": null,
+    "credits_prevus": 126,
+    "proposition_tache_id": 3,
+    "nom_propose": "Lot simulé e1a6",
+    "etape_courante": 2,
+    "etapes": [
+      {
+        "cle": "brief",
+        "libelle": "Brief",
+        "numero": 1,
+        "lien": "/lots/5/brief",
+        "atteinte": true,
+        "faite": true
+      },
+      {
+        "cle": "references",
+        "libelle": "Références",
+        "numero": 2,
+        "lien": "/lots/5/references",
+        "atteinte": true,
+        "faite": false
+      },
+      {
+        "cle": "generation",
+        "libelle": "Génération",
+        "numero": 3,
+        "lien": "/lots/5/generation",
+        "atteinte": false,
+        "faite": false
+      },
+      {
+        "cle": "revue",
+        "libelle": "Revue",
+        "numero": 4,
+        "lien": "/lots/5/revue",
+        "atteinte": false,
+        "faite": false
+      }
+    ],
+    "ligne_etat": "3 objets · 0 référence choisie · 0 sans référence (import, réutilisation)",
+    "etape": 2,
+    "libelle_etape": "Étape 2 sur 4 · Références",
+    "statut": "À toi",
+    "ton": "warn",
+    "detail": "3 références à choisir",
+    "lien": "/lots/5/references",
+    "action": "Reprendre",
+    "compteurs": {
+      "total": 3,
+      "fabriques": 3,
+      "reutilises": 0,
+      "hors_perimetre": 0,
+      "a_creer": 0,
+      "references_a_choisir": 3,
+      "en_generation": 0,
+      "prets_revue": 0,
+      "gardes": 0,
+      "rejetes": 0,
+      "finis": 0
+    }
+  },
+  "GET /api/lots#rempli": {
+    "compteurs": {
+      "tous": 5,
+      "en_cours": 4,
+      "termines": 1,
+      "brouillons": 0
+    },
+    "lots": [
+      {
+        "id": 5,
+        "nom": "Lot simulé e1a6",
+        "theme": "Thème de test",
+        "nb_objets": 3,
+        "style": {
+          "id": 1,
+          "code": "rome-stylise-v0",
+          "nom": "Rome antique stylisée",
+          "version": 0,
+          "racine_id": 1
+        },
+        "etat": "en_cours",
+        "cree_le": "2026-10-18T08:00:00Z",
+        "maj_le": "2026-10-18T08:00:00Z",
+        "etape": 2,
+        "libelle_etape": "Étape 2 sur 4 · Références",
+        "statut": "À toi",
+        "ton": "warn",
+        "detail": "3 références à choisir",
+        "lien": "/lots/5/references",
+        "action": "Reprendre",
+        "compteurs": {
+          "total": 3,
+          "fabriques": 3,
+          "reutilises": 0,
+          "hors_perimetre": 0,
+          "a_creer": 0,
+          "references_a_choisir": 3,
+          "en_generation": 0,
+          "prets_revue": 0,
+          "gardes": 0,
+          "rejetes": 0,
+          "finis": 0
+        }
+      },
+      {
+        "id": 4,
+        "nom": "Lot D",
+        "theme": "TST",
+        "nb_objets": 0,
+        "style": null,
+        "etat": "termine",
+        "cree_le": "2026-10-18T08:00:00Z",
+        "maj_le": "2026-10-18T08:00:00Z",
+        "etape": 1,
+        "libelle_etape": "Étape 1 sur 4 · Brief",
+        "statut": "Brouillon",
+        "ton": "idle",
+        "detail": "aucun objet pour l'instant",
+        "lien": "/lots/4/brief",
+        "action": "Reprendre",
+        "compteurs": {
+          "total": 0,
+          "fabriques": 0,
+          "reutilises": 0,
+          "hors_perimetre": 0,
+          "a_creer": 0,
+          "references_a_choisir": 0,
+          "en_generation": 0,
+          "prets_revue": 0,
+          "gardes": 0,
+          "rejetes": 0,
+          "finis": 0
+        }
+      },
+      {
+        "id": 3,
+        "nom": "Lot C",
+        "theme": "TST",
+        "nb_objets": 0,
+        "style": null,
+        "etat": "en_cours",
+        "cree_le": "2026-10-18T08:00:00Z",
+        "maj_le": "2026-10-18T08:00:00Z",
+        "etape": 1,
+        "libelle_etape": "Étape 1 sur 4 · Brief",
+        "statut": "Brouillon",
+        "ton": "idle",
+        "detail": "aucun objet pour l'instant",
+        "lien": "/lots/3/brief",
+        "action": "Reprendre",
+        "compteurs": {
+          "total": 0,
+          "fabriques": 0,
+          "reutilises": 0,
+          "hors_perimetre": 0,
+          "a_creer": 0,
+          "references_a_choisir": 0,
+          "en_generation": 0,
+          "prets_revue": 0,
+          "gardes": 0,
+          "rejetes": 0,
+          "finis": 0
+        }
+      },
+      {
+        "id": 2,
+        "nom": "Lot B",
+        "theme": "TST",
+        "nb_objets": 0,
+        "style": null,
+        "etat": "en_cours",
+        "cree_le": "2026-10-18T08:00:00Z",
+        "maj_le": "2026-10-18T08:00:00Z",
+        "etape": 1,
+        "libelle_etape": "Étape 1 sur 4 · Brief",
+        "statut": "Brouillon",
+        "ton": "idle",
+        "detail": "aucun objet pour l'instant",
+        "lien": "/lots/2/brief",
+        "action": "Reprendre",
+        "compteurs": {
+          "total": 0,
+          "fabriques": 0,
+          "reutilises": 0,
+          "hors_perimetre": 0,
+          "a_creer": 0,
+          "references_a_choisir": 0,
+          "en_generation": 0,
+          "prets_revue": 0,
+          "gardes": 0,
+          "rejetes": 0,
+          "finis": 0
+        }
+      },
+      {
+        "id": 1,
+        "nom": "Lot A",
+        "theme": "TST",
+        "nb_objets": 0,
+        "style": null,
+        "etat": "en_cours",
+        "cree_le": "2026-10-18T08:00:00Z",
+        "maj_le": "2026-10-18T08:00:00Z",
+        "etape": 1,
+        "libelle_etape": "Étape 1 sur 4 · Brief",
+        "statut": "Brouillon",
+        "ton": "idle",
+        "detail": "aucun objet pour l'instant",
+        "lien": "/lots/1/brief",
+        "action": "Reprendre",
+        "compteurs": {
+          "total": 0,
+          "fabriques": 0,
+          "reutilises": 0,
+          "hors_perimetre": 0,
+          "a_creer": 0,
+          "references_a_choisir": 0,
+          "en_generation": 0,
+          "prets_revue": 0,
+          "gardes": 0,
+          "rejetes": 0,
+          "finis": 0
+        }
+      }
+    ]
+  },
+  "POST /api/lots/{id}/dupliquer": {
+    "id": 6,
+    "nom": "Lot simulé e1a6 (copie)",
+    "theme": "Thème de test",
+    "besoin": "Un besoin de test : des contenants, du mobilier et un peu de décor.",
+    "style": {
+      "id": 1,
+      "code": "rome-stylise-v0",
+      "nom": "Rome antique stylisée",
+      "version": 0,
+      "racine_id": 1
+    },
+    "style_plus_recent": null,
+    "etat": "brouillon",
+    "cree_le": "2026-10-18T08:00:00Z",
+    "maj_le": "2026-10-18T08:00:00Z",
+    "duplique_de_id": 5,
+    "credits_prevus": 0,
+    "proposition_tache_id": null,
+    "nom_propose": "Lot simulé e1a6",
+    "etape_courante": 1,
+    "etapes": [
+      {
+        "cle": "brief",
+        "libelle": "Brief",
+        "numero": 1,
+        "lien": "/lots/6/brief",
+        "atteinte": true,
+        "faite": false
+      },
+      {
+        "cle": "references",
+        "libelle": "Références",
+        "numero": 2,
+        "lien": "/lots/6/references",
+        "atteinte": false,
+        "faite": false
+      },
+      {
+        "cle": "generation",
+        "libelle": "Génération",
+        "numero": 3,
+        "lien": "/lots/6/generation",
+        "atteinte": false,
+        "faite": false
+      },
+      {
+        "cle": "revue",
+        "libelle": "Revue",
+        "numero": 4,
+        "lien": "/lots/6/revue",
+        "atteinte": false,
+        "faite": false
+      }
+    ],
+    "ligne_etat": "3 objets · créé le 18 oct.",
+    "etape": 1,
+    "libelle_etape": "Étape 1 sur 4 · Brief",
+    "statut": "Brouillon",
+    "ton": "idle",
+    "detail": "liste à valider",
+    "lien": "/lots/6/brief",
+    "action": "Reprendre",
+    "compteurs": {
+      "total": 3,
+      "fabriques": 3,
+      "reutilises": 0,
+      "hors_perimetre": 0,
+      "a_creer": 0,
+      "references_a_choisir": 0,
+      "en_generation": 0,
+      "prets_revue": 0,
+      "gardes": 0,
+      "rejetes": 0,
+      "finis": 0
+    }
+  },
+  "GET /api/lots/{id}#style_plus_recent": {
+    "id": 5,
+    "nom": "Lot simulé e1a6",
+    "theme": "Thème de test",
+    "besoin": "Un besoin de test : des contenants, du mobilier et un peu de décor.",
+    "style": {
+      "id": 1,
+      "code": "rome-stylise-v0",
+      "nom": "Rome antique stylisée",
+      "version": 0,
+      "racine_id": 1
+    },
+    "style_plus_recent": {
+      "id": 3,
+      "code": "rome-stylise-v1",
+      "version": 1
+    },
+    "etat": "en_cours",
+    "cree_le": "2026-10-18T08:00:00Z",
+    "maj_le": "2026-10-18T08:00:00Z",
+    "duplique_de_id": null,
+    "credits_prevus": 126,
+    "proposition_tache_id": 3,
+    "nom_propose": "Lot simulé e1a6",
+    "etape_courante": 2,
+    "etapes": [
+      {
+        "cle": "brief",
+        "libelle": "Brief",
+        "numero": 1,
+        "lien": "/lots/5/brief",
+        "atteinte": true,
+        "faite": true
+      },
+      {
+        "cle": "references",
+        "libelle": "Références",
+        "numero": 2,
+        "lien": "/lots/5/references",
+        "atteinte": true,
+        "faite": false
+      },
+      {
+        "cle": "generation",
+        "libelle": "Génération",
+        "numero": 3,
+        "lien": "/lots/5/generation",
+        "atteinte": false,
+        "faite": false
+      },
+      {
+        "cle": "revue",
+        "libelle": "Revue",
+        "numero": 4,
+        "lien": "/lots/5/revue",
+        "atteinte": false,
+        "faite": false
+      }
+    ],
+    "ligne_etat": "3 objets · 0 référence choisie · 0 sans référence (import, réutilisation)",
+    "etape": 2,
+    "libelle_etape": "Étape 2 sur 4 · Références",
+    "statut": "À toi",
+    "ton": "warn",
+    "detail": "3 références à choisir",
+    "lien": "/lots/5/references",
+    "action": "Reprendre",
+    "compteurs": {
+      "total": 3,
+      "fabriques": 3,
+      "reutilises": 0,
+      "hors_perimetre": 0,
+      "a_creer": 0,
+      "references_a_choisir": 3,
+      "en_generation": 0,
+      "prets_revue": 0,
+      "gardes": 0,
+      "rejetes": 0,
+      "finis": 0
+    }
+  },
+  "GET /api/lots/{id}/appliquer-style": {
+    "objets_code": [],
+    "objets_ia": [],
+    "credits": 0,
+    "lancement_possible": false,
+    "raison": "Refaire les objets arrive avec la fabrication (étapes 5 et 7 du plan)"
   }
 }

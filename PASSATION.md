@@ -8,6 +8,16 @@ Ce fichier n'est pas dans `docs/` (lecture seule) : il se supprime quand la pass
 
 ## 1. Où on en est
 
+**Mise à jour du 19 octobre 2026, session locale (Debian, sans Blender ni Git LFS).**
+- La PR #1 a été fusionnée le 19 octobre (§4.3 fait) : on travaille sur `main`.
+- §4.0 fait : 3 correctifs propres à la machine (base créée à plusieurs, Vite en IPv4, port 8000 déjà pris).
+- §4.1 fait : relecture de l'étape 2 corrigée, un test par constat.
+- §4.2 fait : écrans de l'étape 3.
+- Prochaine étape : §4.4, étape 4 du plan.
+- Toujours pas vérifiés : Windows, Blender réel, Git LFS (absent de la machine), les services réels.
+
+Ce qui suit est l'état laissé par la session cloud.
+
 Branche `claude/atelier-3d-status-xp09v0`, PR #1 (brouillon) vers `main`, non fusionnée.
 `main` ne contient encore que la documentation.
 

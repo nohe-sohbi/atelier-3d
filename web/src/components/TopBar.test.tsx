@@ -67,7 +67,7 @@ describe("Notifications", () => {
     await utilisateur.click(within(panneau).getByRole("button", { name: /Revue prête · Lot test/ }));
     await waitFor(() => expect(appels.some((a) => a.methode === "POST" && a.chemin === `/api/notifications/${NON_LUE.id}/lu`)).toBe(true));
     // Le lien de la notification est suivi
-    expect(screen.getByRole("heading", { level: 1, name: "Revue" })).toBeInTheDocument();
+    expect(await screen.findByText("Arrive à l'étape 8 du plan")).toBeInTheDocument(); // l'écran Revue du lot
     expect(screen.getByRole("button", { name: "Notifications : aucune nouvelle" })).toBeInTheDocument();
   });
 

@@ -71,7 +71,7 @@ audit > maquette.
 | 2.24 | État d'un style relu depuis ses fichiers | Le yaml est la seule source ; la base est locale (`atelier.db` non versionnée) | Clé `planche` dans le yaml = validé, avec pour chaque image gardée `{fichier, objet, simule}` ; une base neuve retrouve état et images gardées ; les crédits dépensés, eux, ne sont qu'en base | — |
 | 2.25 | Deux styles du même nom | La table refuse deux fois le même nom dans la même version | Refus clair (409) à la création, à la modification et à la copie ; au démarrage, un dossier en double est ignoré et journalisé | — |
 
-## Étape 3 · Lots et Brief (API livrée ; écrans à faire)
+## Étape 3 · Lots et Brief
 
 | # | Sujet | Ce que disent les sources | Choix provisoire dans le code | Question |
 |---|---|---|---|---|
@@ -80,11 +80,11 @@ audit > maquette.
 | 3.3 | Règle « Équivalent CC0 » | Le catalogue CC0 arrive avec l'étape 7 | La règle est en place mais ne trouve jamais rien ; `operationnelle: false` dans la route des règles | — |
 | 3.4 | Règle « Déjà dans ta bibliothèque » | Maquette : « réutilisée telle quelle » | Un asset au statut `garde` dont le type (de l'objet d'origine ou du nom) est le même, après normalisation ; pas de condition sur le style ni sa direction | Faut-il exiger le même style, ou la même direction ? |
 | 3.5 | Objet mixte sans générateur pour sa pièce géométrique | Maquette : la colonne a son fût en code | La règle 4 s'applique, mais l'objet passe « À créer » tant que la pièce géométrique n'a pas de générateur | — |
-| 3.6 | Personnage ou créature | Règle 7 « Hors périmètre pour l'instant » ; aucun exemple dans le Brief dessiné | L'objet est listé avec sa pastille, décoché d'office, et retiré à la validation du brief | Le montrer, ou le cacher ? |
+| 3.6 | Personnage ou créature | Règle 7 « Hors périmètre pour l'instant » ; aucun exemple dans le Brief dessiné | L'objet est listé avec sa pastille « Hors périmètre », décoché d'office, sa case grisée (non cochable), et retiré à la validation du brief | Le montrer, ou le cacher ? |
 | 3.7 | Dimensions d'un objet | Le style a des dimensions réelles par type ; Claude en propose aussi | Celles du style quand le type y figure (`source: style`), sinon celles de Claude (`source: claude`) | — |
 | 3.8 | « Reproposer la liste » | Maquette : un bouton, rien sur ce qui est gardé | Remplace les objets encore au Brief ; garde, par type d'objet, les décochages et les voies choisies à la main ; ne touche pas aux objets déjà passés en Références | — |
 | 3.9 | Nom du lot | Absent du Brief dans la maquette ; présent dans Lots et l'en-tête | Claude propose `nom_lot` ; il n'est écrit que si le nom est vide ; modifiable ensuite | Le nom se saisit-il dans le Brief ? |
-| 3.10 | Choix du style | Maquette : deux boutons « Stylisé / Semi-réaliste » | Le lot pointe un style en base (`style_id`) ; par défaut le premier style validé ; l'écran proposera la liste des styles | Deux boutons (direction) ou liste des styles ? |
+| 3.10 | Choix du style | Maquette : deux boutons « Stylisé / Semi-réaliste » | Le lot pointe un style en base (`style_id`) ; par défaut le premier style validé ; le Brief propose la liste des styles en base (nom, code, « brouillon » s'il n'est pas validé) | Deux boutons (direction) ou liste des styles ? |
 | 3.11 | « Générer les références » à l'étape 3 | Audit : « crée une tâche d'images par objet » ; les images sont l'étape 6 | Les objets retenus passent à l'étape Références (les images arrivent à l'étape 6) ; refus s'il reste un objet « À créer » ; réutilisés : gardés d'office ; hors périmètre : retirés | Bloquer, ou laisser partir sans les « À créer » ? |
 | 3.12 | Crédits du résumé | Audit : « 30 par objet IA ou mixte, plus 12 par objet pour ses 4 références » ; correction 1 : variantes code gratuites | 42 crédits par objet IA ou mixte ; 0 pour le code, le CC0, le réutilisé ; tarifs pris dans l'adaptateur Meshy, figés à la validation (`credits_prevus`) | Les objets code ont-ils aussi 4 références payantes ? |
 | 3.13 | « Appliquer la vN » | Correction 11 ; dessiné nulle part | `GET /api/lots/{id}/appliquer-style` : estimation seulement (objets code gratuits, 30 crédits par objet IA) ; le lancement attend les étapes 5 et 7 ; bouton prévu dans l'en-tête de lot | Où le placer ? |
@@ -95,3 +95,12 @@ audit > maquette.
 | 3.18 | Coût d'un brief simulé | Audit : ≈ 0,03 $ par brief | Ligne dans `couts` : tokens estimés, 0 $, `simule: true` ; les tarifs réels arrivent avec le suivi des coûts (étape 4) | — |
 | 3.19 | Lot terminé : où mène « Voir les assets » | Maquette : vers la Bibliothèque | `/bibliotheque?lot=<id>` ; la Bibliothèque (étape 9) devra savoir filtrer par lot | — |
 | 3.20 | Lots vides | Rien dans les sources | « Nouveau lot » crée un lot vide immédiatement ; un brouillon vide reste dans la liste | Les supprimer ? |
+| 3.21 | Vignettes des objets du Brief | Maquette : un dessin par objet (56 px) | Aucune vignette : au Brief, aucune image n'existe encore, et un dessin inventé serait une fausse donnée | Une vignette à partir de l'étape Références ? |
+| 3.22 | Nom du lot dans l'en-tête | Maquette : titre fixe | Bouton crayon « Renommer le lot » qui ouvre un champ (Entrée enregistre, Échap annule) ; un lot sans nom s'affiche « Lot sans nom » | — |
+| 3.23 | Onglets des étapes | Maquette : les 4 onglets sont des liens | Une étape pas encore atteinte reste visible mais verrouillée (`aria-disabled`, ne s'ouvre pas) | — |
+| 3.24 | « Appliquer la vN » | Dessiné nulle part (3.13) | Bouton dans les actions de l'en-tête, à côté de « Dupliquer le lot », seulement quand une version validée plus récente existe ; il ouvre une fenêtre d'estimation sans bouton de lancement | — |
+| 3.25 | Bouton de proposition | Maquette : « Reproposer la liste » seulement | « Proposer la liste » tant qu'il n'y a pas de liste, « Reproposer la liste » ensuite ; le thème et le besoin s'enregistrent en quittant le champ, et avant la demande | — |
+| 3.26 | Bandeau « simulé » du Brief | Règle : ce qui vient d'un adaptateur simulé est marqué | « simulé · Liste simulée : l'API Claude est en mode simulé (Réglages). Ces objets servent à essayer l'écran. » | Texte à valider |
+| 3.27 | Place de l'en-tête de lot | Maquette : bandeau pleine largeur sous la barre du haut | Carte en haut de la page, dans la colonne de contenu, comme les autres écrans | — |
+| 3.28 | Texte d'état de la demande pour Claude Code | Maquette : « …Il apparaît aussi dans Générateurs, section Générateurs à écrire » ; « dès que le script apparaît et passe ses tests » | Générateurs arrive à l'étape 11 : pas de renvoi ; le texte dit que les tests du script arrivent à l'étape 5 (3.16) | — |
+| 3.29 | « Mis à jour » dans Lots | Maquette : « il y a 40 min », « hier », « 8 oct. » | Calculé depuis `maj_le` : minutes, heures, « hier », puis la date courte | — |

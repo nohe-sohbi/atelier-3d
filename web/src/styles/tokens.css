@@ -17,6 +17,17 @@
   --alerte-fond: #fbf7ef;
   --erreur: #b42318;
   --erreur-fond: #fdecea;
+  --texte-fort: #3f3d38;
+  --point-vide: #bdb9b1;
+
+  /* Pastilles de voie (Brief) et tons d'avancement (Lots, en-tête de lot) */
+  --voie-code: #2f3a55;
+  --voie-code-fond: #eaedf3;
+  --voie-mixte: #5b3fa6;
+  --voie-mixte-fond: #f1ecfa;
+  --voie-reutilise: #1d5c5c;
+  --voie-reutilise-fond: #e2efef;
+  --a-faire-fond: #fbeedc;
 
   /* Ombres et voiles (la maquette : rgba(29,28,26,0.12) pour le panneau, rgba(0,0,0,0.08) pour les liserés) */
   --ombre: rgba(29, 28, 26, 0.12);

@@ -330,3 +330,165 @@ export interface Tache {
   max_tentatives: number;
   resultat: { progression?: { pct: number; texte: string } } | null;
 }
+
+/* ---------- Lots et Brief ---------- */
+
+export type GroupeLots = "tous" | "en_cours" | "termines" | "brouillons";
+export type TonLot = "accent" | "run" | "warn" | "good" | "idle";
+export type CleEtapeLot = "brief" | "references" | "generation" | "revue";
+export type Voie = "code" | "ia" | "mixte" | "cc0" | "a_creer" | "reutilise" | "hors_perimetre";
+
+export interface StyleDuLot {
+  id: number;
+  code: string;
+  nom: string;
+  version: number;
+  racine_id: number;
+}
+
+export interface CompteursLot {
+  total: number;
+  fabriques: number;
+  reutilises: number;
+  hors_perimetre: number;
+  a_creer: number;
+  references_a_choisir: number;
+  en_generation: number;
+  prets_revue: number;
+  gardes: number;
+  rejetes: number;
+  finis: number;
+}
+
+/** Où en est un lot : étape 1 à 4, 5 = terminé ; statut, ton et lien calculés par l'API. */
+export interface SituationLot {
+  etape: number;
+  libelle_etape: string;
+  statut: string;
+  ton: TonLot;
+  detail: string;
+  lien: string;
+  action: string;
+  compteurs: CompteursLot;
+}
+
+export interface LotResume extends SituationLot {
+  id: number;
+  nom: string;
+  theme: string;
+  nb_objets: number;
+  style: StyleDuLot | null;
+  etat: string;
+  cree_le: string;
+  maj_le: string;
+}
+
+export interface Lots {
+  compteurs: Record<GroupeLots, number>;
+  lots: LotResume[];
+}
+
+export interface EtapeLot {
+  cle: CleEtapeLot;
+  libelle: string;
+  numero: number;
+  lien: string;
+  atteinte: boolean;
+  faite: boolean;
+}
+
+/** GET /api/lots/{id}?etape= : l'en-tête des écrans de lot. */
+export interface EnTeteLot extends SituationLot {
+  id: number;
+  nom: string;
+  theme: string;
+  besoin: string;
+  style: StyleDuLot | null;
+  style_plus_recent: { id: number; code: string; version: number } | null;
+  etat: string;
+  cree_le: string;
+  maj_le: string;
+  duplique_de_id: number | null;
+  credits_prevus: number;
+  proposition_tache_id: number | null;
+  nom_propose: string | null;
+  etape_courante: number;
+  etapes: EtapeLot[];
+  ligne_etat: string;
+}
+
+export interface PieceObjet {
+  id: number;
+  ordre: number;
+  nom: string;
+  nature: string;
+  type_objet: string;
+  voie: Voie;
+  generateur: string | null;
+  etape: string;
+}
+
+export interface ObjetLot {
+  id: number;
+  lot_id: number;
+  nom: string;
+  type_objet: string;
+  description: string;
+  categorie: string;
+  nature: string;
+  voie: Voie;
+  raison_voie: string;
+  voie_forcee: boolean;
+  retire: boolean;
+  etape: string;
+  dimensions: { largeur: number; profondeur: number; hauteur: number; source: string } | null;
+  generateur: string | null;
+  pieces: PieceObjet[];
+}
+
+export interface ResumeBrief {
+  retenus: number;
+  a_fabriquer: number;
+  cc0: number;
+  reutilises: number;
+  hors_perimetre: number;
+  a_creer: number;
+  credits_estimes: number;
+  credits_par_objet_ia: number;
+}
+
+/** GET /api/lots/{id}/objets (et la réponse de PATCH …/objets/{oid}). */
+export interface ObjetsLot {
+  lot_id: number;
+  objets: ObjetLot[];
+  resume: ResumeBrief;
+  proposition: { id: number; etat: EtatTache; erreur: string | null } | null;
+  simule: boolean;
+}
+
+/** GET/POST /api/lots/{id}/objets/{oid}/demande : la fenêtre « Demande pour Claude Code ». */
+export interface DemandeClaudeCode {
+  lot_id: number;
+  objet_id: number;
+  objet: string;
+  type_objet: string;
+  chemin_md: string;
+  script_attendu: string;
+  markdown: string;
+  texte_a_coller: string;
+  etat: "a_ecrire" | "ecrite" | "script_detecte";
+  libelle_etat: string;
+  ecrite_le: string | null;
+  script_detecte_le: string | null;
+  tests: { disponibles: boolean; raison: string };
+  voie_objet: Voie;
+}
+
+/** GET /api/lots/{id}/appliquer-style?style_id= : l'estimation de « Appliquer la vN ». */
+export interface EstimationAppliquerStyle {
+  objets_code: string[];
+  objets_ia: string[];
+  credits: number;
+  lancement_possible: boolean;
+  raison: string;
+}

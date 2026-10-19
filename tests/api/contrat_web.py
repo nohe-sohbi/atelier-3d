@@ -98,6 +98,41 @@ def _planche_et_taches(client, contrat: dict, pilote: int) -> None:
     contrat["GET /api/taches/{id}#echouee"] = client.get(f"/api/taches/{echec}").json()
 
 
+def _lots(client, contrat: dict, pilote: int) -> None:
+    """Un lot de bout en bout : créé vide, brief rempli, liste proposée (Claude simulé, vrai worker), demande pour
+    Claude Code, un objet décoché, un refus de validation, l'« À créer » passé en IA, brief validé ; puis une
+    version plus récente du style, pour « Appliquer la v1 »."""
+    lot = client.post("/api/lots", json={}).json()
+    contrat["POST /api/lots"] = lot
+    lid = lot["id"]
+    contrat["PATCH /api/lots/{id}"] = client.patch(f"/api/lots/{lid}", json={
+        "theme": "Thème de test", "besoin": "Un besoin de test : des contenants, du mobilier et un peu de décor."}).json()
+    contrat["GET /api/lots/{id}"] = client.get(f"/api/lots/{lid}", params={"etape": "brief"}).json()
+    contrat["GET /api/lots/{id}/objets"] = client.get(f"/api/lots/{lid}/objets").json()
+    contrat["POST /api/lots/{id}/proposition"] = client.post(f"/api/lots/{lid}/proposition").json()
+    _faire_tourner_le_worker()
+    objets = client.get(f"/api/lots/{lid}/objets").json()
+    contrat["GET /api/lots/{id}/objets#propose"] = objets
+    contrat["GET /api/lots/{id}#propose"] = client.get(f"/api/lots/{lid}", params={"etape": "brief"}).json()
+    a_creer = next(o for o in objets["objets"] if o["voie"] == "a_creer")
+    autre = next(o for o in objets["objets"] if o["voie"] in ("code", "ia", "mixte") and not o["retire"])
+    contrat["GET /api/lots/{id}/objets/{oid}/demande"] = client.get(f"/api/lots/{lid}/objets/{a_creer['id']}/demande").json()
+    contrat["POST /api/lots/{id}/objets/{oid}/demande"] = client.post(f"/api/lots/{lid}/objets/{a_creer['id']}/demande").json()
+    contrat["PATCH /api/lots/{id}/objets/{oid}"] = client.patch(f"/api/lots/{lid}/objets/{autre['id']}", json={"retenu": False}).json()
+    contrat["GET /api/routage/regles"] = client.get("/api/routage/regles").json()
+    contrat["POST /api/lots/{id}/valider-brief#409"] = client.post(f"/api/lots/{lid}/valider-brief").json()
+    for o in objets["objets"]:
+        if o["voie"] == "a_creer":
+            contrat["PATCH /api/lots/{id}/objets/{oid}#ia"] = client.patch(f"/api/lots/{lid}/objets/{o['id']}", json={"voie": "ia"}).json()
+    contrat["POST /api/lots/{id}/valider-brief"] = client.post(f"/api/lots/{lid}/valider-brief").json()
+    contrat["GET /api/lots#rempli"] = client.get("/api/lots").json()
+    contrat["POST /api/lots/{id}/dupliquer"] = client.post(f"/api/lots/{lid}/dupliquer").json()
+    v1 = client.post(f"/api/styles/{pilote}/versions", json={"note": "Version de test"}).json()
+    contrat["GET /api/lots/{id}#style_plus_recent"] = client.get(f"/api/lots/{lid}", params={"etape": "references"}).json()
+    contrat["GET /api/lots/{id}/appliquer-style"] = client.get(f"/api/lots/{lid}/appliquer-style",
+                                                               params={"style_id": v1["id"]}).json()
+
+
 def _reglages_remplis(client, defaut: dict) -> dict:
     corps = copy.deepcopy({k: v for k, v in defaut.items() if k != "etat"})
     corps["services"]["meshy"]["cle_api"] = "msy-secret-ab12"
@@ -142,6 +177,7 @@ def generer() -> dict:
                 for service in SERVICES_TESTES:
                     contrat[f"POST /api/reglages/tester/{service}"] = client.post(f"/api/reglages/tester/{service}").json()
                 contrat["GET /api/nexistepas"] = client.get("/api/nexistepas").json()
+                contrat["GET /api/lots"] = client.get("/api/lots").json()
                 contrat["GET /api/styles"] = client.get("/api/styles").json()
                 pilote = contrat["GET /api/styles"]["styles"][0]["id"]
                 contrat["GET /api/styles/{id}"] = client.get(f"/api/styles/{pilote}").json()
@@ -156,6 +192,7 @@ def generer() -> dict:
                 contrat["GET /api/reglages#rempli"] = _reglages_remplis(client, contrat["GET /api/reglages"])
                 # En dernier : la planche dépense des crédits et l'échec écrit une notification.
                 _planche_et_taches(client, contrat, pilote)
+                _lots(client, contrat, pilote)
     return normaliser(contrat)
 
 
