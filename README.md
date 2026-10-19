@@ -5,6 +5,8 @@ Application locale pour fabriquer une bibliothèque d'assets 3D de jeu. Le cahie
 `ARCHITECTURE.md`. Les écarts entre maquette, cahier des charges et code, et les choix provisoires faits
 en attendant une décision, sont listés dans `A-TRANCHER.md`.
 
+**Reprise du travail** (session du 19 octobre 2026) : lire d'abord `PASSATION.md`.
+
 ## Installer
 
 Prérequis : Python 3.12, Node.js LTS, Git avec Git LFS, Blender 5.2 LTS.
@@ -46,7 +48,7 @@ Séparément : `python -m api` (API sur http://127.0.0.1:8000, santé sur `/sant
 documentation sur `/api/docs`) et `npm --prefix web run dev` (interface).
 
 Variables d'environnement utiles (tests, scripts) : `ATELIER_DB`, `ATELIER_CONFIG`, `ATELIER_LOTS`,
-`ATELIER_STYLES`, `ATELIER_WEB_DIST` remplacent les chemins par défaut.
+`ATELIER_STYLES`, `ATELIER_GENERATEURS`, `ATELIER_WEB_DIST` remplacent les chemins par défaut.
 
 ## Tester
 
