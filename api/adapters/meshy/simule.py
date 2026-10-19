@@ -10,12 +10,7 @@ from __future__ import annotations
 from pathlib import Path
 
 from api.adapters import _commun
-from api.adapters.meshy.base import Meshy
-
-# Tarif du simulateur (celui de Meshy Pro d'après le cahier des charges) : 30 crédits par objet
-# 3D texturé, 3 par image. Ce ne sont pas des budgets : ils ne font que mimer la facturation.
-CREDITS_3D = 30
-CREDITS_IMAGE = 3
+from api.adapters.meshy.base import CREDITS_3D, CREDITS_IMAGE, Meshy
 
 PAS_PROGRESSION = 34
 

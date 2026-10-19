@@ -13,19 +13,23 @@ from api import config as cfgmod
 
 @pytest.fixture
 def atelier(tmp_path, monkeypatch):
-    """Environnement isolé : ATELIER_DB, ATELIER_CONFIG, ATELIER_LOTS pointent dans tmp_path."""
+    """Environnement isolé : ATELIER_DB, ATELIER_CONFIG, ATELIER_LOTS, ATELIER_STYLES, ATELIER_GENERATEURS dans tmp_path."""
     config = tmp_path / "config.local.yaml"
     shutil.copy(chemins.chemin_config_exemple(), config)
     lots = tmp_path / "lots"
     lots.mkdir()
     styles = tmp_path / "style"
     shutil.copytree(chemins.racine() / "style" / "rome-stylise-v0", styles / "rome-stylise-v0")
+    generateurs = tmp_path / "generators"
+    generateurs.mkdir()
+    monkeypatch.setenv("ATELIER_GENERATEURS", str(generateurs))
     monkeypatch.setenv("ATELIER_DB", str(tmp_path / "atelier.db"))
     monkeypatch.setenv("ATELIER_CONFIG", str(config))
     monkeypatch.setenv("ATELIER_LOTS", str(lots))
     monkeypatch.setenv("ATELIER_STYLES", str(styles))
     db.initialiser()
-    return SimpleNamespace(racine=tmp_path, config=config, lots=lots, styles=styles, db=tmp_path / "atelier.db")
+    return SimpleNamespace(racine=tmp_path, config=config, lots=lots, styles=styles, generateurs=generateurs,
+                           db=tmp_path / "atelier.db")
 
 
 @pytest.fixture

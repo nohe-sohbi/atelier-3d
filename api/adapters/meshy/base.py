@@ -4,6 +4,12 @@ from __future__ import annotations
 from abc import ABC, abstractmethod
 from pathlib import Path
 
+# Tarif Meshy d'après le cahier des charges : 30 crédits par objet 3D texturé, 3 par image.
+# Sert au simulateur et aux estimations du Brief ; ce ne sont pas des budgets de fabrication.
+CREDITS_3D = 30
+CREDITS_IMAGE = 3
+IMAGES_REFERENCE_PAR_OBJET = 4
+
 
 class Meshy(ABC):
     mode: str = ""

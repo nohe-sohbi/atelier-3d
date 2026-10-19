@@ -6,6 +6,7 @@
   `en_attente` avec un événement.
 - Arrêt propre (SIGINT/SIGTERM) : on ne prend plus de tâche, celles en cours finissent
   (les handlers consultent ctx.arret_demande()) ou repassent en attente.
+- Travaux périodiques hors file (worker/periodiques.py) : exécutés à chaque tour quand leur période est écoulée.
 """
 from __future__ import annotations
 
@@ -25,6 +26,7 @@ from api import db
 from api.adapters import get_claude, get_comfyui, get_itchio, get_meshy
 from api.services import taches
 from worker import handlers
+from worker.periodiques import Periodiques
 
 log = logging.getLogger("worker")
 
@@ -80,12 +82,14 @@ class Worker:
         backoff_base_s: float = taches.BACKOFF_BASE_S,
         handlers_: dict | None = None,
         max_threads: int = 16,
+        periodiques: Periodiques | None = None,
     ) -> None:
         self.verrou = verrou or f"{socket.gethostname()}-{os.getpid()}"
         self._charger_config = charger_config
         self.tick_s = tick_s
         self.backoff_base_s = backoff_base_s
         self.handlers = handlers_ if handlers_ is not None else handlers.HANDLERS
+        self.periodiques = periodiques if periodiques is not None else Periodiques()
         self.arret = threading.Event()
         self._executeur = ThreadPoolExecutor(max_workers=max_threads, thread_name_prefix="tache")
         self._en_cours: dict[int, tuple[str, Future]] = {}
@@ -156,6 +160,7 @@ class Worker:
             self._dernier_battement = maintenant
         if self.arret.is_set():
             return 0
+        self.periodiques.tour(conn)
         prises = 0
         for file, limite in cfgmod.limites_files(self.config()).items():
             while self.nb_en_cours(file) < limite:

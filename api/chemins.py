@@ -32,6 +32,11 @@ def dossier_styles() -> Path:
     return Path(os.environ.get("ATELIER_STYLES") or RACINE / "style")
 
 
+def dossier_generateurs() -> Path:
+    """Générateurs code : generators/<nom>.py (MANIFESTE + build) et generators/demandes/<type>.md."""
+    return Path(os.environ.get("ATELIER_GENERATEURS") or RACINE / "generators")
+
+
 def dossier_simule() -> Path:
     """État des adaptateurs simulés (soldes, tâches)."""
     return dossier_lots() / ".simule"

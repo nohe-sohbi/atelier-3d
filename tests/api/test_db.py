@@ -15,13 +15,13 @@ def _initialiser(chemin: str) -> list[int]:
 TABLES = {"styles", "lots", "objets", "essais", "assets", "versions", "collections", "collections_assets",
           "etiquettes", "etiquettes_assets", "generateurs", "regles_routage", "taches", "evenements",
           "couts", "bancs", "publications", "publications_versions", "recherche", "migrations",
-          "planche_images"}
+          "planche_images", "pieces", "demandes_generateurs"}
 
 
 def test_migrations_appliquees_et_idempotentes(atelier, conn):
-    assert db.versions_appliquees(conn) == [0, 10]
+    assert db.versions_appliquees(conn) == [0, 10, 20]
     assert db.appliquer_migrations(conn) == []
-    assert db.versions_appliquees(conn) == [0, 10]
+    assert db.versions_appliquees(conn) == [0, 10, 20]
     noms = {r["name"] for r in conn.execute("SELECT name FROM sqlite_master WHERE type IN ('table')")}
     assert TABLES <= noms
     assert conn.execute("PRAGMA foreign_keys").fetchone()["foreign_keys"] == 1
@@ -47,11 +47,13 @@ def test_initialisation_concurrente(tmp_path):
     chemin = str(tmp_path / "atelier.db")
     with ProcessPoolExecutor(4) as pool:
         resultats = list(pool.map(_initialiser, [chemin] * 4))
-    assert sorted(len(r) for r in resultats) == [0, 0, 0, 2], resultats
+    n_migrations = len(list((Path(db.__file__).parent / "migrations").glob("*.sql")))
+    # Un seul processus applique toutes les migrations ; les trois autres n'en appliquent aucune.
+    assert sorted(len(r) for r in resultats) == [0, 0, 0, n_migrations], resultats
     conn = db.connexion(Path(chemin))
     try:
-        assert db.versions_appliquees(conn) == [0, 10]
-        assert conn.execute("SELECT COUNT(*) AS n FROM migrations").fetchone()["n"] == 2
+        assert db.versions_appliquees(conn) == [v for v, _, _ in db.lister_migrations()]
+        assert conn.execute("SELECT COUNT(*) AS n FROM migrations").fetchone()["n"] == n_migrations
     finally:
         conn.close()
 
