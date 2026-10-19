@@ -10,6 +10,7 @@ from __future__ import annotations
 import re
 import sqlite3
 import threading
+import time
 from collections.abc import Iterator
 from contextlib import contextmanager
 from datetime import UTC, datetime
@@ -40,10 +41,29 @@ def connexion(chemin: Path | None = None) -> sqlite3.Connection:
     # requête à la fois : aucun partage concurrent.
     conn = sqlite3.connect(str(chemin), timeout=30, isolation_level=None, check_same_thread=False)
     conn.row_factory = _dict_factory
-    conn.execute("PRAGMA journal_mode=WAL")
+    _passer_en_wal(conn, delai_s=30)
     conn.execute("PRAGMA foreign_keys=ON")
     conn.execute("PRAGMA busy_timeout=30000")
     return conn
+
+
+def _passer_en_wal(conn: sqlite3.Connection, delai_s: float) -> None:
+    """PRAGMA journal_mode=WAL, en réessayant tant qu'un autre processus tient la base.
+
+    Pour ce changement de mode, SQLite ne passe pas par le busy_timeout (il éviterait un interblocage) :
+    quand l'API et le worker créent la même base neuve au premier lancement, l'un des deux reçoit
+    « database is locked » tout de suite.
+    """
+    limite = time.monotonic() + delai_s
+    while True:
+        try:
+            conn.execute("PRAGMA journal_mode=WAL")
+            return
+        except sqlite3.OperationalError as e:
+            occupee = (getattr(e, "sqlite_errorcode", 0) & 0xFF) == sqlite3.SQLITE_BUSY
+            if not occupee or time.monotonic() >= limite:
+                raise
+            time.sleep(0.05)
 
 
 @contextmanager

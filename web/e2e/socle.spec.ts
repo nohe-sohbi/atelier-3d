@@ -1,4 +1,6 @@
+import { spawnSync } from "node:child_process";
 import { expect, test } from "./garde-fous";
+import { RACINE } from "./serveur";
 
 const ENTREES: Array<[string, string, number]> = [
   ["Lots", "Lots", 3],
@@ -78,7 +80,8 @@ test.describe("Étape 1 · Socle", () => {
     await expect(carte("itch.io").getByText("Connecté")).toBeVisible();
 
     // La config de test laisse Blender vide : « Introuvable » dès l'ouverture, et toujours après le test, jamais en vert.
-    // glTF-Validator et Git LFS dépendent de la machine : l'attente suit ce que l'API dit de leur présence.
+    // glTF-Validator et Git LFS dépendent de la machine. glTF-Validator : l'attente suit ce que l'API dit de sa
+    // présence. Git LFS : l'API ne regarde que git à l'ouverture ; l'attente suit `git lfs version` sur la machine.
     const blender = carte("Blender");
     await expect(blender.getByRole("status")).toHaveText("Introuvable");
     await blender.getByRole("button", { name: "Tester" }).click();
@@ -89,6 +92,7 @@ test.describe("Étape 1 · Socle", () => {
     await expect(carte("glTF-Validator").getByRole("status")).toHaveText(presence.gltf_validator!.present ? /Détecté|Erreur/ : "Introuvable");
 
     await carte("Bibliothèque").getByRole("button", { name: "Tester Git LFS" }).click();
-    await expect(carte("Bibliothèque").getByRole("status")).toHaveText(presence.git_lfs!.present ? /Détecté|Erreur/ : "Introuvable");
+    const lfs = spawnSync("git", ["lfs", "version"], { cwd: RACINE }).status === 0;
+    await expect(carte("Bibliothèque").getByRole("status")).toHaveText(lfs ? /Détecté|Erreur/ : "Introuvable");
   });
 });

@@ -17,6 +17,7 @@ import json
 import os
 import shutil
 import signal
+import socket
 import subprocess
 import sys
 import threading
@@ -28,6 +29,7 @@ from pathlib import Path
 RACINE = Path(__file__).resolve().parent
 VENV = RACINE / ".venv"
 PYTHON_VENV = VENV / ("Scripts/python.exe" if os.name == "nt" else "bin/python")
+PORT_API = 8000
 COULEURS = {"api": "\033[36m", "worker": "\033[33m", "web": "\033[35m"}
 FIN = "\033[0m"
 
@@ -128,6 +130,32 @@ def preparer_config() -> Path:
     return chemin
 
 
+# --- ports -------------------------------------------------------------------
+
+def port_libre(port: int) -> bool:
+    """Vrai si on peut écouter sur 127.0.0.1:port (comme uvicorn : SO_REUSEADDR hors Windows)."""
+    with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
+        if os.name != "nt":
+            s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+        try:
+            s.bind(("127.0.0.1", port))
+        except OSError:
+            return False
+        return True
+
+
+def choisir_port_api(demande: int | None) -> int | None:
+    """Port de l'API. Avec --port : ce port, ou None s'il est pris. Sans : 8000, ou un port libre donné par
+    le système si 8000 sert déjà à un autre programme (l'interface joint l'API par le proxy de Vite)."""
+    if demande is not None:
+        return demande if port_libre(demande) else None
+    if port_libre(PORT_API):
+        return PORT_API
+    with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
+        s.bind(("127.0.0.1", 0))
+        return s.getsockname()[1]
+
+
 # --- processus ---------------------------------------------------------------
 
 def _relayer(nom: str, proc: subprocess.Popen, couleur: bool) -> None:
@@ -197,7 +225,8 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--installer", action="store_true", help="crée .venv et installe tout, puis quitte")
     parser.add_argument("--sans-web", action="store_true", help="ne lance pas Vite (API seule)")
     parser.add_argument("--sans-navigateur", action="store_true", help="n'ouvre pas le navigateur")
-    parser.add_argument("--port", type=int, default=8000, help="port de l'API (défaut 8000)")
+    parser.add_argument("--port", type=int, default=None,
+                        help=f"port de l'API (défaut {PORT_API}, ou un port libre si {PORT_API} est pris)")
     parser.add_argument("--port-web", type=int, default=5173, help="port de l'interface Vite (défaut 5173)")
     parser.add_argument("--sans-couleur", action="store_true")
     args = parser.parse_args(argv)
@@ -210,14 +239,24 @@ def main(argv: list[str] | None = None) -> int:
     if os.name == "nt":
         os.system("")  # active les séquences ANSI dans la console Windows
     couleur = not args.sans_couleur and sys.stdout.isatty()
-    env = {**os.environ, "PYTHONUNBUFFERED": "1", "ATELIER_API_PORT": str(args.port)}
+    port_api = choisir_port_api(args.port)
+    if port_api is None:
+        dire(f"le port {args.port} est déjà pris : choisis-en un autre avec --port, ou retire --port")
+        return 2
+    if args.port is None and port_api != PORT_API:
+        dire(f"le port {PORT_API} sert déjà à un autre programme : l'API prend le port {port_api}")
+    if not args.sans_web and not port_libre(args.port_web):
+        dire(f"le port {args.port_web} de l'interface est déjà pris (dev.py tourne déjà ?) : "
+             "arrête l'autre programme, ou lance avec --port-web <port>")
+        return 2
+    env = {**os.environ, "PYTHONUNBUFFERED": "1", "ATELIER_API_PORT": str(port_api)}
 
     preparer_config()
 
     procs: dict[str, subprocess.Popen] = {}
-    procs["api"] = _lancer("api", [sys.executable, "-m", "api", "--port", str(args.port), "--reload"], couleur, env)
+    procs["api"] = _lancer("api", [sys.executable, "-m", "api", "--port", str(port_api), "--reload"], couleur, env)
     procs["worker"] = _lancer("worker", [sys.executable, "-m", "worker"], couleur, env)
-    adresse = f"http://127.0.0.1:{args.port}"
+    adresse = f"http://127.0.0.1:{port_api}"
     if not args.sans_web:
         npm = _npm()
         if npm is None:
@@ -237,7 +276,7 @@ def main(argv: list[str] | None = None) -> int:
     code = 0
     try:
         if _attendre_sante(f"{adresse}/api/sante", 60, procs):
-            dire(f"Ouvre {adresse}   (API : http://127.0.0.1:{args.port}/api/sante ; Ctrl+C pour tout arrêter)")
+            dire(f"Ouvre {adresse}   (API : http://127.0.0.1:{port_api}/api/sante ; Ctrl+C pour tout arrêter)")
             if not args.sans_navigateur:
                 webbrowser.open(adresse)
         elif all(p.poll() is None for p in procs.values()):

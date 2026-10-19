@@ -1,5 +1,6 @@
-"""dev.py : la config du premier lancement est un YAML valide, même avec un chemin Windows."""
+"""dev.py : la config du premier lancement est un YAML valide, même avec un chemin Windows ; ports déjà pris."""
 import importlib
+import socket
 
 import yaml
 
@@ -27,3 +28,38 @@ def test_preparer_config_sans_blender(atelier, monkeypatch):
     chemin = dev.preparer_config()
     assert yaml.safe_load(chemin.read_text(encoding="utf-8"))["blender"]["chemin"] == ""
     assert dev.preparer_config() == chemin  # déjà là : rien n'est réécrit
+
+
+def _occuper_un_port() -> socket.socket:
+    """Un port déjà écouté par « un autre programme », comme 8000 quand un autre service local le tient."""
+    s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    s.bind(("127.0.0.1", 0))
+    s.listen()
+    return s
+
+
+def test_port_api_pris_par_un_autre_programme(monkeypatch):
+    dev = importlib.import_module("dev")
+    with _occuper_un_port() as occupe:
+        port = occupe.getsockname()[1]
+        monkeypatch.setattr(dev, "PORT_API", port)
+        assert not dev.port_libre(port)
+        choisi = dev.choisir_port_api(None)
+        assert choisi != port and dev.port_libre(choisi)
+
+
+def test_port_api_demande_deja_pris(atelier, capsys):
+    dev = importlib.import_module("dev")
+    with _occuper_un_port() as occupe:
+        port = occupe.getsockname()[1]
+        assert dev.choisir_port_api(port) is None
+        assert dev.main(["--port", str(port), "--sans-navigateur"]) == 2
+    assert f"le port {port} est déjà pris" in capsys.readouterr().out
+
+
+def test_port_web_deja_pris(atelier, capsys):
+    dev = importlib.import_module("dev")
+    with _occuper_un_port() as occupe:
+        port = occupe.getsockname()[1]
+        assert dev.main(["--port-web", str(port), "--sans-navigateur"]) == 2
+    assert f"le port {port} de l'interface est déjà pris" in capsys.readouterr().out

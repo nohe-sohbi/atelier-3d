@@ -21,9 +21,18 @@ function python(): string {
   return existsSync(venv) ? venv : "python";
 }
 
-async function attendre(url: string, delaiMs: number): Promise<boolean> {
+async function repond(url: string): Promise<boolean> {
+  try {
+    await fetch(url);
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+async function attendre(url: string, delaiMs: number, proc: ChildProcess): Promise<boolean> {
   const limite = Date.now() + delaiMs;
-  while (Date.now() < limite) {
+  while (Date.now() < limite && proc.exitCode === null) {
     try {
       const r = await fetch(url);
       if (r.ok) return true;
@@ -36,6 +45,11 @@ async function attendre(url: string, delaiMs: number): Promise<boolean> {
 }
 
 export async function demarrer(): Promise<void> {
+  // Une application lancée à côté (python dev.py) tient déjà l'adresse : les tests tourneraient contre elle,
+  // donc contre la vraie base. On s'arrête avant.
+  if (await repond(ADRESSE)) {
+    throw new Error(`${ADRESSE} répond déjà (python dev.py lancé à côté ?) : arrête-le avant les tests bout en bout`);
+  }
   const dossier = mkdtempSync(join(tmpdir(), "atelier-e2e-"));
   mkdirSync(join(dossier, "lots"));
   // Les styles créés par les tests vont dans un dossier temporaire ; le style pilote du dépôt y est copié.
@@ -63,7 +77,7 @@ export async function demarrer(): Promise<void> {
   const etat: Etat = { pid: proc.pid, dossier, journal };
   writeFileSync(ETAT, JSON.stringify(etat));
   // /api/sante à travers le proxy Vite : 200 seulement quand Vite ET l'API répondent.
-  if (!(await attendre(`${ADRESSE}/api/sante`, 90_000))) {
+  if (!(await attendre(`${ADRESSE}/api/sante`, 90_000, proc))) {
     const log = existsSync(journal) ? readFileSync(journal, "utf8") : "(pas de journal)";
     await arreter();
     throw new Error(`l'application ne répond pas sur ${ADRESSE}/api/sante\n--- dev.log ---\n${log}`);
