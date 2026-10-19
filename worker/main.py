@@ -24,7 +24,7 @@ from datetime import UTC, datetime
 from api import config as cfgmod
 from api import db
 from api.adapters import get_claude, get_comfyui, get_itchio, get_meshy
-from api.services import taches
+from api.services import taches, workers
 from worker import handlers
 from worker.periodiques import Periodiques
 
@@ -96,6 +96,7 @@ class Worker:
         self._cadenas = threading.Lock()
         self._conn = None
         self._dernier_battement = 0.0
+        self._dernier_signe_de_vie = 0.0
 
     # --- cycle de vie ---------------------------------------------------
     def config(self) -> dict:
@@ -104,6 +105,7 @@ class Worker:
     def demarrer(self) -> list[int]:
         db.initialiser()
         self._conn = db.connexion()
+        self._signe_de_vie(force=True)
         reprises = taches.reprendre_apres_coupure(self._conn, self.verrou, delai_s=0)
         if reprises:
             log.warning("reprise après coupure : %d tâche(s) remise(s) en attente %s", len(reprises), reprises)
@@ -137,8 +139,16 @@ class Worker:
             log.warning("arrêt : %d tâche(s) remise(s) en attente %s", len(restantes), restantes)
         self._executeur.shutdown(wait=False, cancel_futures=True)
         if self._conn is not None:
+            workers.arreter(self._conn, self.verrou)
             self._conn.close()
             self._conn = None
+
+    def _signe_de_vie(self, force: bool = False) -> None:
+        """Battement en base (table workers) : l'écran sait si le worker tourne."""
+        maintenant = time.monotonic()
+        if force or maintenant - self._dernier_signe_de_vie >= workers.BATTEMENT_S:
+            workers.battre(self._conn, self.verrou, socket.gethostname(), os.getpid())
+            self._dernier_signe_de_vie = maintenant
 
     # --- un tour de boucle ----------------------------------------------
     def nb_en_cours(self, file: str | None = None) -> int:
@@ -150,6 +160,7 @@ class Worker:
         if self._conn is None:
             self.demarrer()
         conn = self._conn
+        self._signe_de_vie()
         with self._cadenas:
             for tid in [tid for tid, (_, f) in self._en_cours.items() if f.done()]:
                 del self._en_cours[tid]

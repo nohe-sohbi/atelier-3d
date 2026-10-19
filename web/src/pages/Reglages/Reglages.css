@@ -185,3 +185,16 @@
 .reglages__message-test--erreur {
   color: var(--erreur);
 }
+
+/* File de tâches : état du worker et tâches récentes */
+.reglages__file {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-top: 16px;
+}
+.reglages__h3 {
+  margin-top: 6px;
+  font-size: 15px;
+  font-weight: 600;
+}

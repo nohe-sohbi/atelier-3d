@@ -2,6 +2,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { api, messageErreur } from "../../api/client";
 import type {
   AlertePct,
+  DepenseClaude,
   ModeleClaude,
   PresenceOutils,
   Reglages as ReglagesApi,
@@ -12,6 +13,7 @@ import type {
 } from "../../api/types";
 import { Chargement, Erreur } from "../../components/Etats";
 import { ChampCle, Interrupteur, Ligne, Pastille, type EtatPastille } from "./Composants";
+import { FileDeTaches } from "./FileDeTaches";
 import "./Reglages.css";
 
 type ServiceAvecCle = "meshy" | "claude" | "itchio";
@@ -53,6 +55,17 @@ function pluriel(n: number, singulier: string, plurielMot: string): string {
 }
 
 /** Options d'un select numérique ; la valeur courante est toujours proposée, même hors liste. */
+const dollars = new Intl.NumberFormat("fr-FR", { minimumFractionDigits: 2, maximumFractionDigits: 4 });
+
+/** « 0,03 $ · 2 briefs, 1 avis » ; les appels simulés sont gratuits et comptés à part. */
+function texteDepense(d: DepenseClaude): string {
+  const simules = d.appels_simules > 0 ? `${pluriel(d.appels_simules, "appel simulé", "appels simulés")}, gratuits` : "";
+  if (d.appels === 0) return ["Rien dépensé ce mois", simules].filter(Boolean).join(" · ");
+  const detail = [pluriel(d.briefs, "brief", "briefs"), pluriel(d.avis, "avis", "avis")].join(", ");
+  const sansTarif = d.sans_tarif > 0 ? `${pluriel(d.sans_tarif, "appel", "appels")} sans tarif connu, non chiffré${d.sans_tarif > 1 ? "s" : ""}` : "";
+  return [`${dollars.format(d.usd)} $ · ${detail}`, sansTarif, simules].filter(Boolean).join(" · ");
+}
+
 function optionsTaches(valeurs: number[], courante: number) {
   const liste = valeurs.includes(courante) ? valeurs : [courante, ...valeurs];
   return liste.map((v) => (
@@ -316,7 +329,7 @@ export function Reglages() {
               <span className="note">Règle le même plafond dans la Console : c'est elle qui bloque vraiment.</span>
             </Ligne>
             <Ligne libelle="Dépensé ce mois">
-              <span className="secondaire">Suivi des dépenses : arrive à l'étape 4 du plan.</span>
+              <span>{texteDepense(etat.claude_depense_mois)}</span>
             </Ligne>
           </dl>
         </div>
@@ -560,6 +573,7 @@ export function Reglages() {
             </label>
           </Ligne>
         </dl>
+              <FileDeTaches />
       </section>
 
       {erreurEnregistrement ? <Erreur message={erreurEnregistrement} /> : null}

@@ -88,7 +88,14 @@
         "utilises": 0,
         "mode": "simule"
       },
-      "claude_depense_mois": null,
+      "claude_depense_mois": {
+        "usd": 0.0,
+        "appels": 0,
+        "briefs": 0,
+        "avis": 0,
+        "appels_simules": 0,
+        "sans_tarif": 0
+      },
       "outils": {
         "blender": {
           "present": false,
@@ -636,7 +643,14 @@
         "utilises": 60,
         "mode": "simule"
       },
-      "claude_depense_mois": null,
+      "claude_depense_mois": {
+        "usd": 0.0,
+        "appels": 0,
+        "briefs": 0,
+        "avis": 0,
+        "appels_simules": 0,
+        "sans_tarif": 0
+      },
       "outils": {
         "blender": {
           "present": false,
@@ -2539,6 +2553,316 @@
       "rejetes": 0,
       "finis": 0
     }
+  },
+  "GET /api/lots/{id}/generation": {
+    "lot_id": 5,
+    "tuiles": {
+      "prets_revue": 0,
+      "fabriques": 3,
+      "en_cours": 0,
+      "relances": 0,
+      "credits_utilises": 0,
+      "credits_simules": false,
+      "credits_prevus": 126
+    },
+    "objets": [
+      {
+        "id": 1,
+        "nom": "Objet simulé 1 (géométrique, type connu)",
+        "voie": "ia",
+        "fournisseur": "IA · Meshy (simulé) · file Meshy",
+        "etapes": [
+          {
+            "cle": "generation",
+            "libelle": "Génération",
+            "etat": "a_faire"
+          },
+          {
+            "cle": "finition",
+            "libelle": "Finition",
+            "etat": "a_faire"
+          },
+          {
+            "cle": "tests",
+            "libelle": "Tests",
+            "etat": "a_faire"
+          },
+          {
+            "cle": "rendus",
+            "libelle": "Rendus",
+            "etat": "a_faire"
+          }
+        ],
+        "statut": "Attend sa référence (écran Références, étape 6 du plan)",
+        "ton": "idle",
+        "pct": 0
+      },
+      {
+        "id": 2,
+        "nom": "Objet simulé 2 (géométrique, type inconnu)",
+        "voie": "ia",
+        "fournisseur": "IA · Meshy (simulé) · file Meshy",
+        "etapes": [
+          {
+            "cle": "generation",
+            "libelle": "Génération",
+            "etat": "a_faire"
+          },
+          {
+            "cle": "finition",
+            "libelle": "Finition",
+            "etat": "a_faire"
+          },
+          {
+            "cle": "tests",
+            "libelle": "Tests",
+            "etat": "a_faire"
+          },
+          {
+            "cle": "rendus",
+            "libelle": "Rendus",
+            "etat": "a_faire"
+          }
+        ],
+        "statut": "Attend sa référence (écran Références, étape 6 du plan)",
+        "ton": "idle",
+        "pct": 0
+      },
+      {
+        "id": 4,
+        "nom": "Objet simulé 4 (mixte)",
+        "voie": "ia",
+        "fournisseur": "IA · Meshy (simulé) · file Meshy",
+        "etapes": [
+          {
+            "cle": "generation",
+            "libelle": "Génération",
+            "etat": "a_faire"
+          },
+          {
+            "cle": "finition",
+            "libelle": "Finition",
+            "etat": "a_faire"
+          },
+          {
+            "cle": "tests",
+            "libelle": "Tests",
+            "etat": "a_faire"
+          },
+          {
+            "cle": "rendus",
+            "libelle": "Rendus",
+            "etat": "a_faire"
+          }
+        ],
+        "statut": "Attend sa référence (écran Références, étape 6 du plan)",
+        "ton": "idle",
+        "pct": 0
+      }
+    ],
+    "reutilises": [],
+    "taches": [
+      {
+        "id": 3,
+        "type": "proposer_liste",
+        "libelle": "Proposition de la liste par Claude",
+        "file": "api",
+        "libelle_file": "API Claude",
+        "etat": "terminee",
+        "tentatives": 1,
+        "max_tentatives": 4,
+        "erreur": null,
+        "progression": null,
+        "cree_le": "2026-10-18T08:00:00Z",
+        "debute_le": "2026-10-18T08:00:00Z",
+        "fini_le": "2026-10-18T08:00:00Z",
+        "reprise_le": null,
+        "lot_id": 5,
+        "objet_id": null,
+        "peut_relancer": false,
+        "peut_annuler": false
+      }
+    ],
+    "generateurs": [
+      {
+        "nom": "Générateurs par code",
+        "detail": "Voie code · 0 script Blender",
+        "etat": "Aucun script",
+        "ton": "idle"
+      },
+      {
+        "nom": "Meshy",
+        "detail": "Voie IA · 30 crédits par génération texturée",
+        "etat": "Simulé",
+        "ton": "idle"
+      },
+      {
+        "nom": "ComfyUI",
+        "detail": "Voie IA · http://127.0.0.1:8188",
+        "etat": "Simulé",
+        "ton": "idle"
+      }
+    ],
+    "worker": {
+      "actif": false,
+      "battu_le": "2026-10-18T08:00:00Z",
+      "demarre_le": "2026-10-18T08:00:00Z",
+      "arrete_le": "2026-10-18T08:00:00Z",
+      "en_cours": 0,
+      "en_attente": 0
+    },
+    "fabrication": {
+      "disponible": false,
+      "raison": "Génération, finition, tests et rendus arrivent avec la fabrication : étape 5 du plan pour la voie code, étape 7 pour la voie IA, le mixte et l'import CC0"
+    },
+    "limites_files": {
+      "gpu": 1,
+      "meshy": 3,
+      "blender": 2,
+      "api": 4
+    }
+  },
+  "GET /api/taches/{id}/journal": {
+    "tache_id": 3,
+    "evenements": [
+      {
+        "id": 17,
+        "date": "2026-10-18T08:00:00Z",
+        "type": "tache_creee",
+        "niveau": "debug",
+        "titre": "Tâche proposer_liste créée",
+        "texte": "File api."
+      },
+      {
+        "id": 18,
+        "date": "2026-10-18T08:00:00Z",
+        "type": "tache_debutee",
+        "niveau": "debug",
+        "titre": "Tâche proposer_liste démarrée",
+        "texte": "Tentative 1 sur 4."
+      },
+      {
+        "id": 19,
+        "date": "2026-10-18T08:00:00Z",
+        "type": "tache_progression",
+        "niveau": "debug",
+        "titre": "proposer_liste : demande envoyée à Claude",
+        "texte": "10 %"
+      },
+      {
+        "id": 20,
+        "date": "2026-10-18T08:00:00Z",
+        "type": "liste_proposee",
+        "niveau": "succes",
+        "titre": "Liste proposée (simulée) : Lot simulé e1a6",
+        "texte": "5 objets classés et routés."
+      },
+      {
+        "id": 21,
+        "date": "2026-10-18T08:00:00Z",
+        "type": "tache_progression",
+        "niveau": "debug",
+        "titre": "proposer_liste : 5 objets proposés",
+        "texte": "100 %"
+      },
+      {
+        "id": 22,
+        "date": "2026-10-18T08:00:00Z",
+        "type": "tache_terminee",
+        "niveau": "succes",
+        "titre": "Tâche proposer_liste terminée",
+        "texte": ""
+      }
+    ]
+  },
+  "GET /api/worker": {
+    "actif": false,
+    "battu_le": "2026-10-18T08:00:00Z",
+    "demarre_le": "2026-10-18T08:00:00Z",
+    "arrete_le": "2026-10-18T08:00:00Z",
+    "en_cours": 0,
+    "en_attente": 0
+  },
+  "GET /api/worker/taches": {
+    "worker": {
+      "actif": false,
+      "battu_le": "2026-10-18T08:00:00Z",
+      "demarre_le": "2026-10-18T08:00:00Z",
+      "arrete_le": "2026-10-18T08:00:00Z",
+      "en_cours": 0,
+      "en_attente": 0
+    },
+    "taches": [
+      {
+        "id": 2,
+        "type": "echec",
+        "libelle": "Tâche d'essai (échoue exprès)",
+        "file": "api",
+        "libelle_file": "API Claude",
+        "etat": "echouee",
+        "tentatives": 1,
+        "max_tentatives": 1,
+        "erreur": "RuntimeError: Meshy a échoué sur « caisse » : contenu refusé",
+        "progression": null,
+        "cree_le": "2026-10-18T08:00:00Z",
+        "debute_le": "2026-10-18T08:00:00Z",
+        "fini_le": "2026-10-18T08:00:00Z",
+        "reprise_le": null,
+        "lot_id": null,
+        "objet_id": null,
+        "peut_relancer": true,
+        "peut_annuler": false,
+        "contexte": null
+      },
+      {
+        "id": 3,
+        "type": "proposer_liste",
+        "libelle": "Proposition de la liste par Claude",
+        "file": "api",
+        "libelle_file": "API Claude",
+        "etat": "terminee",
+        "tentatives": 1,
+        "max_tentatives": 4,
+        "erreur": null,
+        "progression": null,
+        "cree_le": "2026-10-18T08:00:00Z",
+        "debute_le": "2026-10-18T08:00:00Z",
+        "fini_le": "2026-10-18T08:00:00Z",
+        "reprise_le": null,
+        "lot_id": 5,
+        "objet_id": null,
+        "peut_relancer": false,
+        "peut_annuler": false,
+        "contexte": {
+          "libelle": "Lot simulé e1a6",
+          "lien": "/lots/5/generation"
+        }
+      },
+      {
+        "id": 1,
+        "type": "planche_style",
+        "libelle": "Planche de style (images Meshy)",
+        "file": "meshy",
+        "libelle_file": "Meshy",
+        "etat": "terminee",
+        "tentatives": 1,
+        "max_tentatives": 4,
+        "erreur": null,
+        "progression": null,
+        "cree_le": "2026-10-18T08:00:00Z",
+        "debute_le": "2026-10-18T08:00:00Z",
+        "fini_le": "2026-10-18T08:00:00Z",
+        "reprise_le": null,
+        "lot_id": null,
+        "objet_id": null,
+        "peut_relancer": false,
+        "peut_annuler": false,
+        "contexte": {
+          "libelle": "Style medieval-stylise-v0",
+          "lien": "/styles?style=medieval-stylise-v0"
+        }
+      }
+    ]
   },
   "GET /api/lots#rempli": {
     "compteurs": {

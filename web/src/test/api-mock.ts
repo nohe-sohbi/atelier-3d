@@ -4,6 +4,9 @@ import type {
   EnTeteLot,
   EstimationAppliquerStyle,
   EstimationPlanche,
+  EtatWorker,
+  Generation,
+  JournalTache,
   Lots,
   Menu,
   Notifications,
@@ -15,6 +18,7 @@ import type {
   Styles,
   Tache,
   TacheLancee,
+  TachesRecentes,
 } from "../api/types";
 import contrat from "./contrat.json";
 
@@ -98,3 +102,7 @@ export const PROPOSITION_LANCEE = depuis<{ tache_id: number }>("POST /api/lots/{
 export const DEMANDE = depuis<DemandeClaudeCode>("GET /api/lots/{id}/objets/{oid}/demande");
 export const DEMANDE_ECRITE = depuis<DemandeClaudeCode>("POST /api/lots/{id}/objets/{oid}/demande");
 export const ESTIMATION_APPLIQUER = depuis<EstimationAppliquerStyle>("GET /api/lots/{id}/appliquer-style");
+export const GENERATION = depuis<Generation>("GET /api/lots/{id}/generation");
+export const JOURNAL = depuis<JournalTache>("GET /api/taches/{id}/journal");
+export const WORKER_ARRETE = depuis<EtatWorker>("GET /api/worker");
+export const TACHES_RECENTES = depuis<TachesRecentes>("GET /api/worker/taches");

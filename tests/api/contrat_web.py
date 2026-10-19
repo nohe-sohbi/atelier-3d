@@ -125,6 +125,11 @@ def _lots(client, contrat: dict, pilote: int) -> None:
         if o["voie"] == "a_creer":
             contrat["PATCH /api/lots/{id}/objets/{oid}#ia"] = client.patch(f"/api/lots/{lid}/objets/{o['id']}", json={"voie": "ia"}).json()
     contrat["POST /api/lots/{id}/valider-brief"] = client.post(f"/api/lots/{lid}/valider-brief").json()
+    contrat["GET /api/lots/{id}/generation"] = client.get(f"/api/lots/{lid}/generation").json()
+    proposition = contrat["GET /api/lots/{id}/generation"]["taches"][0]["id"]
+    contrat["GET /api/taches/{id}/journal"] = client.get(f"/api/taches/{proposition}/journal").json()
+    contrat["GET /api/worker"] = client.get("/api/worker").json()
+    contrat["GET /api/worker/taches"] = client.get("/api/worker/taches").json()
     contrat["GET /api/lots#rempli"] = client.get("/api/lots").json()
     contrat["POST /api/lots/{id}/dupliquer"] = client.post(f"/api/lots/{lid}/dupliquer").json()
     v1 = client.post(f"/api/styles/{pilote}/versions", json={"note": "Version de test"}).json()

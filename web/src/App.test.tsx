@@ -78,7 +78,6 @@ describe("Navigation", () => {
 
   it.each([
     ["references", 6],
-    ["generation", 4],
     ["revue", 8],
   ])("/lots/:id/%s : l'en-tête du lot, puis « Arrive à l'étape %i du plan »", async (etape, numero) => {
     mockApi(API);

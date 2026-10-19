@@ -9,8 +9,8 @@ from pydantic import BaseModel, ConfigDict, Field
 from api import config as cfgmod
 from api.adapters import get_claude, get_comfyui, get_itchio, get_meshy
 from api.dependances import Config, Db
+from api.services import couts, evenements, outils
 from api.services import credits as credits_svc
-from api.services import evenements, outils
 
 router = APIRouter(prefix="/reglages", tags=["reglages"])
 
@@ -90,11 +90,11 @@ class ReglagesIn(_Modele):
     notifications: NotificationsIn
 
 
-# --- état (solde Meshy ; la dépense Claude arrive avec le suivi des coûts, étape 4) ----------
+# --- état : solde Meshy, dépense réelle de l'API Claude ce mois, outils de la machine ----------
 
 def _etat(conn, cfg: dict) -> dict:
     solde = credits_svc.solde_meshy(conn, cfg)
-    return {"meshy_solde": solde, "claude_depense_mois": None, "outils": outils.presence_outils(cfg)}
+    return {"meshy_solde": solde, "claude_depense_mois": couts.depense_claude_mois(conn), "outils": outils.presence_outils(cfg)}
 
 
 def _reponse(conn, cfg: dict) -> dict:

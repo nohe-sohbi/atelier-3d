@@ -25,7 +25,9 @@ services:
     mode: simule
     cle_api: ""
     modele: claude-sonnet-5-5   # claude-sonnet-5-5 | claude-haiku-5-5
-    plafond_mensuel_usd: 5.0
+    plafond_mensuel_usd: 5.0   # appliqué par l'app avant chaque appel réel, d'après la dépense notée
+    # Tarifs en $ par million de tokens [entrée, sortie]. Sans cette clé : ceux relevés en octobre 2026.
+    # tarifs_usd_par_million: {claude-sonnet-5-5: [2.0, 10.0], claude-haiku-5-5: [0.10, 0.50]}
   comfyui:
     mode: simule
     url: "http://127.0.0.1:8188"

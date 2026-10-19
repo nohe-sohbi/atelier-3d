@@ -90,3 +90,13 @@ def test_reseau_port_pris_sur_toutes_les_interfaces_et_adresse():
         assert not dev.port_libre(port, "0.0.0.0")
     ip = dev.adresse_reseau()
     assert ip is None or (ip.count(".") == 3 and not ip.startswith("127."))
+
+
+def test_port_web_pris_par_un_autre_projet_le_suivant_libre(monkeypatch):
+    dev = importlib.import_module("dev")
+    with _occuper_un_port() as occupe:
+        port = occupe.getsockname()[1]
+        monkeypatch.setattr(dev, "PORT_WEB", port)
+        choisi = dev.choisir_port_web(None)
+        assert choisi is not None and choisi > port and dev.port_libre(choisi)
+        assert dev.choisir_port_web(port) is None  # demandé explicitement : pris, on le dit

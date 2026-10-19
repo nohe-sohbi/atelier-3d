@@ -31,6 +31,7 @@ RACINE = Path(__file__).resolve().parent
 VENV = RACINE / ".venv"
 PYTHON_VENV = VENV / ("Scripts/python.exe" if os.name == "nt" else "bin/python")
 PORT_API = 8000
+PORT_WEB = 5173
 COULEURS = {"api": "\033[36m", "worker": "\033[33m", "web": "\033[35m"}
 FIN = "\033[0m"
 
@@ -159,6 +160,17 @@ def port_libre(port: int, hote: str = "127.0.0.1") -> bool:
         return True
 
 
+def choisir_port_web(demande: int | None, hote: str = "127.0.0.1") -> int | None:
+    """Port de l'interface. Avec --port-web : ce port, ou None s'il est pris. Sans : 5173, sinon le premier libre
+    au-dessus (5174, 5175…) : un autre projet lancé à côté ne bloque pas l'app."""
+    if demande is not None:
+        return demande if port_libre(demande, hote) else None
+    for port in range(PORT_WEB, PORT_WEB + 50):
+        if port_libre(port, hote):
+            return port
+    return None
+
+
 def choisir_port_api(demande: int | None) -> int | None:
     """Port de l'API. Avec --port : ce port, ou None s'il est pris. Sans : 8000, ou un port libre donné par
     le système si 8000 sert déjà à un autre programme (l'interface joint l'API par le proxy de Vite)."""
@@ -253,7 +265,8 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--sans-navigateur", action="store_true", help="n'ouvre pas le navigateur")
     parser.add_argument("--port", type=int, default=None,
                         help=f"port de l'API (défaut {PORT_API}, ou un port libre si {PORT_API} est pris)")
-    parser.add_argument("--port-web", type=int, default=5173, help="port de l'interface Vite (défaut 5173)")
+    parser.add_argument("--port-web", type=int, default=None,
+                        help=f"port de l'interface Vite (défaut {PORT_WEB}, ou le premier libre au-dessus s'il est pris)")
     parser.add_argument("--reseau", action="store_true",
                         help="ouvre l'interface aux autres appareils du réseau local (l'API reste sur cette machine)")
     parser.add_argument("--sans-couleur", action="store_true")
@@ -276,10 +289,15 @@ def main(argv: list[str] | None = None) -> int:
     hote_web = "0.0.0.0" if args.reseau else "127.0.0.1"
     if args.reseau and args.sans_web:
         dire("--reseau ouvre l'interface Vite : sans elle, l'API reste sur cette machine")
-    if not args.sans_web and not port_libre(args.port_web, hote_web):
-        dire(f"le port {args.port_web} de l'interface est déjà pris (dev.py tourne déjà ?) : "
-             "arrête l'autre programme, ou lance avec --port-web <port>")
-        return 2
+    port_web = PORT_WEB
+    if not args.sans_web:
+        port_web = choisir_port_web(args.port_web, hote_web)
+        if port_web is None:
+            dire(f"le port {args.port_web} de l'interface est déjà pris (dev.py tourne déjà ?) : "
+                 "arrête l'autre programme, ou lance avec --port-web <port>")
+            return 2
+        if args.port_web is None and port_web != PORT_WEB:
+            dire(f"le port {PORT_WEB} sert déjà à un autre programme : l'interface prend le port {port_web}")
     env = {**os.environ, "PYTHONUNBUFFERED": "1", "ATELIER_API_PORT": str(port_api), "ATELIER_WEB_HOTE": hote_web}
 
     preparer_config()
@@ -298,9 +316,9 @@ def main(argv: list[str] | None = None) -> int:
         elif not (RACINE / "web" / "node_modules").exists():
             dire("web/node_modules absent : lance `npm --prefix web ci` (ou `python dev.py --installer`) ; API seule")
         else:
-            procs["web"] = _lancer("web", [npm, "--prefix", "web", "run", "dev", "--", "--port", str(args.port_web),
+            procs["web"] = _lancer("web", [npm, "--prefix", "web", "run", "dev", "--", "--port", str(port_web),
                                            "--strictPort"], couleur, env)
-            adresse = f"http://127.0.0.1:{args.port_web}"
+            adresse = f"http://127.0.0.1:{port_web}"
 
     # Arrêt propre aussi sur SIGTERM (même chemin que Ctrl+C).
     def _sigterm(*_: object) -> None:
@@ -313,7 +331,7 @@ def main(argv: list[str] | None = None) -> int:
             dire(f"Ouvre {adresse}   (API : http://127.0.0.1:{port_api}/api/sante ; Ctrl+C pour tout arrêter)")
             if args.reseau and "web" in procs:
                 ip = adresse_reseau()
-                dire(f"Depuis un autre appareil du réseau : http://{ip or '<adresse de cette machine>'}:{args.port_web}"
+                dire(f"Depuis un autre appareil du réseau : http://{ip or '<adresse de cette machine>'}:{port_web}"
                      " (sans mot de passe : réseau de confiance seulement)")
             if not args.sans_navigateur:
                 webbrowser.open(adresse)

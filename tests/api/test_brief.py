@@ -93,8 +93,8 @@ def test_proposition_simulee_classee_et_routee(client, conn, cfg, atelier):
     tete = client.get(f"/api/lots/{lot['id']}").json()
     assert tete["nom"].startswith("Lot simulé") and tete["nom_propose"] == tete["nom"] and tete["etape_courante"] == 1
     cout = conn.execute("SELECT * FROM couts WHERE service = 'claude'").fetchone()
-    detail = json.loads(cout["detail"])
-    assert detail["type"] == "brief" and detail["simule"] is True and detail["lot_id"] == lot["id"] and cout["usd"] == 0
+    assert cout["type"] == "brief" and cout["simule"] == 1 and cout["lot_id"] == lot["id"] and cout["usd"] == 0
+    assert json.loads(cout["detail"])["modele"] == "claude-sonnet-5-5"
     assert cout["tokens_entree"] > 0 and cout["tokens_sortie"] > 0 and cout["tache_id"] == r["proposition"]["id"]
     ev = conn.execute("SELECT * FROM evenements WHERE type = 'liste_proposee'").fetchone()
     assert "(simulée)" in ev["titre"] and ev["lien"] == f"/lots/{lot['id']}/brief"

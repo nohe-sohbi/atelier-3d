@@ -24,7 +24,7 @@ from typing import Any
 
 from api import chemins, db
 from api.adapters.meshy.base import RefusMeshy
-from api.services import style_yaml, taches
+from api.services import couts, style_yaml, taches
 from api.services.taches import TacheDefinitive
 
 log = logging.getLogger("api.styles")
@@ -523,6 +523,10 @@ def executer_planche(conn: sqlite3.Connection, meshy, params: dict, tache_id: in
         with db.transaction(conn):
             if tache_id is not None:
                 conn.execute("DELETE FROM planche_images WHERE tache_id = ?", (tache_id,))
+                conn.execute("DELETE FROM couts WHERE tache_id = ? AND service = 'meshy'", (tache_id,))
+            for objet, nom, credits in rangees:
+                couts.enregistrer(conn, "meshy", "planche", simule=bool(simule), credits=credits, tache_id=tache_id,
+                                  detail={"style_id": r["id"], "objet": objet, "fichier": nom})
             crees = [db.inserer(conn, "planche_images", {
                 "style_id": r["id"], "fichier": nom, "objet_generique": objet, "gardee": 0, "tache_id": tache_id,
                 "credits": credits, "simule": simule, "cree_le": db.maintenant()}) for objet, nom, credits in rangees]

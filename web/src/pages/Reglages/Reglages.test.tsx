@@ -2,7 +2,7 @@ import { screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import type { Reglages as ReglagesApi, ReglagesEnvoyes } from "../../api/types";
-import { MENU_VIDE, NOTIFICATIONS_VIDES, REGLAGES, mockApi, reponseErreur } from "../../test/api-mock";
+import { MENU_VIDE, NOTIFICATIONS_VIDES, REGLAGES, TACHES_RECENTES, mockApi, reponseErreur } from "../../test/api-mock";
 import { rendreApp } from "../../test/rendre";
 
 afterEach(() => vi.unstubAllGlobals());
@@ -12,6 +12,7 @@ function monter(extra: Record<string, unknown> = {}) {
     "GET /api/menu": MENU_VIDE,
     "GET /api/notifications": NOTIFICATIONS_VIDES,
     "GET /api/reglages": REGLAGES,
+    "GET /api/worker/taches": TACHES_RECENTES,
     "PUT /api/reglages": (init: RequestInit | undefined) => {
       const corps = JSON.parse(String(init?.body)) as ReglagesEnvoyes;
       const r: ReglagesApi = { ...REGLAGES, ...corps, etat: REGLAGES.etat };
@@ -34,7 +35,7 @@ describe("Réglages", () => {
     const solde = screen.getByText(/crédits restants/);
     expect(solde).toHaveTextContent(/940 \/ 1[\s\u202f\u00a0]000 crédits restants/);
     expect(solde).toHaveTextContent("lu par l'API à l'ouverture de l'app");
-    expect(screen.getByText("Suivi des dépenses : arrive à l'étape 4 du plan.")).toBeInTheDocument();
+    expect(screen.getByText("Rien dépensé ce mois")).toBeInTheDocument(); // dépense réelle de l'API Claude (étape 4)
     expect(screen.getByLabelText("Renouvellement")).toHaveValue("1");
     expect(screen.getByLabelText("Alerte")).toHaveValue("80");
     expect(screen.getByLabelText("Modèle")).toHaveValue("claude-sonnet-5-5");

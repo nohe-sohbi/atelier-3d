@@ -39,7 +39,8 @@ def test_get_structure(client):
     assert j["files"] == {"gpu": 1, "meshy": 3, "blender": 2, "relances_max": 3}
     assert j["notifications"] == {"app": True, "bureau": False}
     assert j["etat"]["meshy_solde"] == {"restants": 1000, "total": 1000, "utilises": 0, "mode": "simule"}
-    assert j["etat"]["claude_depense_mois"] is None  # suivi des coûts : étape 4
+    assert j["etat"]["claude_depense_mois"] == {"usd": 0.0, "appels": 0, "briefs": 0, "avis": 0, "appels_simules": 0,
+                                                "sans_tarif": 0}  # suivi des coûts (étape 4) : rien dépensé
     assert not _cles_en_clair(j)
 
 

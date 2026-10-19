@@ -1,7 +1,7 @@
 import type { CleEtapeLot, ObjetLot, ResumeBrief, Voie } from "../../api/types";
 import { dateCourte, formatNombre, pluriel } from "../Styles/commun";
 
-export { pluriel };
+export { formatNombre, pluriel };
 
 export const LIBELLES_VOIES: Record<Voie, string> = {
   code: "Code",

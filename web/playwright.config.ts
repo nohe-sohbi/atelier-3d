@@ -1,4 +1,5 @@
 import { defineConfig } from "@playwright/test";
+import { ADRESSE } from "./e2e/serveur";
 
 /* Bout en bout contre l'application réelle : global-setup lance `python dev.py` (API + Vite) avec une
    base et une config temporaires, les tests pilotent Chromium, global-teardown arrête tout. */
@@ -13,7 +14,7 @@ export default defineConfig({
   reporter: [["list"]],
   outputDir: "./test-results",
   use: {
-    baseURL: "http://127.0.0.1:5173",
+    baseURL: ADRESSE,
     trace: "retain-on-failure",
     locale: "fr-FR",
   },

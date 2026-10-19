@@ -4,10 +4,11 @@ import type { CleEtapeLot } from "../../api/types";
 import { EtatVide } from "../../components/Etats";
 import { Brief } from "./Brief";
 import { EnTeteLot } from "./EnTeteLot";
+import { Generation } from "./Generation";
 import { ETAPE_DU_PLAN } from "./commun";
 import "./Lots.css";
 
-/** Un écran de lot : l'en-tête commun, puis le Brief, ou « Arrive à l'étape N » pour les écrans pas encore construits. */
+/** Un écran de lot : l'en-tête commun, puis le Brief ou la Génération, ou « Arrive à l'étape N » pour les écrans à venir. */
 export function PageLot({ etape }: { etape: CleEtapeLot }) {
   const { id } = useParams();
   const lotId = Number(id);
@@ -17,7 +18,13 @@ export function PageLot({ etape }: { etape: CleEtapeLot }) {
   return (
     <div className="page-lot">
       <EnTeteLot lotId={lotId} etape={etape} version={version} />
-      {etape === "brief" ? <Brief lotId={lotId} onChangement={changement} /> : <EtatVide titre={`Arrive à l'étape ${ETAPE_DU_PLAN[etape]} du plan`} />}
+      {etape === "brief" ? (
+        <Brief lotId={lotId} onChangement={changement} />
+      ) : etape === "generation" ? (
+        <Generation lotId={lotId} onChangement={changement} />
+      ) : (
+        <EtatVide titre={`Arrive à l'étape ${ETAPE_DU_PLAN[etape]} du plan`} />
+      )}
     </div>
   );
 }

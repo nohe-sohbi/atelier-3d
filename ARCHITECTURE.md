@@ -16,7 +16,9 @@ api/            API FastAPI. Point d'entrée : api/main.py (app = create_app()).
                 api/main.py découvre et monte automatiquement tous les modules de api/routes/ sous /api.
   services/     Logique métier réutilisée par les routes et le worker : taches.py (file), evenements.py
                 (journal et notifications), credits.py (solde Meshy, une seule source), outils.py (Blender,
-                glTF-Validator, butler, Git LFS), style_yaml.py (chargeur de style.yaml), styles.py (écran Styles).
+                glTF-Validator, butler, Git LFS), style_yaml.py (chargeur de style.yaml), styles.py (écran Styles),
+                couts.py (coûts Meshy et Claude, dépense du mois, plafond), workers.py (battement du worker),
+                generation.py (écran Génération d'un lot, tâches récentes de Réglages).
   adapters/     Services externes : meshy/, claude/, comfyui/, itchio/. Chaque dossier a
                 base.py (interface), simule.py, reel.py et __init__.py avec `get_<service>(config)`.
                 Le simulé est le défaut ; il répond comme le vrai sans dépenser de crédits.

@@ -1,0 +1,132 @@
+/* Liste des tâches de la file et état du worker (Génération, Réglages · File de tâches). */
+.worker {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  padding: 10px 14px;
+  border-radius: 10px;
+  border: 1px solid var(--bordure);
+  background: var(--fond);
+  font-size: 13.5px;
+  line-height: 1.5;
+}
+.worker--arrete {
+  background: var(--alerte-fond);
+}
+.worker__point {
+  flex: none;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--succes);
+}
+.worker--arrete .worker__point {
+  background: var(--alerte);
+}
+.taches {
+  display: flex;
+  flex-direction: column;
+}
+.taches__vide {
+  font-size: 13.5px;
+}
+.tache {
+  padding: 12px 0;
+  border-top: 1px solid var(--separateur);
+}
+.tache__ligne {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 14px;
+}
+.tache__texte {
+  flex: 1 1 240px;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.tache__nom {
+  font-size: 14.5px;
+  font-weight: 500;
+}
+.tache__meta {
+  font-size: 12.5px;
+  color: var(--texte-secondaire);
+}
+.tache__actions {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+}
+.tache__icone {
+  width: 40px;
+  height: 40px;
+  padding: 0;
+  border: 1px solid var(--bordure);
+  border-radius: var(--rayon);
+  background: var(--blanc);
+  color: var(--texte-secondaire);
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+.tache__icone[aria-expanded="true"] {
+  color: var(--accent);
+  border-color: var(--accent);
+}
+.tache__progression {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-top: 8px;
+  font-size: 12.5px;
+  color: var(--texte-secondaire);
+}
+.tache__barre {
+  flex: 0 0 160px;
+  height: 6px;
+  border-radius: 999px;
+  background: var(--separateur);
+  overflow: hidden;
+}
+.tache__barre div {
+  height: 100%;
+  border-radius: 999px;
+  background: var(--accent);
+}
+.tache__erreur {
+  margin-top: 6px;
+  font-size: 13px;
+  line-height: 1.45;
+  color: var(--alerte);
+  overflow-wrap: anywhere;
+}
+.tache__journal {
+  margin-top: 8px;
+  padding: 10px 12px;
+  border-radius: var(--rayon);
+  background: var(--fond);
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  font-size: 12.5px;
+}
+.tache__evenement {
+  display: flex;
+  gap: 10px;
+}
+.tache__evenement time {
+  flex: none;
+  font-family: var(--police-mono);
+  color: var(--texte-secondaire);
+}
+.tache__evenement--debug {
+  color: var(--texte-secondaire);
+}
+.tache__evenement--alerte,
+.tache__evenement--erreur {
+  color: var(--alerte);
+}

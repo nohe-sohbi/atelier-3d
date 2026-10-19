@@ -145,8 +145,8 @@ export interface PresenceOutils {
 
 export interface ReglagesEtat {
   meshy_solde: MeshySolde | null;
-  /** Suivi des dépenses : arrive à l'étape 4 du plan. */
-  claude_depense_mois: null;
+  /** Dépense réelle de l'API Claude ce mois (les appels simulés sont comptés à part, gratuits). */
+  claude_depense_mois: DepenseClaude;
   outils: PresenceOutils;
 }
 
@@ -491,4 +491,96 @@ export interface EstimationAppliquerStyle {
   credits: number;
   lancement_possible: boolean;
   raison: string;
+}
+
+/* ---------- File de tâches, coûts, Génération ---------- */
+
+export interface DepenseClaude {
+  usd: number;
+  appels: number;
+  briefs: number;
+  avis: number;
+  appels_simules: number;
+  /** Appels réels dont le modèle n'a pas de tarif connu : comptés, mais pas chiffrés. */
+  sans_tarif: number;
+}
+
+export interface EtatWorker {
+  actif: boolean;
+  battu_le: string | null;
+  demarre_le: string | null;
+  arrete_le: string | null;
+  en_cours: number;
+  en_attente: number;
+}
+
+export interface TacheVue {
+  id: number;
+  type: string;
+  libelle: string;
+  file: string;
+  libelle_file: string;
+  etat: EtatTache;
+  tentatives: number;
+  max_tentatives: number;
+  erreur: string | null;
+  progression: { pct: number; texte: string } | null;
+  cree_le: string;
+  debute_le: string | null;
+  fini_le: string | null;
+  reprise_le: string | null;
+  lot_id: number | null;
+  objet_id: number | null;
+  peut_relancer: boolean;
+  peut_annuler: boolean;
+  /** Réglages · File de tâches : le lot ou le style de la tâche. */
+  contexte?: { libelle: string; lien: string } | null;
+}
+
+export interface TachesRecentes {
+  worker: EtatWorker;
+  taches: TacheVue[];
+}
+
+export interface JournalTache {
+  tache_id: number;
+  evenements: Array<{ id: number; date: string; type: string; niveau: string; titre: string; texte: string }>;
+}
+
+export interface PuceEtape {
+  cle: string;
+  libelle: string;
+  etat: "fait" | "en_cours" | "a_faire" | "echec";
+}
+
+export interface ObjetGeneration {
+  id: number;
+  nom: string;
+  voie: Voie;
+  fournisseur: string;
+  etapes: PuceEtape[];
+  statut: string;
+  ton: TonLot;
+  pct: number;
+}
+
+/** GET /api/lots/{id}/generation */
+export interface Generation {
+  lot_id: number;
+  tuiles: {
+    prets_revue: number;
+    fabriques: number;
+    en_cours: number;
+    relances: number;
+    credits_utilises: number;
+    credits_simules: boolean;
+    credits_prevus: number;
+  };
+  objets: ObjetGeneration[];
+  reutilises: string[];
+  taches: TacheVue[];
+  generateurs: Array<{ nom: string; detail: string; etat: string; ton: TonLot }>;
+  worker: EtatWorker;
+  fabrication: { disponible: boolean; raison: string };
+  limites_files: Record<string, number>;
 }

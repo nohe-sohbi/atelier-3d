@@ -8,6 +8,7 @@ from pydantic import BaseModel, ConfigDict, Field
 
 from api.dependances import Config, Db
 from api.services import brief, demandes
+from api.services import generation as generation_svc
 from api.services import lots as lots_svc
 
 router = APIRouter(prefix="/lots", tags=["lots"])
@@ -91,9 +92,10 @@ def _objets(conn, lot_id: int) -> dict:
             tache = {"id": t["id"], "etat": t["etat"], "erreur": t["erreur"]}
         except taches.TacheIntrouvable:
             tache = None
-    simule = any(True for c in conn.execute(
-        "SELECT detail FROM couts WHERE service = 'claude' AND detail LIKE ? AND detail LIKE '%\"simule\": true%'",
-        (f'%"lot_id": {lot_id}%',)))
+    # La liste affichée vient de la dernière proposition : simulée si son appel à Claude l'était.
+    derniere = conn.execute("SELECT simule FROM couts WHERE service = 'claude' AND type = 'brief' AND lot_id = ? "
+                            "ORDER BY id DESC LIMIT 1", (lot_id,)).fetchone()
+    simule = bool(derniere and derniere["simule"])
     return {"lot_id": lot_id, "objets": objets, "resume": lots_svc.resume_brief(objets), "proposition": tache,
             "simule": bool(simule) and bool(objets)}
 
@@ -122,6 +124,11 @@ def ecrire_demande(lot_id: int, objet_id: int, conn: Db) -> dict:
 @router.post("/{lot_id}/valider-brief")
 def valider_brief(lot_id: int, conn: Db) -> dict:
     return _erreurs(lots_svc.valider_brief, conn, lot_id)
+
+
+@router.get("/{lot_id}/generation")
+def generation(lot_id: int, conn: Db, cfg: Config) -> dict:
+    return _erreurs(generation_svc.vue, conn, cfg, lot_id)
 
 
 @router.get("/{lot_id}/appliquer-style")

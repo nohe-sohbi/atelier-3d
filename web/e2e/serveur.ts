@@ -8,7 +8,9 @@ import { join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 
 export const RACINE = resolve(fileURLToPath(new URL("../..", import.meta.url)));
-export const ADRESSE = "http://127.0.0.1:5173";
+// Un port à part, pas 5173 : les tests ne gênent pas l'app lancée à côté, ni un autre projet sur 5173.
+export const PORT = Number(process.env.ATELIER_E2E_PORT ?? 5199);
+export const ADRESSE = `http://127.0.0.1:${PORT}`;
 const ETAT = join(RACINE, "web", "test-results", "serveur-e2e.json");
 
 interface Etat {
@@ -46,10 +48,10 @@ async function attendre(url: string, delaiMs: number, proc: ChildProcess): Promi
 }
 
 export async function demarrer(): Promise<void> {
-  // Une application lancée à côté (python dev.py) tient déjà l'adresse : les tests tourneraient contre elle,
-  // donc contre la vraie base. On s'arrête avant.
+  // Un programme tient déjà l'adresse : les tests tourneraient contre lui (une app lancée à côté, donc la vraie
+  // base). On s'arrête avant.
   if (await repond(ADRESSE)) {
-    throw new Error(`${ADRESSE} répond déjà (python dev.py lancé à côté ?) : arrête-le avant les tests bout en bout`);
+    throw new Error(`${ADRESSE} répond déjà : un autre programme tient ce port ; choisis-en un autre avec ATELIER_E2E_PORT`);
   }
   const dossier = mkdtempSync(join(tmpdir(), "atelier-e2e-"));
   mkdirSync(join(dossier, "lots"));
@@ -69,7 +71,7 @@ export async function demarrer(): Promise<void> {
     ATELIER_GENERATEURS: join(dossier, "generators"),
     ATELIER_DEV_SANS_VENV: "1",
   };
-  const proc: ChildProcess = spawn(python(), ["dev.py", "--sans-navigateur", "--sans-couleur"], {
+  const proc: ChildProcess = spawn(python(), ["dev.py", "--sans-navigateur", "--sans-couleur", "--port-web", String(PORT)], {
     cwd: RACINE,
     env,
     stdio: ["ignore", sortie, sortie],

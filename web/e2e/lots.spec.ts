@@ -2,8 +2,9 @@ import { expect, test } from "./garde-fous";
 
 test.describe("Étape 3 · Lots et Brief", () => {
   test("Nouveau lot → Brief → liste proposée (simulée) → décocher → « À créer » passés en IA → références ; Lots montre l'étape 2", async ({ page }) => {
+    // D'autres scénarios ont pu créer des lots avant : celui-ci ne suppose pas une liste vide.
     await page.goto("/lots");
-    await expect(page.getByText("Aucun lot pour l'instant")).toBeVisible();
+    await expect(page.getByRole("heading", { level: 1, name: "Lots" })).toBeVisible();
     await page.getByRole("main").getByRole("link", { name: "Nouveau lot" }).first().click();
 
     // Le lot est créé vide et s'ouvre sur son Brief ; les étapes suivantes sont verrouillées.

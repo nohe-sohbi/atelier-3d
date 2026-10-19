@@ -15,13 +15,13 @@ def _initialiser(chemin: str) -> list[int]:
 TABLES = {"styles", "lots", "objets", "essais", "assets", "versions", "collections", "collections_assets",
           "etiquettes", "etiquettes_assets", "generateurs", "regles_routage", "taches", "evenements",
           "couts", "bancs", "publications", "publications_versions", "recherche", "migrations",
-          "planche_images", "pieces", "demandes_generateurs"}
+          "planche_images", "pieces", "demandes_generateurs", "workers"}
 
 
 def test_migrations_appliquees_et_idempotentes(atelier, conn):
-    assert db.versions_appliquees(conn) == [0, 10, 20]
+    assert db.versions_appliquees(conn) == [0, 10, 20, 30]
     assert db.appliquer_migrations(conn) == []
-    assert db.versions_appliquees(conn) == [0, 10, 20]
+    assert db.versions_appliquees(conn) == [0, 10, 20, 30]
     noms = {r["name"] for r in conn.execute("SELECT name FROM sqlite_master WHERE type IN ('table')")}
     assert TABLES <= noms
     assert conn.execute("PRAGMA foreign_keys").fetchone()["foreign_keys"] == 1

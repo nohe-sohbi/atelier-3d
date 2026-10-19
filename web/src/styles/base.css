@@ -50,7 +50,8 @@ p {
   margin: 0;
 }
 
-ul[role="list"] {
+ul[role="list"],
+ol[role="list"] {
   list-style: none;
   margin: 0;
   padding: 0;
@@ -174,5 +175,35 @@ select.champ {
   color: var(--texte-secondaire);
 }
 .secondaire {
+  color: var(--texte-secondaire);
+}
+
+/* Tons d'avancement (Lots, en-tête de lot, Génération, tâches de la file) */
+.ton {
+  display: inline-block;
+  padding: 3px 9px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+.ton--accent {
+  background: var(--accent-clair);
+  color: var(--accent);
+}
+.ton--run {
+  background: var(--voie-code-fond);
+  color: var(--voie-code);
+}
+.ton--warn {
+  background: var(--a-faire-fond);
+  color: var(--alerte);
+}
+.ton--good {
+  background: var(--succes-fond);
+  color: var(--succes);
+}
+.ton--idle {
+  background: var(--neutre);
   color: var(--texte-secondaire);
 }

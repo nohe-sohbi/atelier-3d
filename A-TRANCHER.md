@@ -104,3 +104,23 @@ audit > maquette.
 | 3.27 | Place de l'en-tête de lot | Maquette : bandeau pleine largeur sous la barre du haut | Carte en haut de la page, dans la colonne de contenu, comme les autres écrans | — |
 | 3.28 | Texte d'état de la demande pour Claude Code | Maquette : « …Il apparaît aussi dans Générateurs, section Générateurs à écrire » ; « dès que le script apparaît et passe ses tests » | Générateurs arrive à l'étape 11 : pas de renvoi ; le texte dit que les tests du script arrivent à l'étape 5 (3.16) | — |
 | 3.29 | « Mis à jour » dans Lots | Maquette : « il y a 40 min », « hier », « 8 oct. » | Calculé depuis `maj_le` : minutes, heures, « hier », puis la date courte | — |
+
+## Étape 4 · File de tâches et Génération
+
+| # | Sujet | Ce que disent les sources | Choix provisoire dans le code | Question |
+|---|---|---|---|---|
+| 4.1 | Génération avant la fabrication | Plan : étape 4 = écran Génération ; aucun objet n'atteint la génération avant les étapes 5 à 7 (et 6 pour les références) | L'écran montre les vraies données : tuiles, objets « Attend sa référence », puces à faire, une phrase qui dit quand la fabrication arrive ; l'onglet reste verrouillé tant que le lot n'est pas à l'étape 3 ; l'écran s'ouvre aussi par son adresse et depuis Réglages | Ouvrir l'onglet Génération dès le brief validé ? |
+| 4.2 | « Relances auto » | Maquette : « relance 2 sur 3 » (relances de qualité, après la finition) | La tuile compte les relances techniques des tâches du lot (tentatives au-delà de la première) ; les relances de qualité arrivent avec l'étape 5 | — |
+| 4.3 | Tâches du lot | Maquette : seulement les objets | Section « Tâches du lot » sous la file : état, tentatives, erreur, journal (icône), Relancer pour une tâche échouée ou annulée, Annuler pour une tâche en attente ou en cours | Garder ? |
+| 4.4 | Worker visible | Rien dans les sources | Le worker note un battement toutes les 5 s (table `workers`) ; Génération et Réglages disent « Worker actif » ou « Le worker ne tourne pas » avec son dernier signe de vie | — |
+| 4.5 | File de tâches dans Réglages | Maquette : les limites des files seulement | Sous les limites : l'état du worker et les tâches actives ou récentes de tous les lots et styles, avec lien vers leur lot ou leur style, journal, Relancer, Annuler | Un écran à part ? |
+| 4.6 | Notification de l'ordinateur | Correction 14 : « même onglet fermé », à activer dans Réglages | **Pas encore faite.** L'app tourne sur le serveur et s'ouvre en http://192.168.1.21 : les navigateurs refusent les notifications hors https. Options : (1) https par Tailscale, puis notification du navigateur, onglet ouvert seulement ; (2) envoi sur le téléphone et le PC par ntfy (auto-hébergé ou ntfy.sh), qui marche onglet fermé ; (3) un mail | Laquelle ? |
+| 4.7 | Tarifs de l'API Claude | Audit : ≈ 0,03 $ par brief, ≈ 0,02 $ par avis | Tarifs officiels relevés le 6 octobre 2026 (Sonnet 5.5 : 2 $ / 10 $ par million de tokens ; Haiku 5.5 : 0,10 $ / 0,50 $), modifiables dans `config.local.yaml` ; un modèle sans tarif est compté mais pas chiffré | — |
+| 4.8 | Plafond mensuel Claude | Maquette : « Règle le même plafond dans la Console » | L'app l'applique aussi : avant chaque appel réel, si la dépense notée du mois atteint le plafond, la tâche échoue tout de suite, sans relance, avec le motif | — |
+| 4.9 | « Dépensé ce mois » | Réglages | Dépense réelle seulement ; les appels simulés sont comptés à part, gratuits | — |
+| 4.10 | Crédits Meshy du lot | Maquette : « 156 utilisés · 126 prévus + 1 relance » | « N utilisés » (somme des coûts Meshy du lot, « · simulé » s'ils le sont) et « N prévus à la validation du brief » ; les crédits de la planche d'un style comptent pour le style, pas pour un lot | — |
+| 4.11 | Rafraîchissement | Plan cloud : SSE ou interrogation | Interrogation : menu et cloche toutes les 15 s (onglet visible) ; Génération toutes les 2 s quand quelque chose tourne, 15 s sinon | — |
+| 4.12 | « Revue prête » | A4, correction 14 | L'événement s'écrira quand un objet atteindra la revue : rien ne l'atteint avant l'étape 5 | — |
+| 4.13 | Lancer la fabrication | Plan cloud : `POST /api/lots/{id}/lancer` | Pas de route ni de tâche tant que les étapes 5 et 7 ne sont pas construites : aucune tâche fantôme | — |
+| 4.14 | Ports | — | `python dev.py` prend le premier port libre au-dessus de 5173 si un autre projet le tient, et l'annonce ; les tests bout en bout tournent sur 5199 (`ATELIER_E2E_PORT`) | — |
+

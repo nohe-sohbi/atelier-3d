@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useState } from "react";
 import { Link, NavLink } from "react-router-dom";
 import { api, messageErreur } from "../api/client";
-import { surChangement } from "../api/rafraichissement";
+import { surChangementEtPeriodique } from "../api/rafraichissement";
 import type { Menu } from "../api/types";
 import "./Sidebar.css";
 
@@ -78,7 +78,7 @@ export function Sidebar() {
 
   useEffect(() => {
     charger();
-    return surChangement(charger);
+    return surChangementEtPeriodique(charger);
   }, [charger]);
 
   const credits = menu?.credits;

@@ -11,8 +11,9 @@ import json
 import sqlite3
 from typing import Any
 
+from api import config as cfgmod
 from api import db
-from api.services import evenements, generateurs_registre, routage, taches
+from api.services import couts, evenements, generateurs_registre, routage, taches
 from api.services import lots as lots_svc
 from api.services import styles as styles_svc
 from api.services.taches import TacheDefinitive
@@ -198,7 +199,7 @@ def router_objet(conn: sqlite3.Connection, objet: dict, generateurs: dict, voie_
 
 
 def appliquer(conn: sqlite3.Connection, lot_id: int, proposition: dict, usage: dict, simule: bool,
-              tache_id: int | None = None) -> dict:
+              tache_id: int | None = None, cfg: dict | None = None) -> dict:
     """Remplace les objets du lot par la liste proposée, en gardant les décisions prises sur les mêmes types
     (objet décoché, voie choisie à la main) ; route chaque objet ; consigne le coût."""
     lot = lots_svc._ligne(conn, lot_id)
@@ -230,12 +231,8 @@ def appliquer(conn: sqlite3.Connection, lot_id: int, proposition: dict, usage: d
         nom_propose = proposition["nom_lot"]
         conn.execute("UPDATE lots SET nom_propose = ?, nom = CASE WHEN nom = '' THEN ? ELSE nom END, maj_le = ? WHERE id = ?",
                      (nom_propose, nom_propose, db.maintenant(), lot_id))
-        db.inserer(conn, "couts", {
-            "date": db.maintenant(), "service": "claude", "tache_id": tache_id, "credits": 0, "usd": 0.0,
-            "tokens_entree": int(usage.get("tokens_entree", 0)), "tokens_sortie": int(usage.get("tokens_sortie", 0)),
-            "detail": json.dumps({"type": "brief", "lot_id": lot_id, "modele": usage.get("modele"), "simule": simule,
-                                  "objets": len(ids)}, ensure_ascii=False),
-        })
+        couts.enregistrer_claude(conn, cfg if cfg is not None else cfgmod.charger(), "brief", usage, simule=simule,
+                                 lot_id=lot_id, tache_id=tache_id, detail={"objets": len(ids)})
         evenements.ecrire(conn, "liste_proposee", f"Liste proposée{' (simulée)' if simule else ''} : {lot['nom'] or nom_propose or lot_id}",
                           f"{len(ids)} objets classés et routés.", niveau="succes", lien=f"/lots/{lot_id}/brief",
                           lot_id=lot_id, tache_id=tache_id)
@@ -243,8 +240,10 @@ def appliquer(conn: sqlite3.Connection, lot_id: int, proposition: dict, usage: d
     return {"objets": ids, "nom_lot": nom_propose, "simule": simule}
 
 
-def executer_proposition(conn: sqlite3.Connection, claude, params: dict, tache_id: int | None = None) -> dict:
-    """Corps de la tâche `proposer_liste` : appelle Claude, valide, applique."""
+def executer_proposition(conn: sqlite3.Connection, claude, params: dict, tache_id: int | None = None,
+                         cfg: dict | None = None) -> dict:
+    """Corps de la tâche `proposer_liste` : appelle Claude (sous le plafond mensuel en réel), valide, applique."""
+    cfg = cfg if cfg is not None else cfgmod.charger()
     lot_id = int(params["lot_id"])
     lot = lots_svc._ligne(conn, lot_id)
     if lot["style_id"] is None:
@@ -253,6 +252,11 @@ def executer_proposition(conn: sqlite3.Connection, claude, params: dict, tache_i
     generateurs, _ = generateurs_registre.manifestes()
     types = generateurs_registre.types_connus(generateurs)
     types += [generateurs_registre.normaliser_type(t) for t in style.dimensions_m if generateurs_registre.normaliser_type(t) not in types]
+    if getattr(claude, "mode", "") == "reel":
+        try:
+            couts.verifier_plafond_claude(conn, cfg)
+        except couts.PlafondAtteint as e:
+            raise TacheDefinitive(str(e)) from e
     try:
         reponse, usage = claude.completer_json(prompt_systeme(style, types), prompt_utilisateur(lot), SCHEMA)
     except RuntimeError as e:
@@ -264,7 +268,7 @@ def executer_proposition(conn: sqlite3.Connection, claude, params: dict, tache_i
     except PropositionInvalide as e:
         raise RuntimeError(f"réponse de Claude inexploitable : {e}") from e
     simule = getattr(claude, "mode", "") == "simule"
-    return appliquer(conn, lot_id, proposition, usage, simule, tache_id=tache_id)
+    return appliquer(conn, lot_id, proposition, usage, simule, tache_id=tache_id, cfg=cfg)
 
 
 def rerouter_lot(conn: sqlite3.Connection, lot_id: int, generateurs: dict | None = None) -> list[int]:

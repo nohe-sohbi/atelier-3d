@@ -1,0 +1,142 @@
+import { screen, waitFor, within } from "@testing-library/react";
+import userEvent from "@testing-library/user-event";
+import { afterEach, describe, expect, it, vi } from "vitest";
+import type { Generation, Reglages, TacheVue } from "../../api/types";
+import {
+  GENERATION,
+  JOURNAL,
+  LOT_ENTETE_PROPOSE,
+  MENU_VIDE,
+  NOTIFICATIONS_VIDES,
+  REGLAGES,
+  TACHES_RECENTES,
+  mockApi,
+} from "../../test/api-mock";
+import { rendreApp } from "../../test/rendre";
+
+afterEach(() => {
+  vi.useRealTimers();
+  vi.unstubAllGlobals();
+});
+
+const LID = GENERATION.lot_id;
+const BASE = {
+  "GET /api/menu": MENU_VIDE,
+  "GET /api/notifications": NOTIFICATIONS_VIDES,
+  [`GET /api/lots/${LID}`]: { ...LOT_ENTETE_PROPOSE, id: LID },
+};
+const PROPOSITION = GENERATION.taches[0]!;
+
+/** Le même lot, plus avancé : dérivé du contrat (même forme), comme le serait la réponse de l'API à l'étape 5. */
+function avancee(): Generation {
+  const [a, b, ...reste] = GENERATION.objets;
+  const echec: TacheVue = { ...PROPOSITION, id: 99, etat: "echouee", tentatives: 4, erreur: "RuntimeError: Meshy injoignable", peut_relancer: true };
+  return {
+    ...GENERATION,
+    tuiles: { ...GENERATION.tuiles, prets_revue: 1, en_cours: 1, relances: 3, credits_utilises: 60, credits_simules: true },
+    objets: [
+      { ...a!, statut: "Finition en cours", ton: "run", pct: 25, etapes: a!.etapes.map((p, i) => ({ ...p, etat: i === 0 ? "fait" : i === 1 ? "en_cours" : "a_faire" })) },
+      { ...b!, statut: "Prêt pour la revue", ton: "good", pct: 100, etapes: b!.etapes.map((p) => ({ ...p, etat: "fait" })) },
+      ...reste,
+    ],
+    taches: [echec, ...GENERATION.taches],
+  };
+}
+
+describe("Génération", () => {
+  it("avant la fabrication : tuiles réelles, worker arrêté, objets en attente, tâches du lot et leur journal", async () => {
+    mockApi({ ...BASE, [`GET /api/lots/${LID}/generation`]: GENERATION, [`GET /api/taches/${PROPOSITION.id}/journal`]: JOURNAL });
+    const utilisateur = userEvent.setup();
+    rendreApp(`/lots/${LID}/generation`);
+    const tuiles = within(await screen.findByRole("list", { name: "Où en est la fabrication" }));
+    expect(tuiles.getByText(`/ ${GENERATION.tuiles.fabriques}`)).toBeInTheDocument();
+    expect(tuiles.getByText(new RegExp(`${GENERATION.tuiles.credits_prevus}.prévus`))).toBeInTheDocument();
+    expect(screen.getByText(/Le worker ne tourne pas/)).toBeInTheDocument();
+    expect(screen.getByText(new RegExp(GENERATION.fabrication.raison.slice(0, 40)))).toBeInTheDocument();
+    const objets = within(screen.getByRole("list", { name: "Objets du lot" }));
+    expect(objets.getAllByRole("listitem", { name: "" }).length).toBeGreaterThan(0);
+    for (const o of GENERATION.objets) {
+      expect(within(screen.getByRole("list", { name: `Étapes de ${o.nom}` })).getAllByText(/: à faire/)).toHaveLength(4);
+    }
+    expect(screen.getByRole("button", { name: "Ouvrir la revue · 0 prêt" })).toBeDisabled();
+
+    expect(screen.getByText(PROPOSITION.libelle)).toBeInTheDocument();
+    expect(screen.getByText("Terminée")).toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "Relancer" })).not.toBeInTheDocument();
+    await utilisateur.click(screen.getByRole("button", { name: `Journal : ${PROPOSITION.libelle}` }));
+    const journal = within(await screen.findByRole("list", { name: `Journal de la tâche ${PROPOSITION.id}` }));
+    expect(await journal.findByText(new RegExp(JOURNAL.evenements[0]!.titre))).toBeInTheDocument();
+    expect(journal.getAllByRole("listitem")).toHaveLength(JOURNAL.evenements.length);
+  });
+
+  it("en cours : puces, prêts pour la revue, relances, crédits simulés ; Relancer une tâche en échec", async () => {
+    let g = avancee();
+    const { appels } = mockApi({
+      ...BASE,
+      [`GET /api/lots/${LID}/generation`]: () => g,
+      "POST /api/taches/99/relancer": () => {
+        g = { ...g, taches: g.taches.map((t) => (t.id === 99 ? { ...t, etat: "en_attente", erreur: null, peut_relancer: false, peut_annuler: true } : t)) };
+        return {};
+      },
+    });
+    const utilisateur = userEvent.setup();
+    rendreApp(`/lots/${LID}/generation`);
+    const premier = GENERATION.objets[0]!;
+    const puces = within(await screen.findByRole("list", { name: `Étapes de ${premier.nom}` }));
+    expect(puces.getByText(/: fait/)).toBeInTheDocument();
+    expect(puces.getByText(/: en cours/)).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: "Ouvrir la revue · 1 prêt" })).toHaveAttribute("href", `/lots/${LID}/revue`);
+    expect(screen.getByText(/utilisés · simulé/)).toBeInTheDocument();
+    expect(screen.getByText("RuntimeError: Meshy injoignable")).toBeInTheDocument();
+    await utilisateur.click(screen.getByRole("button", { name: "Relancer" }));
+    await waitFor(() => expect(appels.some((a) => a.methode === "POST" && a.chemin === "/api/taches/99/relancer")).toBe(true));
+    expect(await screen.findByRole("button", { name: "Annuler" })).toBeInTheDocument();
+  });
+
+  it("une tâche qui tourne : l'écran se relit toutes les 2 s", async () => {
+    const enCours: Generation = { ...GENERATION, taches: [{ ...PROPOSITION, etat: "en_cours", progression: { pct: 40, texte: "Claude réfléchit" } }] };
+    const { appels } = mockApi({ ...BASE, [`GET /api/lots/${LID}/generation`]: enCours });
+    rendreApp(`/lots/${LID}/generation`);
+    expect(await screen.findByText("Claude réfléchit")).toBeInTheDocument();
+    const lectures = () => appels.filter((a) => a.chemin === `/api/lots/${LID}/generation`).length;
+    const avant = lectures();
+    await waitFor(() => expect(lectures()).toBeGreaterThan(avant), { timeout: 3500 });
+  });
+});
+
+describe("Réglages · File de tâches et dépenses", () => {
+  it("tâches récentes de tous les lots et styles, Relancer ; dépense réelle et appels simulés", async () => {
+    const reglages: Reglages = {
+      ...REGLAGES,
+      etat: { ...REGLAGES.etat, claude_depense_mois: { usd: 0.0312, appels: 2, briefs: 2, avis: 0, appels_simules: 3, sans_tarif: 0 } },
+    };
+    const echec = TACHES_RECENTES.taches.find((t) => t.peut_relancer)!;
+    const { appels } = mockApi({
+      ...BASE,
+      "GET /api/reglages": reglages,
+      "GET /api/worker/taches": TACHES_RECENTES,
+      [`POST /api/taches/${echec.id}/relancer`]: {},
+    });
+    const utilisateur = userEvent.setup();
+    rendreApp("/reglages");
+    expect(await screen.findByText("0,0312 $ · 2 briefs, 0 avis · 3 appels simulés, gratuits")).toBeInTheDocument();
+    for (const t of TACHES_RECENTES.taches.filter((x) => x.contexte)) {
+      expect(screen.getByRole("link", { name: t.contexte!.libelle })).toHaveAttribute("href", t.contexte!.lien);
+    }
+    await utilisateur.click(screen.getByRole("button", { name: "Relancer" }));
+    await waitFor(() => expect(appels.some((a) => a.methode === "POST" && a.chemin === `/api/taches/${echec.id}/relancer`)).toBe(true));
+  });
+});
+
+describe("Menu", () => {
+  it("se relit tout seul toutes les 15 s (le worker travaille sans l'écran)", async () => {
+    vi.useFakeTimers({ shouldAdvanceTime: true });
+    const { appels } = mockApi({ ...BASE, [`GET /api/lots/${LID}/generation`]: GENERATION });
+    rendreApp(`/lots/${LID}/generation`);
+    await screen.findByText("Aucune collection épinglée");
+    const lectures = () => appels.filter((a) => a.chemin === "/api/menu").length;
+    const avant = lectures();
+    await vi.advanceTimersByTimeAsync(15_000);
+    await waitFor(() => expect(lectures()).toBeGreaterThan(avant));
+  });
+});
