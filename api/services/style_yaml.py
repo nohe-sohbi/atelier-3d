@@ -116,7 +116,19 @@ class Style:
     @property
     def planche(self) -> list[str]:
         """Fichiers de la planche gardés à la validation (dans board/)."""
-        return [str(f) for f in self.brut.get("planche", [])]
+        return [p["fichier"] for p in self.planche_images]
+
+    @property
+    def planche_images(self) -> list[dict[str, Any]]:
+        """Images gardées : [{fichier, objet, simule}]. Une entrée texte (premier format) n'a que le fichier."""
+        out = []
+        for p in self.brut.get("planche") or []:
+            if isinstance(p, dict):
+                out.append({"fichier": str(p.get("fichier", "")), "objet": str(p.get("objet", "")),
+                            "simule": bool(p.get("simule", False))})
+            else:
+                out.append({"fichier": str(p), "objet": "", "simule": False})
+        return out
 
     def libelle_categorie(self, categorie: str) -> str:
         return str(self.brut.get("libelles_categories", {}).get(categorie, LIBELLES_CATEGORIES.get(categorie, categorie)))
@@ -198,6 +210,12 @@ def valider(brut: dict[str, Any]) -> None:
     for champ in ("dimensions_pct", "texel_pct", "symetrie_m", "lod_pct"):
         if champ not in tol:
             raise StyleInvalide(f"tolerances : {champ} manquant")
+    for champ, v in tol.items():
+        if isinstance(v, bool) or not isinstance(v, (int, float)) or v < 0:
+            raise StyleInvalide(f"tolerances : {champ} doit être un nombre positif ou nul")
+    for cat, px in (brut.get("textures_px") or {}).items():
+        if isinstance(px, bool) or not isinstance(px, int) or px <= 0:
+            raise StyleInvalide(f"textures_px : {cat} doit être un nombre entier de pixels positif")
     for t, dims in brut["dimensions_m"].items():
         if len(dims) != 3 or any(float(d) <= 0 for d in dims):
             raise StyleInvalide(f"dimensions_m.{t} : attendu [x, y, z] positifs")

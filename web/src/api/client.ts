@@ -26,7 +26,8 @@ export async function api<T>(chemin: string, init?: RequestInit): Promise<T> {
   let reponse: Response;
   try {
     reponse = await fetch(PREFIXE + chemin, { ...init, headers: entetes });
-  } catch {
+  } catch (e) {
+    if (init?.signal?.aborted) throw e; // abandon voulu (écran quitté) : pas une panne de l'API
     throw new ErreurApi(0, "API injoignable", "Le serveur ne répond pas.");
   }
 

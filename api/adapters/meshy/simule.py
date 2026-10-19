@@ -10,7 +10,14 @@ from __future__ import annotations
 from pathlib import Path
 
 from api.adapters import _commun
-from api.adapters.meshy.base import CREDITS_3D, CREDITS_IMAGE, Meshy
+from api.adapters.meshy.base import (
+    CREDITS_3D,
+    CREDITS_IMAGE,
+    Images,
+    Meshy,
+    RefusMeshy,
+    liste_images,
+)
 
 PAS_PROGRESSION = 34
 
@@ -37,7 +44,7 @@ class MeshySimule(Meshy):
 
     def _debiter(self, e: dict, credits: int) -> None:
         if self.credits_mensuels - self._utilises(e) < credits:
-            raise RuntimeError("crédits Meshy insuffisants (simulé)")
+            raise RefusMeshy("crédits Meshy insuffisants (simulé)")
         e["credits_utilises"] = self._utilises(e) + credits
 
     # --- tâches ----------------------------------------------------------
@@ -55,10 +62,10 @@ class MeshySimule(Meshy):
     def image_vers_3d(self, image: str | Path, options: dict | None = None) -> str:
         return self._creer("3d", CREDITS_3D, {"image": str(image), "options": options or {}})
 
-    def image_vers_image(self, prompt: str, image: str | Path | None, n: int = 4) -> str:
+    def image_vers_image(self, prompt: str, image: Images = None, n: int = 1) -> str:
         n = max(1, int(n))
         return self._creer("image", CREDITS_IMAGE * n,
-                           {"prompt": prompt, "image": str(image) if image else None, "n": n})
+                           {"prompt": prompt, "images": [str(i) for i in liste_images(image)], "n": n})
 
     def etat_tache(self, task_id: str) -> dict:
         with self.etat.modifier() as e:
@@ -72,7 +79,7 @@ class MeshySimule(Meshy):
 
     def _vue(self, t: dict) -> dict:
         vue = {"id": t["id"], "status": t["status"], "progress": t["progress"], "task_error": None,
-               "credits": t["credits"]}
+               "consumed_credits": t["credits"]}
         if t["status"] == "SUCCEEDED":
             if t["genre"] == "3d":
                 vue["model_urls"] = {"glb": f"simule://{t['id']}.glb"}

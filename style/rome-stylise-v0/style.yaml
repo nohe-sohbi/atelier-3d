@@ -98,3 +98,7 @@ pivot:
 prompts_reference:
   prop: "{objet}, Rome antique stylisée, prop de jeu vidéo, formes lisibles, couleurs {palette}, fond neutre uni, éclairage doux, vue trois-quarts, sans texte"
   archi: "{objet}, module d'architecture romaine stylisée, jeu vidéo, proportions nettes, couleurs {palette}, fond neutre uni, vue trois-quarts, sans texte"
+
+# Images gardées de la planche (écrites à la validation : fichier dans board/, objet, simulé).
+# La clé présente veut dire « validé » : le thème pilote est livré validé, sans image (A-TRANCHER.md 2.15).
+planche: []

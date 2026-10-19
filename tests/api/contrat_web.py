@@ -59,6 +59,45 @@ def _remplir(conn, client) -> None:
     conn.commit()
 
 
+def _faire_tourner_le_worker() -> None:
+    """Un vrai passage du worker (adaptateurs simulés) : les réponses de tâches du contrat sont réelles."""
+    from api import config as cfgmod
+    from worker.main import Worker
+
+    cfg = cfgmod.charger()
+    w = Worker(verrou="contrat", tick_s=0.05, backoff_base_s=0, charger_config=lambda: cfg)
+    try:
+        w.tour()
+        assert w.attendre_fin(30)
+    finally:
+        w.arreter(delai_s=1)
+
+
+def _planche_et_taches(client, contrat: dict, pilote: int) -> None:
+    """Un style créé, sa planche simulée rangée par le worker, une tâche terminée et une tâche échouée."""
+    from api import db
+    from api.services import taches
+
+    contrat["GET /api/styles/estimation-planche"] = client.get("/api/styles/estimation-planche").json()
+    palette = {c["nom"]: c["hex"] for c in contrat["GET /api/styles/{id}"]["palette"]}
+    cree = client.post("/api/styles", json={"nom": "Médiéval stylisé", "description": "Formes simples.",
+                                             "palette": palette, "budgets_depuis": pilote}).json()
+    contrat["POST /api/styles"] = cree
+    lance = client.post(f"/api/styles/{cree['id']}/planche").json()
+    contrat["POST /api/styles/{id}/planche"] = lance
+    _faire_tourner_le_worker()
+    contrat["GET /api/taches/{id}"] = client.get(f"/api/taches/{lance['tache_id']}").json()
+    contrat["GET /api/styles/{id}#planche"] = client.get(f"/api/styles/{cree['id']}").json()
+    conn = db.connexion()
+    try:
+        echec = taches.creer_tache(conn, "echec", "api", {"message": "Meshy a échoué sur « caisse » : contenu refusé"},
+                                   max_tentatives=1)
+    finally:
+        conn.close()
+    _faire_tourner_le_worker()
+    contrat["GET /api/taches/{id}#echouee"] = client.get(f"/api/taches/{echec}").json()
+
+
 def _reglages_remplis(client, defaut: dict) -> dict:
     corps = copy.deepcopy({k: v for k, v in defaut.items() if k != "etat"})
     corps["services"]["meshy"]["cle_api"] = "msy-secret-ab12"
@@ -80,9 +119,11 @@ def generer() -> dict:
         config = racine / "config.local.yaml"
         shutil.copy(chemins.chemin_config_exemple(), config)
         (racine / "lots").mkdir()
+        (racine / "generators").mkdir()
         shutil.copytree(chemins.racine() / "style" / "rome-stylise-v0", racine / "style" / "rome-stylise-v0")
         env = {"ATELIER_DB": str(racine / "atelier.db"), "ATELIER_CONFIG": str(config),
-               "ATELIER_LOTS": str(racine / "lots"), "ATELIER_STYLES": str(racine / "style")}
+               "ATELIER_LOTS": str(racine / "lots"), "ATELIER_STYLES": str(racine / "style"),
+               "ATELIER_GENERATEURS": str(racine / "generators")}
         # Machine figée : git présent, aucun autre outil (Blender, glTF-Validator, butler) ; le contrat ne dépend
         # pas de ce qui est installé là où il est généré ou vérifié.
         which_fige = lambda nom, *a, **k: "/usr/bin/git" if nom == "git" else None
@@ -113,13 +154,17 @@ def generer() -> dict:
                 contrat["GET /api/menu#rempli"] = client.get("/api/menu").json()
                 contrat["GET /api/notifications#rempli"] = client.get("/api/notifications").json()
                 contrat["GET /api/reglages#rempli"] = _reglages_remplis(client, contrat["GET /api/reglages"])
+                # En dernier : la planche dépense des crédits et l'échec écrit une notification.
+                _planche_et_taches(client, contrat, pilote)
     return normaliser(contrat)
 
 
 def normaliser(contrat: dict) -> dict:
-    """Fige ce qui dépend du jour : le texte de renouvellement de la jauge."""
+    """Fige ce qui dépend du jour (texte de renouvellement de la jauge) et de la machine (durée d'une tâche)."""
     contrat = copy.deepcopy(contrat)
     for cle, valeur in contrat.items():
+        if cle.startswith("GET /api/taches/") and isinstance(valeur.get("resultat"), dict) and "duree_s" in valeur["resultat"]:
+            valeur["resultat"]["duree_s"] = 1.0
         if cle.startswith("GET /api/menu") and isinstance(valeur.get("credits"), dict) \
                 and valeur["credits"].get("renouvellement"):
             valeur["credits"]["renouvellement"] = RENOUVELLEMENT_FIGE

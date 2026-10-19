@@ -26,7 +26,7 @@ def test_le_style_pilote_est_importe_au_demarrage(client):
     d = client.get(f"/api/styles/{s['id']}").json()
     assert [b["libelle"] for b in d["budgets"]] == ["Petit objet", "Objet moyen", "Grand objet", "Module d'architecture"]
     assert d["budgets"][1]["tris"] == 6000 and d["texel_density"] == 512 and d["unite"] == "1 = 1 m"
-    assert d["materiaux"][0]["usage_assets"] == 0 and d["planche"] == [] and d["peut_modifier"] is True
+    assert d["materiaux"][0]["usage_assets"] is None and d["planche"] == [] and d["peut_modifier"] is True
     assert d["versions"] == [{"id": s["id"], "code": "rome-stylise-v0", "version": 0, "note": "Version initiale du thème pilote.",
                               "date": d["cree_le"], "etat": "valide"}]
     assert "chemin" not in str(d)  # aucun chemin de la machine dans la réponse
@@ -161,7 +161,8 @@ def test_planche_simulee_refaire_valider(client, conn, cfg, atelier):
     d = client.post(f"/api/styles/{sid}/valider").json()
     assert d["etat"] == "valide" and d["valide_le"]
     brut = yaml.safe_load((atelier.styles / "planche-test-v0" / "style.yaml").read_text(encoding="utf-8"))
-    assert len(brut["planche"]) == 2 and all((atelier.styles / "planche-test-v0" / "board" / f).exists() for f in brut["planche"])
+    assert len(brut["planche"]) == 2 and all((atelier.styles / "planche-test-v0" / "board" / p["fichier"]).exists() for p in brut["planche"])
+    assert [p["objet"] for p in brut["planche"]] == [i["objet"] for i in d["planche"] if i["gardee"]]
 
 
 def test_planche_credits_insuffisants_echec_sans_relance(client, conn, cfg, atelier):

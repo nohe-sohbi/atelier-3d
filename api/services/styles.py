@@ -4,11 +4,16 @@ La table `styles` indexe les fichiers (une ligne par version) ; le yaml reste la
 Un style se crée en brouillon, reçoit une planche de référence (images Meshy, simulées par défaut),
 puis se valide. « Dupliquer en v1 » crée une nouvelle version : un nouveau dossier, l'ancien reste
 lisible parce que des lots peuvent le garder (correction 11 du cahier des charges).
+
+Ordre des écritures : la base d'abord, dans une transaction, puis le fichier ; si le fichier ne s'écrit
+pas, la transaction est annulée et le dossier créé est retiré. Le yaml garde l'état (clé `planche` =
+validé) et les images gardées : une base neuve se reconstruit depuis les dossiers.
 """
 from __future__ import annotations
 
 import copy
 import logging
+import os
 import re
 import shutil
 import sqlite3
@@ -18,13 +23,16 @@ from pathlib import Path
 from typing import Any
 
 from api import chemins, db
+from api.adapters.meshy.base import RefusMeshy
 from api.services import style_yaml, taches
 from api.services.taches import TacheDefinitive
 
 log = logging.getLogger("api.styles")
 
 TYPE_TACHE_PLANCHE = "planche_style"
-NB_IMAGES_PLANCHE = 6
+NB_IMAGES_PLANCHE = 6  # au plus : un style qui connaît moins de types d'objets en dessine moins
+MAX_INSPIRATIONS = 5  # images de référence envoyées à Meshy (limite de l'API)
+EXTENSIONS_IMAGE = (".png", ".jpg", ".jpeg", ".webp")
 _CODE = re.compile(r"^[a-z0-9]+(?:-[a-z0-9]+)*-v(\d+)$")
 _FICHIER = re.compile(r"^[A-Za-z0-9._-]+$")
 ETATS = ("brouillon", "valide")
@@ -110,13 +118,37 @@ def _inserer(conn: sqlite3.Connection, brut: dict, code: str, etat: str, parent_
     return _ligne(conn, sid)
 
 
+def _verifier_nom_libre(conn: sqlite3.Connection, nom: str, version: int, sauf_id: int | None = None) -> None:
+    autre = db.une(conn, "SELECT code FROM styles WHERE nom = ? AND version = ? AND id != ?", (nom, version, sauf_id or 0))
+    if autre:
+        raise ConflitCode(f"un style nommé « {nom} » existe déjà en v{version} ({autre['code']}) : choisis un autre nom")
+
+
+def _cle_tri(fichier: Path) -> tuple[str, int]:
+    """rome-v2 avant rome-v10."""
+    code = fichier.parent.name
+    m = _CODE.match(code)
+    return (code[: -len(f"-v{m.group(1)}")], int(m.group(1))) if m else (code, -1)
+
+
+def _recreer_planche(conn: sqlite3.Connection, r: dict, s: style_yaml.Style) -> None:
+    """Images gardées notées dans le yaml et présentes dans board/ (les crédits dépensés, eux, sont perdus avec la base)."""
+    board = dossier_style(r["code"]) / "board"
+    for p in s.planche_images:
+        if _FICHIER.match(p["fichier"]) and not p["fichier"].startswith(".") and (board / p["fichier"]).is_file():
+            db.inserer(conn, "planche_images", {
+                "style_id": r["id"], "fichier": p["fichier"], "objet_generique": p["objet"], "gardee": 1,
+                "tache_id": None, "credits": 0, "simule": 1 if p["simule"] else 0, "cree_le": db.maintenant()})
+
+
 def importer_dossier(conn: sqlite3.Connection) -> list[str]:
-    """Au démarrage : chaque `style/<code>/style.yaml` absent de la table y entre (livré avec le dépôt)."""
+    """Au démarrage : chaque `style/<code>/style.yaml` absent de la table y entre (livré avec le dépôt, ou
+    venu d'un autre poste). Un style qui ne peut pas entrer est journalisé et ignoré : l'API démarre."""
     importes = []
     racine = chemins.dossier_styles()
     if not racine.is_dir():
         return importes
-    for fichier in sorted(racine.glob("*/style.yaml")):
+    for fichier in sorted(racine.glob("*/style.yaml"), key=_cle_tri):
         code = fichier.parent.name
         if not _CODE.match(code) or par_code(conn, code):
             continue
@@ -128,11 +160,19 @@ def importer_dossier(conn: sqlite3.Connection) -> list[str]:
         if s.nom != code:
             log.warning("style %s ignoré : le champ `style` du yaml vaut %r", code, s.nom)
             continue
-        # Une version livrée avec le dépôt est complète : validée. Sa famille : la v0 du même code de base.
+        # Validé quand le yaml a sa planche (écrite à la validation). Sa famille : la dernière version du même code de base.
         parent = db.une(conn, "SELECT id, racine_id FROM styles WHERE code LIKE ? ORDER BY version DESC LIMIT 1",
                         (base_du_code(code) + "-v%",))
-        _inserer(conn, s.brut, code, "valide", parent_id=parent["id"] if parent else None,
-                 racine_id=parent["racine_id"] if parent else None)
+        try:
+            with db.transaction(conn):
+                ligne = _inserer(conn, s.brut, code, "valide" if "planche" in s.brut else "brouillon",
+                                 parent_id=parent["id"] if parent else None,
+                                 racine_id=parent["racine_id"] if parent else None)
+                _recreer_planche(conn, ligne, s)
+        except (sqlite3.IntegrityError, KeyError) as e:
+            log.warning("style %s ignoré : %s (un autre style porte-t-il déjà le nom « %s » en v%s ?)",
+                        code, e, s.brut.get("nom"), s.brut.get("version"))
+            continue
         importes.append(code)
     return importes
 
@@ -150,10 +190,20 @@ def _usage(conn: sqlite3.Connection, style_id: int) -> dict:
     return {"lots": int(lots), "assets": int(assets)}
 
 
+def objets_a_dessiner(s: style_yaml.Style) -> list[str]:
+    return s.objets_planche[:NB_IMAGES_PLANCHE]
+
+
+def inspirations(code: str) -> list[Path]:
+    dossier = dossier_style(code) / "inspiration"
+    return sorted(p for p in dossier.glob("*") if p.is_file() and p.suffix.lower() in EXTENSIONS_IMAGE)
+
+
 def _resume(conn: sqlite3.Connection, r: dict) -> dict:
     s = charger_style(r["code"])
     return {"id": r["id"], "code": r["code"], "nom": r["nom"], "version": r["version"], "etat": r["etat"],
             "direction": r["direction"], "description": r["description"], "palette": _palette(s),
+            "images_planche": len(objets_a_dessiner(s)),
             "usage": _usage(conn, r["id"]), "cree_le": r["cree_le"], "valide_le": r["valide_le"]}
 
 
@@ -166,7 +216,7 @@ def lister(conn: sqlite3.Connection) -> list[dict]:
         except (style_yaml.StyleInvalide, OSError, ValueError) as e:
             out.append({"id": r["id"], "code": r["code"], "nom": r["nom"], "version": r["version"],
                         "etat": r["etat"], "direction": r["direction"], "description": r["description"],
-                        "palette": [], "usage": _usage(conn, r["id"]), "cree_le": r["cree_le"],
+                        "palette": [], "images_planche": 0, "usage": _usage(conn, r["id"]), "cree_le": r["cree_le"],
                         "valide_le": r["valide_le"], "erreur": f"fichier illisible : {e}"})
     return out
 
@@ -182,8 +232,9 @@ def detail(conn: sqlite3.Connection, style_id: int) -> dict:
     r = _ligne(conn, style_id)
     s = charger_style(r["code"])
     palette = s.palette
+    # usage_assets : aucun asset ne note encore ses matériaux (bibliothèque, étape 9) ; None plutôt qu'un 0 inventé.
     materiaux = [{"nom": nom, "base": m.get("base"), "hex": palette.get(m.get("base"), ""),
-                  "roughness": m.get("roughness"), "metallic": m.get("metallic"), "usage_assets": 0}
+                  "roughness": m.get("roughness"), "metallic": m.get("metallic"), "usage_assets": None}
                  for nom, m in s.materiaux.items()]
     budgets = [{"cle": c, "libelle": s.libelle_categorie(c), "tris": s.budgets_tris.get(c),
                 "textures_px": s.textures_px.get(c)} for c in style_yaml.CATEGORIES]
@@ -199,8 +250,7 @@ def detail(conn: sqlite3.Connection, style_id: int) -> dict:
         "planche": images,
         "credits_planche": int(db.une(conn, "SELECT COALESCE(SUM(credits), 0) AS c FROM planche_images WHERE style_id = ?",
                                       (style_id,))["c"]),
-        "inspirations": [f"/api/fichiers/styles/{r['code']}/inspiration/{p.name}"
-                         for p in sorted((dossier_style(r["code"]) / "inspiration").glob("*")) if p.is_file()],
+        "inspirations": [f"/api/fichiers/styles/{r['code']}/inspiration/{p.name}" for p in inspirations(r["code"])],
         "versions": [{"id": v["id"], "code": v["code"], "version": v["version"], "note": v["note_version"],
                       "date": v["cree_le"], "etat": v["etat"]} for v in versions],
         "lots": [{"id": lot["id"], "nom": lot["nom"]} for lot in lots],
@@ -209,6 +259,22 @@ def detail(conn: sqlite3.Connection, style_id: int) -> dict:
 
 
 # --- création, modification, versions -------------------------------------------
+
+def _cles_palette(palette: dict | None) -> dict[str, str]:
+    return {slug(k).replace("-", "_"): v for k, v in dict(palette or {}).items()}
+
+
+def gabarits_consignes(nom: str, description: str) -> dict[str, str]:
+    """Gabarits des consignes d'image d'un nouveau style, tirés de SA description : ceux du style de
+    référence parlent d'un autre thème."""
+    theme = description.strip().rstrip(".") or nom
+    return {
+        "prop": f"{{objet}}, {theme}, prop de jeu vidéo, formes lisibles, couleurs {{palette}}, fond neutre uni, "
+                "vue trois-quarts, sans texte",
+        "archi": f"{{objet}}, module d'architecture, {theme}, jeu vidéo, proportions nettes, couleurs {{palette}}, "
+                 "fond neutre uni, vue trois-quarts, sans texte",
+    }
+
 
 def _materiaux_depuis_palette(palette: dict[str, str], reference: dict | None) -> dict:
     """Un matériau par couleur de la palette ; quand la référence a un matériau sur la même couleur de base,
@@ -224,6 +290,26 @@ def _materiaux_depuis_palette(palette: dict[str, str], reference: dict | None) -
     return out
 
 
+def _suivre_les_couleurs(ancienne: dict, nouvelle: dict, materiaux: dict) -> dict:
+    """Une couleur renommée à la même place dans la palette : les matériaux qui la prenaient pour base la suivent.
+    Une couleur ajoutée ou retirée ne se devine pas : le validateur dira quel matériau a perdu sa base."""
+    if len(ancienne) != len(nouvelle):
+        return materiaux
+    renommage = {a: n for a, n in zip(ancienne, nouvelle, strict=True) if a != n}
+    return {nom: {**m, "base": renommage.get(m.get("base"), m.get("base"))} for nom, m in materiaux.items()}
+
+
+def _creer_dossier(conn: sqlite3.Connection, code: str, ecrire) -> None:
+    """Base puis disque, dans une transaction : rien ne reste si une étape échoue (le dossier n'existait pas)."""
+    dossier = dossier_style(code)
+    try:
+        with db.transaction(conn):
+            ecrire()
+    except BaseException:
+        shutil.rmtree(dossier, ignore_errors=True)
+        raise
+
+
 def creer(conn: sqlite3.Connection, donnees: dict) -> dict:
     """Nouveau style en brouillon. `donnees` : nom, code?, description, palette {nom: hex}, direction?,
     budgets_depuis (id d'un style de référence) ou budgets {categorie: tris} + texel_density + dimensions_m."""
@@ -236,13 +322,14 @@ def creer(conn: sqlite3.Connection, donnees: dict) -> dict:
     reference = None
     if donnees.get("budgets_depuis") is not None:
         reference = charger_style(_ligne(conn, int(donnees["budgets_depuis"]))["code"]).brut
-    palette = {slug(k).replace("-", "_"): v for k, v in dict(donnees.get("palette") or {}).items()}
+    palette = _cles_palette(donnees.get("palette"))
+    description = str(donnees.get("description", ""))
     brut: dict[str, Any] = {
         "style": code, "nom": nom,
         "theme": str(donnees.get("theme") or (reference or {}).get("theme") or slug(nom)[:3].upper()),
         "version": int(code.rsplit("-v", 1)[1]),
         "direction": str(donnees.get("direction") or (reference or {}).get("direction") or "stylise"),
-        "description": str(donnees.get("description", "")),
+        "description": description,
         "note_version": "Version initiale.",
         "units": "meters", "conventions": {"haut": "+Z", "face_avant": "-Y"},
         "texel_density_px_per_m": donnees.get("texel_density") or (reference or {}).get("texel_density_px_per_m"),
@@ -257,17 +344,21 @@ def creer(conn: sqlite3.Connection, donnees: dict) -> dict:
         "dimensions_m": donnees.get("dimensions_m") or (reference or {}).get("dimensions_m"),
         "objets_planche": (reference or {}).get("objets_planche"),
         "pivot": (reference or {}).get("pivot") or {"defaut": "sol_centre", "armes": "poignee", "outils": "poignee"},
-        "prompts_reference": (reference or {}).get("prompts_reference") or {
-            "prop": "{objet}, " + (str(donnees.get("description", "")).rstrip(".") or "style de jeu vidéo")
-                    + ", prop de jeu vidéo, formes lisibles, couleurs {palette}, fond neutre uni, vue trois-quarts, sans texte",
-        },
+        "prompts_reference": gabarits_consignes(nom, description),
     }
     brut = {k: v for k, v in brut.items() if v is not None}
     if brut.get("dimensions_m") is None:
         raise style_yaml.StyleInvalide("dimensions_m manquant : choisis un style de référence ou saisis les budgets et dimensions")
-    style_yaml.ecrire(brut, chemin_yaml(code))
-    (dossier_style(code) / "board").mkdir(exist_ok=True)
-    return _inserer(conn, brut, code, "brouillon")
+    style_yaml.valider(brut)
+    _verifier_nom_libre(conn, nom, int(brut["version"]))
+    ligne: dict = {}
+
+    def ecrire() -> None:
+        ligne.update(_inserer(conn, brut, code, "brouillon"))
+        style_yaml.ecrire(brut, chemin_yaml(code))
+        (dossier_style(code) / "board").mkdir(exist_ok=True)
+    _creer_dossier(conn, code, ecrire)
+    return ligne
 
 
 CHAMPS_MODIFIABLES = ("nom", "description", "palette", "materiaux", "budgets_tris", "textures_px",
@@ -278,13 +369,21 @@ def modifier(conn: sqlite3.Connection, style_id: int, champs: dict) -> dict:
     r = _ligne(conn, style_id)
     if _usage(conn, style_id)["lots"]:
         raise StyleUtilise("un lot utilise cette version du style : duplique-la en nouvelle version pour la modifier")
-    brut = copy.deepcopy(charger_style(r["code"]).brut)
+    ancien = charger_style(r["code"]).brut
+    brut = copy.deepcopy(ancien)
     for k, v in champs.items():
         if k in CHAMPS_MODIFIABLES and v is not None:
             brut[k] = v
-    style_yaml.ecrire(brut, chemin_yaml(r["code"]))
-    conn.execute("UPDATE styles SET nom = ?, description = ? WHERE id = ?",
-                 (str(brut["nom"]), str(brut.get("description", "")), style_id))
+    if champs.get("palette") is not None:
+        brut["palette"] = _cles_palette(champs["palette"])
+        if champs.get("materiaux") is None:
+            brut["materiaux"] = _suivre_les_couleurs(ancien["palette"], brut["palette"], brut["materiaux"])
+    style_yaml.valider(brut)
+    _verifier_nom_libre(conn, str(brut["nom"]), int(brut["version"]), sauf_id=style_id)
+    with db.transaction(conn):
+        conn.execute("UPDATE styles SET nom = ?, description = ? WHERE id = ?",
+                     (str(brut["nom"]), str(brut.get("description", "")), style_id))
+        style_yaml.ecrire(brut, chemin_yaml(r["code"]))
     return detail(conn, style_id)
 
 
@@ -297,31 +396,38 @@ def dupliquer(conn: sqlite3.Connection, style_id: int, note: str = "") -> dict:
     code = f"{base}-v{version}"
     if par_code(conn, code) or dossier_style(code).exists():
         raise ConflitCode(f"le code {code} existe déjà")
-    shutil.copytree(dossier_style(r["code"]), dossier_style(code))
     brut = copy.deepcopy(charger_style(r["code"]).brut)
     brut.update({"style": code, "version": version, "note_version": note or f"Version {version}, copiée de la v{r['version']}."})
-    style_yaml.ecrire(brut, chemin_yaml(code))
-    nouveau = _inserer(conn, brut, code, r["etat"], parent_id=style_id, racine_id=r["racine_id"])
-    # La planche suit la copie : mêmes fichiers, même état « gardée ».
-    for i in db.toutes(conn, "SELECT * FROM planche_images WHERE style_id = ? AND remplacee = 0 ORDER BY id", (style_id,)):
-        db.inserer(conn, "planche_images", {k: i[k] for k in ("fichier", "objet_generique", "gardee", "credits", "simule", "cree_le")} | {"style_id": nouveau["id"]})
+    _verifier_nom_libre(conn, str(brut["nom"]), version)
+    nouveau: dict = {}
+
+    def ecrire() -> None:
+        nouveau.update(_inserer(conn, brut, code, r["etat"], parent_id=style_id, racine_id=r["racine_id"]))
+        shutil.copytree(dossier_style(r["code"]), dossier_style(code))
+        style_yaml.ecrire(brut, chemin_yaml(code))
+        # La planche suit la copie : mêmes fichiers, même état « gardée ». Ses crédits restent comptés sur l'original.
+        for i in db.toutes(conn, "SELECT * FROM planche_images WHERE style_id = ? AND remplacee = 0 ORDER BY id", (style_id,)):
+            db.inserer(conn, "planche_images", {k: i[k] for k in ("fichier", "objet_generique", "gardee", "simule", "cree_le")}
+                       | {"style_id": nouveau["id"], "credits": 0})
+    _creer_dossier(conn, code, ecrire)
     return detail(conn, nouveau["id"])
 
 
 # --- planche de référence ---------------------------------------------------------
 
-def demander_planche(conn: sqlite3.Connection, cfg: dict, style_id: int, image_id: int | None = None) -> int:
-    """Crée la tâche Meshy (file meshy) : 6 images, ou 1 pour « Refaire » une image."""
+def demander_planche(conn: sqlite3.Connection, cfg: dict, style_id: int, image_id: int | None = None) -> tuple[int, int]:
+    """Crée la tâche Meshy (file meshy) : une image par objet à dessiner, ou 1 pour « Refaire » une image.
+    Renvoie (id de la tâche, nombre d'images demandées)."""
     r = _ligne(conn, style_id)
     params: dict[str, Any] = {"style_id": style_id, "code": r["code"]}
     if image_id is not None:
-        i = db.une(conn, "SELECT * FROM planche_images WHERE id = ? AND style_id = ?", (image_id, style_id))
+        i = db.une(conn, "SELECT * FROM planche_images WHERE id = ? AND style_id = ? AND remplacee = 0", (image_id, style_id))
         if i is None:
             raise StyleIntrouvable(f"image {image_id} introuvable")
-        params.update({"image_id": image_id, "n": 1, "objets": [i["objet_generique"]]})
+        params.update({"image_id": image_id, "objets": [i["objet_generique"]]})
     else:
-        params["n"] = NB_IMAGES_PLANCHE
-    return taches.creer_tache(conn, TYPE_TACHE_PLANCHE, "meshy", params, cfg=cfg)
+        params["objets"] = objets_a_dessiner(charger_style(r["code"]))
+    return taches.creer_tache(conn, TYPE_TACHE_PLANCHE, "meshy", params, cfg=cfg), len(params["objets"])
 
 
 def prompt_planche(s: style_yaml.Style, objet: str) -> str:
@@ -329,79 +435,140 @@ def prompt_planche(s: style_yaml.Style, objet: str) -> str:
     return gabarit.replace("{objet}", objet.replace("_", " ")).replace("{palette}", ", ".join(s.palette))
 
 
-def executer_planche(conn: sqlite3.Connection, meshy, params: dict, progression=None, attente_s: float = 0.5) -> dict:
-    """Corps de la tâche `planche_style` (worker) : génère, télécharge, range dans board/, consigne en base."""
+def _pluriel(n: int, singulier: str, pluriel: str) -> str:
+    return f"{n} {pluriel if n > 1 else singulier}"
+
+
+def _erreur_meshy(etat: dict) -> str:
+    e = etat.get("task_error")
+    if isinstance(e, dict):
+        return str(e.get("message") or e)
+    return str(e or etat.get("status"))
+
+
+def executer_planche(conn: sqlite3.Connection, meshy, params: dict, tache_id: int | None = None, progression=None,
+                     arret=None, attente_s: float = 0.5, max_lectures: int = 600) -> dict:
+    """Corps de la tâche `planche_style` (worker) : une tâche Meshy par objet (Meshy rend une image par tâche),
+    guidée par les images d'inspiration du style ; puis rangement dans board/ et en base.
+
+    Rien n'est payé deux fois : chaque id Meshy lancé est noté dans la tâche (taches.noter_reprise) ; une reprise
+    (arrêt du worker, coupure, relance) relit ceux qui existent et ne lance que les manquants. Le rangement remplace
+    les lignes de cette tâche dans une seule transaction : le refaire ne double rien.
+    """
     r = _ligne(conn, int(params["style_id"]))
     s = charger_style(r["code"])
-    n = int(params.get("n", NB_IMAGES_PLANCHE))
-    objets = list(params.get("objets") or s.objets_planche)[:n]
-    if len(objets) < n:
-        objets += [f"objet-{i + 1}" for i in range(len(objets), n)]
-    prompt = prompt_planche(s, objets[0] if n == 1 else "objets génériques")
-    try:
-        tid = meshy.image_vers_image(prompt, None, n=n)
-    except RuntimeError as e:
-        if "insuffisant" in str(e):
-            raise TacheDefinitive(f"crédits Meshy insuffisants pour {n} image(s) : {e}") from e
-        raise
-    if progression:
-        progression(10, "images demandées à Meshy")
-    for _ in range(600):
-        etat = meshy.etat_tache(tid)
-        if etat["status"] == "SUCCEEDED":
-            break
-        if etat["status"] == "FAILED":
-            raise RuntimeError(f"Meshy a échoué : {etat.get('task_error')}")
+    objets = [str(o) for o in (params.get("objets") or objets_a_dessiner(s))]
+    references = inspirations(r["code"])[:MAX_INSPIRATIONS]
+    simule = 1 if getattr(meshy, "mode", "") == "simule" else 0
+    service = "Meshy simulé" if simule else "Meshy"
+    reprise = taches.lire_reprise(conn, tache_id) if tache_id is not None else {}
+    lances = {int(k): str(v) for k, v in (reprise.get("meshy") or {}).items() if int(k) < len(objets)}
+
+    def noter() -> None:
+        if tache_id is not None:
+            taches.noter_reprise(conn, tache_id, {"meshy": {str(k): v for k, v in sorted(lances.items())}})
+
+    def avancer(pct: float, texte: str) -> None:
         if progression:
-            progression(10 + 0.8 * float(etat.get("progress", 0)), f"Meshy : {etat.get('progress', 0)} %")
+            progression(pct, f"{service} : {texte}")
+
+    for i, objet in enumerate(objets):
+        if i in lances:
+            continue
+        try:
+            lances[i] = meshy.image_vers_image(prompt_planche(s, objet), references or None)
+        except RefusMeshy as e:
+            raise TacheDefinitive(f"{e} : planche impossible ({_pluriel(len(objets), 'image', 'images')})") from e
+        noter()
+    avancer(10, _pluriel(len(objets), "image demandée", "images demandées"))
+
+    etats: dict[int, dict] = {}
+    for _ in range(max_lectures):
+        if arret is not None and arret():
+            raise InterruptedError(f"arrêt du worker pendant l'attente de {service}")
+        for i, mid in lances.items():
+            if etats.get(i, {}).get("status") != "SUCCEEDED":
+                etats[i] = meshy.etat_tache(mid)
+        echecs = [i for i, e in sorted(etats.items()) if e.get("status") in ("FAILED", "CANCELED")]
+        if echecs:
+            message = _erreur_meshy(etats[echecs[0]])
+            for i in echecs:  # une relance en redemandera une ; les images réussies sont gardées
+                del lances[i]
+            noter()
+            raise RuntimeError(f"{service} a échoué sur « {objets[echecs[0]]} » : {message}")
+        finies = sum(1 for e in etats.values() if e.get("status") == "SUCCEEDED")
+        if finies == len(objets):
+            break
+        pct = sum(float(e.get("progress") or 0) for e in etats.values()) / len(objets)
+        avancer(10 + 0.8 * pct, f"{finies} sur {_pluriel(len(objets), 'image', 'images')} · {round(pct)} %")
         time.sleep(attente_s)
     else:
-        raise RuntimeError("Meshy ne finit pas (délai dépassé)")
+        raise RuntimeError(f"{service} ne finit pas (délai dépassé)")
+
     board = dossier_style(r["code"]) / "board"
-    tmp = board / f".tmp-{tid}"
-    tmp.mkdir(parents=True, exist_ok=True)
-    meshy.telecharger(tid, tmp)
-    fichiers = sorted(p for p in tmp.iterdir() if p.suffix.lower() in (".png", ".jpg", ".jpeg", ".webp"))
-    credits_par_image = int(etat.get("credits", 0)) // max(1, n) if etat.get("credits") else 0
-    simule = 1 if getattr(meshy, "mode", "") == "simule" else 0
-    crees = []
-    for i, src in enumerate(fichiers[:n]):
-        objet = objets[i] if i < len(objets) else f"objet-{i + 1}"
-        nom = f"{slug(objet)}-{tid[-8:]}{src.suffix.lower()}"
-        shutil.move(str(src), str(board / nom))
-        crees.append(db.inserer(conn, "planche_images", {
-            "style_id": r["id"], "fichier": nom, "objet_generique": objet, "gardee": 0,
-            "tache_id": None, "credits": credits_par_image, "simule": simule, "cree_le": db.maintenant()}))
+    tmp = board / f".tmp-{tache_id if tache_id is not None else 'direct'}"
     shutil.rmtree(tmp, ignore_errors=True)
-    if params.get("image_id") is not None and crees:
-        # « Refaire » : l'ancienne image est remplacée (fichier effacé) ; sa ligne reste pour compter ses crédits.
-        ancienne = db.une(conn, "SELECT fichier FROM planche_images WHERE id = ?", (int(params["image_id"]),))
-        if ancienne:
-            (board / ancienne["fichier"]).unlink(missing_ok=True)
-            conn.execute("UPDATE planche_images SET remplacee = 1, gardee = 0 WHERE id = ?", (int(params["image_id"]),))
-    if progression:
-        progression(100, "planche rangée")
-    return {"images": crees, "simule": bool(simule), "credits": credits_par_image * len(crees)}
+    rangees: list[tuple[str, str, int]] = []
+    ancienne = None
+    try:
+        for i, objet in enumerate(objets):
+            sous = tmp / str(i)
+            meshy.telecharger(lances[i], sous)
+            fichiers = sorted(p for p in sous.iterdir() if p.suffix.lower() in EXTENSIONS_IMAGE)
+            if not fichiers:
+                raise RuntimeError(f"{service} n'a rendu aucune image pour « {objet} »")
+            nom = f"{slug(objet)}-{lances[i][-8:]}{fichiers[0].suffix.lower()}"
+            os.replace(fichiers[0], board / nom)  # même nom à la reprise : remplacé
+            rangees.append((objet, nom, int(etats[i].get("consumed_credits") or meshy.credits_image)))
+        with db.transaction(conn):
+            if tache_id is not None:
+                conn.execute("DELETE FROM planche_images WHERE tache_id = ?", (tache_id,))
+            crees = [db.inserer(conn, "planche_images", {
+                "style_id": r["id"], "fichier": nom, "objet_generique": objet, "gardee": 0, "tache_id": tache_id,
+                "credits": credits, "simule": simule, "cree_le": db.maintenant()}) for objet, nom, credits in rangees]
+            if params.get("image_id") is not None:
+                # « Refaire » : l'ancienne image est remplacée ; sa ligne reste pour compter ses crédits.
+                ancienne = db.une(conn, "SELECT fichier FROM planche_images WHERE id = ? AND style_id = ?",
+                                  (int(params["image_id"]), r["id"]))
+                conn.execute("UPDATE planche_images SET remplacee = 1, gardee = 0 WHERE id = ?", (int(params["image_id"]),))
+            if r["etat"] == "valide":
+                _ecrire_planche_yaml(conn, r)
+    finally:
+        shutil.rmtree(tmp, ignore_errors=True)
+    if ancienne and ancienne["fichier"] not in {nom for _, nom, _ in rangees}:
+        (board / ancienne["fichier"]).unlink(missing_ok=True)
+    avancer(100, "planche rangée")
+    return {"images": crees, "simule": bool(simule), "credits": sum(c for _, _, c in rangees)}
+
+
+def _ecrire_planche_yaml(conn: sqlite3.Connection, r: dict) -> None:
+    """Le yaml note les images gardées (fichier, objet, simulé) : une base neuve les retrouve."""
+    gardees = db.toutes(conn, """SELECT fichier, objet_generique, simule FROM planche_images
+                                 WHERE style_id = ? AND gardee = 1 AND remplacee = 0 ORDER BY id""", (r["id"],))
+    brut = copy.deepcopy(charger_style(r["code"]).brut)
+    brut["planche"] = [{"fichier": g["fichier"], "objet": g["objet_generique"], "simule": bool(g["simule"])} for g in gardees]
+    style_yaml.ecrire(brut, chemin_yaml(r["code"]))
 
 
 def garder_image(conn: sqlite3.Connection, style_id: int, image_id: int, gardee: bool) -> dict:
-    _ligne(conn, style_id)
-    cur = conn.execute("UPDATE planche_images SET gardee = ? WHERE id = ? AND style_id = ?",
-                       (1 if gardee else 0, image_id, style_id))
-    if cur.rowcount != 1:
-        raise StyleIntrouvable(f"image {image_id} introuvable")
+    r = _ligne(conn, style_id)
+    with db.transaction(conn):
+        cur = conn.execute("UPDATE planche_images SET gardee = ? WHERE id = ? AND style_id = ? AND remplacee = 0",
+                           (1 if gardee else 0, image_id, style_id))
+        if cur.rowcount != 1:
+            raise StyleIntrouvable(f"image {image_id} introuvable")
+        if r["etat"] == "valide":
+            _ecrire_planche_yaml(conn, r)
     return detail(conn, style_id)
 
 
 def valider(conn: sqlite3.Connection, style_id: int) -> dict:
     r = _ligne(conn, style_id)
-    gardees = db.toutes(conn, "SELECT fichier FROM planche_images WHERE style_id = ? AND gardee = 1 ORDER BY id", (style_id,))
-    if not gardees:
+    if not db.une(conn, "SELECT 1 FROM planche_images WHERE style_id = ? AND gardee = 1 AND remplacee = 0", (style_id,)):
         raise AucuneImageGardee("garde au moins une image de la planche avant de valider le style")
-    brut = copy.deepcopy(charger_style(r["code"]).brut)
-    brut["planche"] = [g["fichier"] for g in gardees]
-    style_yaml.ecrire(brut, chemin_yaml(r["code"]))
-    conn.execute("UPDATE styles SET etat = 'valide', valide_le = ? WHERE id = ?", (db.maintenant(), style_id))
+    with db.transaction(conn):
+        conn.execute("UPDATE styles SET etat = 'valide', valide_le = ? WHERE id = ?", (db.maintenant(), style_id))
+        _ecrire_planche_yaml(conn, r)
     return detail(conn, style_id)
 
 

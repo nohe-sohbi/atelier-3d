@@ -1,6 +1,7 @@
 """dev.py : la config du premier lancement est un YAML valide, même avec un chemin Windows ; ports déjà pris."""
 import importlib
 import socket
+import threading
 
 import yaml
 
@@ -63,3 +64,18 @@ def test_port_web_deja_pris(atelier, capsys):
         port = occupe.getsockname()[1]
         assert dev.main(["--port-web", str(port), "--sans-navigateur"]) == 2
     assert f"le port {port} de l'interface est déjà pris" in capsys.readouterr().out
+
+
+def test_le_worker_se_relance_quand_le_code_change(tmp_path):
+    dev = importlib.import_module("dev")
+    changement, arret = threading.Event(), threading.Event()
+    t = threading.Thread(target=dev.surveiller_code, args=(changement, arret, (tmp_path,)), daemon=True)
+    t.start()
+    try:
+        (tmp_path / "notes.txt").write_text("rien", encoding="utf-8")
+        assert not changement.wait(2.5)  # un fichier qui n'est pas du Python : rien
+        (tmp_path / "handler.py").write_text("TYPE = 'x'\n", encoding="utf-8")
+        assert changement.wait(10)
+    finally:
+        arret.set()
+        t.join(5)

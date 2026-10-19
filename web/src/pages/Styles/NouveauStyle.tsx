@@ -1,10 +1,10 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { api, messageErreur } from "../../api/client";
 import { signalerChangement } from "../../api/rafraichissement";
-import { attendreTache } from "../../api/taches";
-import type { Couleur, ImagePlanche, StyleDetail, StyleEnvoye, StyleResume, Tache, TacheLancee } from "../../api/types";
+import { ATTENTE_WORKER_MS, AttenteAbandonnee, attendreTache } from "../../api/taches";
+import type { Couleur, EstimationPlanche, ImagePlanche, StyleDetail, StyleEnvoye, StyleResume, Tache, TacheLancee } from "../../api/types";
 import { Fenetre } from "../../components/Fenetre";
-import { CREDITS_PAR_IMAGE, NB_IMAGES, lireDimensions, pluriel, slug } from "./commun";
+import { coutPlanche, lireDimensions, pluriel, slug } from "./commun";
 
 const CATEGORIES: Array<[string, string]> = [
   ["petit_prop", "Petit objet"],
@@ -20,6 +20,8 @@ interface Props {
   styles: StyleResume[];
   /** Un style déjà créé dont on complète la planche : la fenêtre s'ouvre à l'étape 2. */
   styleExistant: StyleDetail | null;
+  /** Tarif de l'adaptateur Meshy (GET /api/styles/estimation-planche) ; null s'il n'a pas pu être lu. */
+  estimation: EstimationPlanche | null;
   onTermine: (styleId: number) => void;
 }
 
@@ -28,7 +30,7 @@ interface Ligne {
   hex: string;
 }
 
-export function NouveauStyle({ ouverte, onFermer, styles, styleExistant, onTermine }: Props) {
+export function NouveauStyle({ ouverte, onFermer, styles, styleExistant, estimation, onTermine }: Props) {
   const [etape, setEtape] = useState<1 | 2>(1);
   const [nom, setNom] = useState("");
   const [code, setCode] = useState("");
@@ -38,14 +40,23 @@ export function NouveauStyle({ ouverte, onFermer, styles, styleExistant, onTermi
   const [palette, setPalette] = useState<Ligne[]>([]);
   const [paletteTouchee, setPaletteTouchee] = useState(false);
   const [budgets, setBudgets] = useState<Record<string, string>>({});
-  const [texel, setTexel] = useState("512");
+  const [texel, setTexel] = useState("");
   const [dimensions, setDimensions] = useState("");
   const [fichiers, setFichiers] = useState<File[]>([]);
   const [cree, setCree] = useState<StyleDetail | null>(null);
   const [tache, setTache] = useState<Tache | null>(null);
+  const [enAttenteMs, setEnAttenteMs] = useState(0);
   const [occupe, setOccupe] = useState(false);
   const [erreur, setErreur] = useState<string | null>(null);
   const refFichiers = useRef<HTMLInputElement>(null);
+  const attente = useRef<AbortController | null>(null);
+
+  // Fenêtre fermée ou écran quitté : on cesse d'interroger la tâche (elle continue dans le worker).
+  useEffect(() => {
+    if (ouverte) return;
+    attente.current?.abort();
+  }, [ouverte]);
+  useEffect(() => () => attente.current?.abort(), []);
 
   // Ouverture : repart à zéro, ou à l'étape 2 pour un style existant.
   useEffect(() => {
@@ -69,7 +80,7 @@ export function NouveauStyle({ ouverte, onFermer, styles, styleExistant, onTermi
     setPalette(premier ? premier.palette.map(copie) : []);
     setPaletteTouchee(false);
     setBudgets({});
-    setTexel("512");
+    setTexel("");
     setDimensions("");
     setFichiers([]);
   }, [ouverte, styleExistant, styles]);
@@ -85,6 +96,11 @@ export function NouveauStyle({ ouverte, onFermer, styles, styleExistant, onTermi
   const codeEffectif = codeModifie ? code : codeAuto;
   const manuel = refId === null;
   const credits = cree?.credits_planche ?? 0;
+  const maxImages = estimation?.images_max ?? 6;
+  const ref = styles.find((s) => s.id === refId);
+  // Une image par objet à dessiner : les types saisis à la main, ou ceux du style de référence.
+  const imagesAvant = manuel ? Math.min(maxImages, Object.keys(lireDimensions(dimensions)).length) : (ref?.images_planche ?? 0);
+  const imagesPlanche = cree?.images_planche ?? imagesAvant;
   const gardees = cree?.planche.filter((i) => i.gardee).length ?? 0;
   const titre = styleExistant ? `Planche de style · ${styleExistant.nom}` : "Nouveau style";
 
@@ -123,17 +139,31 @@ export function NouveauStyle({ ouverte, onFermer, styles, styleExistant, onTermi
   const lancer = async (styleId: number, chemin: string) => {
     setErreur(null);
     setOccupe(true);
+    attente.current?.abort();
+    const controle = new AbortController();
+    attente.current = controle;
     try {
       const { tache_id } = await api<TacheLancee>(chemin, { method: "POST" });
-      const t = await attendreTache(tache_id, setTache);
+      const t = await attendreTache(
+        tache_id,
+        (lue, ms) => {
+          setTache(lue);
+          setEnAttenteMs(ms);
+        },
+        { signal: controle.signal },
+      );
       if (t.etat !== "terminee") setErreur(t.erreur ?? `tâche ${t.etat}`);
-      setCree(await api<StyleDetail>(`/styles/${styleId}`));
+      setCree(await api<StyleDetail>(`/styles/${styleId}`, { signal: controle.signal }));
       signalerChangement();
     } catch (e) {
+      if (e instanceof AttenteAbandonnee || controle.signal.aborted) return;
       setErreur(messageErreur(e));
     } finally {
-      setTache(null);
-      setOccupe(false);
+      if (!controle.signal.aborted) {
+        setTache(null);
+        setEnAttenteMs(0);
+        setOccupe(false);
+      }
     }
   };
 
@@ -257,7 +287,8 @@ export function NouveauStyle({ ouverte, onFermer, styles, styleExistant, onTermi
                     className="fenetre-style__ajout"
                     onClick={() => {
                       setPaletteTouchee(true);
-                      setPalette([...palette, { nom: "", hex: palette[palette.length - 1]?.hex ?? "#888888" }]);
+                      // Une palette vide : la valeur native d'un champ couleur (noir), à choisir ensuite.
+                      setPalette([...palette, { nom: "", hex: palette[palette.length - 1]?.hex ?? "#000000" }]);
                     }}
                   >
                     Ajouter une couleur
@@ -311,7 +342,9 @@ export function NouveauStyle({ ouverte, onFermer, styles, styleExistant, onTermi
                 <div className="fenetre-style__champ">
                   <label htmlFor="ns-dimensions">Dimensions réelles par type</label>
                   <textarea id="ns-dimensions" rows={3} placeholder={"caisse 0.6 0.4 0.4\nlampe 0.12 0.08 0.06"} value={dimensions} onChange={(e) => setDimensions(e.target.value)} />
-                  <span className="fenetre-style__aide">Une ligne par type : nom, largeur, profondeur, hauteur en mètres. Les 6 premiers servent à la planche.</span>
+                  <span className="fenetre-style__aide">
+                    Une ligne par type : nom, largeur, profondeur, hauteur en mètres. Les {maxImages} premiers servent à la planche, une image chacun.
+                  </span>
                 </div>
               </div>
             ) : null}
@@ -321,8 +354,8 @@ export function NouveauStyle({ ouverte, onFermer, styles, styleExistant, onTermi
               Annuler
             </button>
             <span className="fenetre-style__espace" />
-            <button type="button" className="bouton bouton--primaire" onClick={soumettre} disabled={occupe || !nom.trim()}>
-              Générer la première planche · {NB_IMAGES} images, {NB_IMAGES * CREDITS_PAR_IMAGE} crédits
+            <button type="button" className="bouton bouton--primaire" onClick={soumettre} disabled={occupe || !nom.trim() || imagesAvant === 0}>
+              Générer la première planche · {coutPlanche(imagesAvant, estimation)}
             </button>
           </div>
         </>
@@ -330,20 +363,23 @@ export function NouveauStyle({ ouverte, onFermer, styles, styleExistant, onTermi
         <>
           <div className="fenetre-style__corps">
             <p className="secondaire" style={{ fontSize: "13.5px", lineHeight: 1.5 }}>
-              Six objets génériques dessinés dans ce style. Garde ceux qui te ressemblent ; « Refaire » relance une image à {CREDITS_PAR_IMAGE} crédits. Les images
-              gardées servent de référence de style à chaque lot.
+              {pluriel(imagesPlanche, "objet générique dessiné", "objets génériques dessinés")} dans ce style. Garde ceux qui te ressemblent ; « Refaire » relance
+              {estimation ? ` une image à ${pluriel(estimation.credits_par_image, "crédit", "crédits")}` : " une image"}. Les images gardées servent de référence
+              de style à chaque lot.
             </p>
             {tache ? (
               <p role="status" className="fenetre-style__progression">
-                Meshy{cree?.planche.some((i) => i.simule) || tache.resultat?.progression?.texte ? "" : ""} : {tache.resultat?.progression?.texte || tache.etat}
-                {tache.resultat?.progression ? ` · ${Math.round(tache.resultat.progression.pct)} %` : ""}
+                {tache.resultat?.progression?.texte || ETATS_TACHE[tache.etat]}
+                {enAttenteMs >= ATTENTE_WORKER_MS
+                  ? ` · en attente depuis ${Math.round(enAttenteMs / 1000)} s : le worker la prendra dès qu'il tourne (python dev.py le lance avec l'API).`
+                  : ""}
               </p>
             ) : null}
             {cree && cree.planche.length === 0 && !tache ? (
               <div className="fenetre-style__progression">
                 Aucune image pour l'instant.{" "}
                 <button type="button" className="bouton bouton--petit" onClick={() => lancer(cree.id, `/styles/${cree.id}/planche`)} disabled={occupe}>
-                  Générer la planche · {NB_IMAGES} images, {NB_IMAGES * CREDITS_PAR_IMAGE} crédits
+                  Générer la planche · {coutPlanche(imagesPlanche, estimation)}
                 </button>
               </div>
             ) : null}
@@ -386,6 +422,14 @@ export function NouveauStyle({ ouverte, onFermer, styles, styleExistant, onTermi
     </Fenetre>
   );
 }
+
+const ETATS_TACHE: Record<Tache["etat"], string> = {
+  en_attente: "En attente",
+  en_cours: "En cours",
+  terminee: "Terminée",
+  echouee: "Échouée",
+  annulee: "Annulée",
+};
 
 function copie(c: Couleur): Ligne {
   return { nom: c.nom, hex: c.hex };

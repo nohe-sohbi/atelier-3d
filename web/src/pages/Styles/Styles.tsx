@@ -1,11 +1,11 @@
 import { useCallback, useEffect, useState } from "react";
 import { useSearchParams } from "react-router-dom";
 import { api, messageErreur } from "../../api/client";
-import type { StyleDetail, StyleResume, Styles as StylesApi } from "../../api/types";
+import type { EstimationPlanche, StyleDetail, StyleResume, Styles as StylesApi } from "../../api/types";
 import { Chargement, Erreur, EtatVide } from "../../components/Etats";
 import { ModifierStyle } from "./ModifierStyle";
 import { NouveauStyle } from "./NouveauStyle";
-import { dateCourte, formatNombre, libelleEtat, usageTexte } from "./commun";
+import { coutPlanche, dateCourte, formatNombre, libelleEtat, usageTexte } from "./commun";
 import "./Styles.css";
 
 type Fenetre = "aucune" | "nouveau" | "planche" | "modifier";
@@ -19,6 +19,15 @@ export function Styles() {
   const [erreurDetail, setErreurDetail] = useState<string | null>(null);
   const [fenetre, setFenetre] = useState<Fenetre>("aucune");
   const [message, setMessage] = useState<string | null>(null);
+  const [codeInconnu, setCodeInconnu] = useState<string | null>(null);
+  const [estimation, setEstimation] = useState<EstimationPlanche | null>(null);
+
+  // Tarif de l'adaptateur Meshy : sans lui, les boutons donnent le nombre d'images sans chiffrer.
+  useEffect(() => {
+    api<EstimationPlanche>("/styles/estimation-planche")
+      .then(setEstimation)
+      .catch(() => setEstimation(null));
+  }, []);
 
   const chargerListe = useCallback(async (): Promise<StyleResume[] | null> => {
     try {
@@ -51,6 +60,7 @@ export function Styles() {
     if (!liste) return;
     const code = params.get("style");
     const parCode = code ? liste.find((s) => s.code === code) : undefined;
+    setCodeInconnu(code && !parCode ? code : null);
     const courant = liste.find((s) => s.id === selection);
     const cible = parCode ?? courant ?? liste[0] ?? null;
     const id = cible?.id ?? null;
@@ -121,6 +131,11 @@ export function Styles() {
       {message ? (
         <p role="status" className="secondaire">
           {message}
+        </p>
+      ) : null}
+      {codeInconnu && liste.length > 0 ? (
+        <p role="status" className="secondaire">
+          Aucun style ne porte le code « {codeInconnu} » : voici {liste.find((s) => s.id === selection)?.nom ?? "le premier de la liste"}.
         </p>
       ) : null}
       {liste.length === 0 ? (
@@ -195,7 +210,7 @@ export function Styles() {
                       texte="La planche est faite d'images générées dans ce style (Meshy, simulé par défaut) que tu gardes ou refais."
                       enfants={
                         <button type="button" className="bouton bouton--petit" onClick={() => setFenetre("planche")}>
-                          Générer la planche · 6 images, 18 crédits
+                          Générer la planche · {coutPlanche(detail.images_planche, estimation)}
                         </button>
                       }
                     />
@@ -244,9 +259,11 @@ export function Styles() {
                         <li key={m.nom} className="styles__ligne">
                           <span aria-hidden="true" className="styles__puce" style={{ background: m.hex }} />
                           <span className="styles__ligne-nom">{m.nom.replace(/_/g, " ")}</span>
-                          <span className="styles__ligne-info">
-                            {m.usage_assets === 0 ? "aucun asset code" : m.usage_assets > 1 ? `${formatNombre.format(m.usage_assets)} assets` : "1 asset"}
-                          </span>
+                          {m.usage_assets === null ? null : (
+                            <span className="styles__ligne-info">
+                              {m.usage_assets === 0 ? "aucun asset code" : m.usage_assets > 1 ? `${formatNombre.format(m.usage_assets)} assets` : "1 asset"}
+                            </span>
+                          )}
                         </li>
                       ))}
                     </ul>
@@ -305,6 +322,7 @@ export function Styles() {
         ouverte={fenetre === "nouveau" || fenetre === "planche"}
         styles={liste}
         styleExistant={fenetre === "planche" ? detail : null}
+        estimation={estimation}
         onFermer={() => {
           setFenetre("aucune");
           rafraichir();

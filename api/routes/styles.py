@@ -6,6 +6,7 @@ from typing import Annotated, Literal
 from fastapi import APIRouter, File, HTTPException, UploadFile
 from pydantic import BaseModel, ConfigDict, Field
 
+from api.adapters import get_meshy
 from api.dependances import Config, Db
 from api.services import style_yaml, styles
 
@@ -69,6 +70,14 @@ def lister(conn: Db) -> dict:
     return {"styles": styles.lister(conn)}
 
 
+@router.get("/estimation-planche")
+def estimation_planche(cfg: Config) -> dict:
+    """Tarif de l'adaptateur Meshy (réel ou simulé) : l'interface n'affiche que ces chiffres."""
+    meshy = get_meshy(cfg)
+    return {"credits_par_image": meshy.credits_image, "images_max": styles.NB_IMAGES_PLANCHE,
+            "simule": meshy.mode == "simule"}
+
+
 @router.get("/{style_id}")
 def lire(style_id: int, conn: Db) -> dict:
     return _erreurs(styles.detail, conn, style_id)
@@ -92,14 +101,14 @@ def dupliquer(style_id: int, corps: VersionIn, conn: Db) -> dict:
 
 @router.post("/{style_id}/planche", status_code=202)
 def planche(style_id: int, conn: Db, cfg: Config) -> dict:
-    tache_id = _erreurs(styles.demander_planche, conn, cfg, style_id)
-    return {"tache_id": tache_id, "credits_estimes": styles.NB_IMAGES_PLANCHE * 3}
+    tache_id, n = _erreurs(styles.demander_planche, conn, cfg, style_id)
+    return {"tache_id": tache_id, "credits_estimes": n * get_meshy(cfg).credits_image}
 
 
 @router.post("/{style_id}/planche/{image_id}/refaire", status_code=202)
 def refaire(style_id: int, image_id: int, conn: Db, cfg: Config) -> dict:
-    tache_id = _erreurs(styles.demander_planche, conn, cfg, style_id, image_id)
-    return {"tache_id": tache_id, "credits_estimes": 3}
+    tache_id, n = _erreurs(styles.demander_planche, conn, cfg, style_id, image_id)
+    return {"tache_id": tache_id, "credits_estimes": n * get_meshy(cfg).credits_image}
 
 
 @router.put("/{style_id}/planche/{image_id}")

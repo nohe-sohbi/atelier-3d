@@ -227,6 +227,7 @@
             "hex": "#A39F93"
           }
         ],
+        "images_planche": 6,
         "usage": {
           "lots": 0,
           "assets": 0
@@ -286,6 +287,7 @@
         "hex": "#A39F93"
       }
     ],
+    "images_planche": 6,
     "usage": {
       "lots": 0,
       "assets": 0
@@ -303,7 +305,7 @@
         "hex": "#8A5F3A",
         "roughness": 0.75,
         "metallic": 0.0,
-        "usage_assets": 0
+        "usage_assets": null
       },
       {
         "nom": "cuir",
@@ -311,7 +313,7 @@
         "hex": "#6E4A2B",
         "roughness": 0.6,
         "metallic": 0.0,
-        "usage_assets": 0
+        "usage_assets": null
       },
       {
         "nom": "bronze",
@@ -319,7 +321,7 @@
         "hex": "#8C6A2F",
         "roughness": 0.35,
         "metallic": 1.0,
-        "usage_assets": 0
+        "usage_assets": null
       },
       {
         "nom": "fer",
@@ -327,7 +329,7 @@
         "hex": "#5B5E63",
         "roughness": 0.45,
         "metallic": 1.0,
-        "usage_assets": 0
+        "usage_assets": null
       },
       {
         "nom": "marbre",
@@ -335,7 +337,7 @@
         "hex": "#E8E3D8",
         "roughness": 0.3,
         "metallic": 0.0,
-        "usage_assets": 0
+        "usage_assets": null
       },
       {
         "nom": "terre_cuite",
@@ -343,7 +345,7 @@
         "hex": "#B5582E",
         "roughness": 0.8,
         "metallic": 0.0,
-        "usage_assets": 0
+        "usage_assets": null
       },
       {
         "nom": "tissu",
@@ -351,7 +353,7 @@
         "hex": "#D9CBA8",
         "roughness": 0.9,
         "metallic": 0.0,
-        "usage_assets": 0
+        "usage_assets": null
       },
       {
         "nom": "pierre",
@@ -359,7 +361,7 @@
         "hex": "#A39F93",
         "roughness": 0.85,
         "metallic": 0.0,
-        "usage_assets": 0
+        "usage_assets": null
       },
       {
         "nom": "pourpre",
@@ -367,7 +369,7 @@
         "hex": "#6B2D4C",
         "roughness": 0.85,
         "metallic": 0.0,
-        "usage_assets": 0
+        "usage_assets": null
       },
       {
         "nom": "ocre",
@@ -375,7 +377,7 @@
         "hex": "#C8902A",
         "roughness": 0.8,
         "metallic": 0.0,
-        "usage_assets": 0
+        "usage_assets": null
       }
     ],
     "budgets": [
@@ -642,5 +644,716 @@
         }
       }
     }
+  },
+  "GET /api/styles/estimation-planche": {
+    "credits_par_image": 3,
+    "images_max": 6,
+    "simule": true
+  },
+  "POST /api/styles": {
+    "id": 2,
+    "code": "medieval-stylise-v0",
+    "nom": "Médiéval stylisé",
+    "version": 0,
+    "etat": "brouillon",
+    "direction": "stylise",
+    "description": "Formes simples.",
+    "palette": [
+      {
+        "nom": "terre_cuite",
+        "hex": "#B5582E"
+      },
+      {
+        "nom": "ocre",
+        "hex": "#C8902A"
+      },
+      {
+        "nom": "bronze",
+        "hex": "#8C6A2F"
+      },
+      {
+        "nom": "marbre",
+        "hex": "#E8E3D8"
+      },
+      {
+        "nom": "fer",
+        "hex": "#5B5E63"
+      },
+      {
+        "nom": "cuir",
+        "hex": "#6E4A2B"
+      },
+      {
+        "nom": "bois",
+        "hex": "#8A5F3A"
+      },
+      {
+        "nom": "pourpre",
+        "hex": "#6B2D4C"
+      },
+      {
+        "nom": "lin",
+        "hex": "#D9CBA8"
+      },
+      {
+        "nom": "pierre",
+        "hex": "#A39F93"
+      }
+    ],
+    "images_planche": 6,
+    "usage": {
+      "lots": 0,
+      "assets": 0
+    },
+    "cree_le": "2026-10-18T08:00:00Z",
+    "valide_le": null,
+    "theme": "ROM",
+    "note_version": "Version initiale.",
+    "parent_id": null,
+    "racine_id": 2,
+    "materiaux": [
+      {
+        "nom": "terre_cuite",
+        "base": "terre_cuite",
+        "hex": "#B5582E",
+        "roughness": 0.8,
+        "metallic": 0.0,
+        "usage_assets": null
+      },
+      {
+        "nom": "ocre",
+        "base": "ocre",
+        "hex": "#C8902A",
+        "roughness": 0.8,
+        "metallic": 0.0,
+        "usage_assets": null
+      },
+      {
+        "nom": "bronze",
+        "base": "bronze",
+        "hex": "#8C6A2F",
+        "roughness": 0.35,
+        "metallic": 1.0,
+        "usage_assets": null
+      },
+      {
+        "nom": "marbre",
+        "base": "marbre",
+        "hex": "#E8E3D8",
+        "roughness": 0.3,
+        "metallic": 0.0,
+        "usage_assets": null
+      },
+      {
+        "nom": "fer",
+        "base": "fer",
+        "hex": "#5B5E63",
+        "roughness": 0.45,
+        "metallic": 1.0,
+        "usage_assets": null
+      },
+      {
+        "nom": "cuir",
+        "base": "cuir",
+        "hex": "#6E4A2B",
+        "roughness": 0.6,
+        "metallic": 0.0,
+        "usage_assets": null
+      },
+      {
+        "nom": "bois",
+        "base": "bois",
+        "hex": "#8A5F3A",
+        "roughness": 0.75,
+        "metallic": 0.0,
+        "usage_assets": null
+      },
+      {
+        "nom": "pourpre",
+        "base": "pourpre",
+        "hex": "#6B2D4C",
+        "roughness": 0.85,
+        "metallic": 0.0,
+        "usage_assets": null
+      },
+      {
+        "nom": "tissu",
+        "base": "lin",
+        "hex": "#D9CBA8",
+        "roughness": 0.9,
+        "metallic": 0.0,
+        "usage_assets": null
+      },
+      {
+        "nom": "pierre",
+        "base": "pierre",
+        "hex": "#A39F93",
+        "roughness": 0.85,
+        "metallic": 0.0,
+        "usage_assets": null
+      }
+    ],
+    "budgets": [
+      {
+        "cle": "petit_prop",
+        "libelle": "Petit objet",
+        "tris": 2000,
+        "textures_px": 1024
+      },
+      {
+        "cle": "prop_moyen",
+        "libelle": "Objet moyen",
+        "tris": 6000,
+        "textures_px": 1024
+      },
+      {
+        "cle": "grand_prop",
+        "libelle": "Grand objet",
+        "tris": 15000,
+        "textures_px": 2048
+      },
+      {
+        "cle": "module_archi",
+        "libelle": "Module d'architecture",
+        "tris": 8000,
+        "textures_px": 2048
+      }
+    ],
+    "texel_density": 512.0,
+    "unite": "1 = 1 m",
+    "tolerances": {
+      "dimensions_pct": 5.0,
+      "texel_pct": 15.0,
+      "symetrie_m": 0.005,
+      "lod_pct": 10.0
+    },
+    "dimensions_m": {
+      "scutum": [
+        0.65,
+        0.2,
+        1.1
+      ],
+      "gladius": [
+        0.08,
+        0.04,
+        0.65
+      ],
+      "pilum": [
+        0.06,
+        0.06,
+        2.0
+      ],
+      "amphore": [
+        0.35,
+        0.35,
+        0.9
+      ],
+      "colonne": [
+        0.6,
+        0.6,
+        4.5
+      ],
+      "brasero": [
+        0.6,
+        0.6,
+        0.9
+      ],
+      "table": [
+        1.2,
+        0.7,
+        0.75
+      ],
+      "banc": [
+        1.2,
+        0.35,
+        0.45
+      ],
+      "arche": [
+        3.0,
+        0.6,
+        4.0
+      ],
+      "mur": [
+        3.0,
+        0.4,
+        3.0
+      ],
+      "sol": [
+        2.0,
+        2.0,
+        0.1
+      ],
+      "casque": [
+        0.24,
+        0.3,
+        0.28
+      ],
+      "lampe": [
+        0.12,
+        0.08,
+        0.06
+      ],
+      "caisse": [
+        0.6,
+        0.4,
+        0.4
+      ],
+      "ratelier": [
+        1.2,
+        0.4,
+        1.6
+      ]
+    },
+    "objets_planche": [
+      "caisse",
+      "amphore",
+      "lampe",
+      "banc",
+      "casque",
+      "table"
+    ],
+    "prompts_reference": {
+      "prop": "{objet}, Formes simples, prop de jeu vidéo, formes lisibles, couleurs {palette}, fond neutre uni, vue trois-quarts, sans texte",
+      "archi": "{objet}, module d'architecture, Formes simples, jeu vidéo, proportions nettes, couleurs {palette}, fond neutre uni, vue trois-quarts, sans texte"
+    },
+    "planche": [],
+    "credits_planche": 0,
+    "inspirations": [],
+    "versions": [
+      {
+        "id": 2,
+        "code": "medieval-stylise-v0",
+        "version": 0,
+        "note": "Version initiale.",
+        "date": "2026-10-18T08:00:00Z",
+        "etat": "brouillon"
+      }
+    ],
+    "lots": [],
+    "peut_modifier": true
+  },
+  "POST /api/styles/{id}/planche": {
+    "tache_id": 1,
+    "credits_estimes": 18
+  },
+  "GET /api/taches/{id}": {
+    "id": 1,
+    "type": "planche_style",
+    "file": "meshy",
+    "etat": "terminee",
+    "erreur": null,
+    "tentatives": 1,
+    "max_tentatives": 4,
+    "priorite": 0,
+    "lot_id": null,
+    "objet_id": null,
+    "essai_id": null,
+    "cree_le": "2026-10-18T08:00:00Z",
+    "debute_le": "2026-10-18T08:00:00Z",
+    "fini_le": "2026-10-18T08:00:00Z",
+    "verrou": null,
+    "verrou_le": null,
+    "reprise_le": null,
+    "params": {
+      "style_id": 2,
+      "code": "medieval-stylise-v0",
+      "objets": [
+        "caisse",
+        "amphore",
+        "lampe",
+        "banc",
+        "casque",
+        "table"
+      ]
+    },
+    "resultat": {
+      "reprise": {
+        "meshy": {
+          "0": "sim-image-14ab4d54e509",
+          "1": "sim-image-7f80cd126f8d",
+          "2": "sim-image-6275ac4390f7",
+          "3": "sim-image-ee57beb45d6e",
+          "4": "sim-image-ce6dc40f5230",
+          "5": "sim-image-5f8396b7736a"
+        }
+      },
+      "images": [
+        1,
+        2,
+        3,
+        4,
+        5,
+        6
+      ],
+      "simule": true,
+      "credits": 18,
+      "duree_s": 1.0
+    }
+  },
+  "GET /api/styles/{id}#planche": {
+    "id": 2,
+    "code": "medieval-stylise-v0",
+    "nom": "Médiéval stylisé",
+    "version": 0,
+    "etat": "brouillon",
+    "direction": "stylise",
+    "description": "Formes simples.",
+    "palette": [
+      {
+        "nom": "terre_cuite",
+        "hex": "#B5582E"
+      },
+      {
+        "nom": "ocre",
+        "hex": "#C8902A"
+      },
+      {
+        "nom": "bronze",
+        "hex": "#8C6A2F"
+      },
+      {
+        "nom": "marbre",
+        "hex": "#E8E3D8"
+      },
+      {
+        "nom": "fer",
+        "hex": "#5B5E63"
+      },
+      {
+        "nom": "cuir",
+        "hex": "#6E4A2B"
+      },
+      {
+        "nom": "bois",
+        "hex": "#8A5F3A"
+      },
+      {
+        "nom": "pourpre",
+        "hex": "#6B2D4C"
+      },
+      {
+        "nom": "lin",
+        "hex": "#D9CBA8"
+      },
+      {
+        "nom": "pierre",
+        "hex": "#A39F93"
+      }
+    ],
+    "images_planche": 6,
+    "usage": {
+      "lots": 0,
+      "assets": 0
+    },
+    "cree_le": "2026-10-18T08:00:00Z",
+    "valide_le": null,
+    "theme": "ROM",
+    "note_version": "Version initiale.",
+    "parent_id": null,
+    "racine_id": 2,
+    "materiaux": [
+      {
+        "nom": "terre_cuite",
+        "base": "terre_cuite",
+        "hex": "#B5582E",
+        "roughness": 0.8,
+        "metallic": 0.0,
+        "usage_assets": null
+      },
+      {
+        "nom": "ocre",
+        "base": "ocre",
+        "hex": "#C8902A",
+        "roughness": 0.8,
+        "metallic": 0.0,
+        "usage_assets": null
+      },
+      {
+        "nom": "bronze",
+        "base": "bronze",
+        "hex": "#8C6A2F",
+        "roughness": 0.35,
+        "metallic": 1.0,
+        "usage_assets": null
+      },
+      {
+        "nom": "marbre",
+        "base": "marbre",
+        "hex": "#E8E3D8",
+        "roughness": 0.3,
+        "metallic": 0.0,
+        "usage_assets": null
+      },
+      {
+        "nom": "fer",
+        "base": "fer",
+        "hex": "#5B5E63",
+        "roughness": 0.45,
+        "metallic": 1.0,
+        "usage_assets": null
+      },
+      {
+        "nom": "cuir",
+        "base": "cuir",
+        "hex": "#6E4A2B",
+        "roughness": 0.6,
+        "metallic": 0.0,
+        "usage_assets": null
+      },
+      {
+        "nom": "bois",
+        "base": "bois",
+        "hex": "#8A5F3A",
+        "roughness": 0.75,
+        "metallic": 0.0,
+        "usage_assets": null
+      },
+      {
+        "nom": "pourpre",
+        "base": "pourpre",
+        "hex": "#6B2D4C",
+        "roughness": 0.85,
+        "metallic": 0.0,
+        "usage_assets": null
+      },
+      {
+        "nom": "tissu",
+        "base": "lin",
+        "hex": "#D9CBA8",
+        "roughness": 0.9,
+        "metallic": 0.0,
+        "usage_assets": null
+      },
+      {
+        "nom": "pierre",
+        "base": "pierre",
+        "hex": "#A39F93",
+        "roughness": 0.85,
+        "metallic": 0.0,
+        "usage_assets": null
+      }
+    ],
+    "budgets": [
+      {
+        "cle": "petit_prop",
+        "libelle": "Petit objet",
+        "tris": 2000,
+        "textures_px": 1024
+      },
+      {
+        "cle": "prop_moyen",
+        "libelle": "Objet moyen",
+        "tris": 6000,
+        "textures_px": 1024
+      },
+      {
+        "cle": "grand_prop",
+        "libelle": "Grand objet",
+        "tris": 15000,
+        "textures_px": 2048
+      },
+      {
+        "cle": "module_archi",
+        "libelle": "Module d'architecture",
+        "tris": 8000,
+        "textures_px": 2048
+      }
+    ],
+    "texel_density": 512.0,
+    "unite": "1 = 1 m",
+    "tolerances": {
+      "dimensions_pct": 5.0,
+      "texel_pct": 15.0,
+      "symetrie_m": 0.005,
+      "lod_pct": 10.0
+    },
+    "dimensions_m": {
+      "scutum": [
+        0.65,
+        0.2,
+        1.1
+      ],
+      "gladius": [
+        0.08,
+        0.04,
+        0.65
+      ],
+      "pilum": [
+        0.06,
+        0.06,
+        2.0
+      ],
+      "amphore": [
+        0.35,
+        0.35,
+        0.9
+      ],
+      "colonne": [
+        0.6,
+        0.6,
+        4.5
+      ],
+      "brasero": [
+        0.6,
+        0.6,
+        0.9
+      ],
+      "table": [
+        1.2,
+        0.7,
+        0.75
+      ],
+      "banc": [
+        1.2,
+        0.35,
+        0.45
+      ],
+      "arche": [
+        3.0,
+        0.6,
+        4.0
+      ],
+      "mur": [
+        3.0,
+        0.4,
+        3.0
+      ],
+      "sol": [
+        2.0,
+        2.0,
+        0.1
+      ],
+      "casque": [
+        0.24,
+        0.3,
+        0.28
+      ],
+      "lampe": [
+        0.12,
+        0.08,
+        0.06
+      ],
+      "caisse": [
+        0.6,
+        0.4,
+        0.4
+      ],
+      "ratelier": [
+        1.2,
+        0.4,
+        1.6
+      ]
+    },
+    "objets_planche": [
+      "caisse",
+      "amphore",
+      "lampe",
+      "banc",
+      "casque",
+      "table"
+    ],
+    "prompts_reference": {
+      "prop": "{objet}, Formes simples, prop de jeu vidéo, formes lisibles, couleurs {palette}, fond neutre uni, vue trois-quarts, sans texte",
+      "archi": "{objet}, module d'architecture, Formes simples, jeu vidéo, proportions nettes, couleurs {palette}, fond neutre uni, vue trois-quarts, sans texte"
+    },
+    "planche": [
+      {
+        "id": 1,
+        "fichier": "caisse-4d54e509.png",
+        "objet": "caisse",
+        "gardee": false,
+        "simule": true,
+        "credits": 3,
+        "cree_le": "2026-10-18T08:00:00Z",
+        "url": "/api/fichiers/styles/medieval-stylise-v0/board/caisse-4d54e509.png"
+      },
+      {
+        "id": 2,
+        "fichier": "amphore-cd126f8d.png",
+        "objet": "amphore",
+        "gardee": false,
+        "simule": true,
+        "credits": 3,
+        "cree_le": "2026-10-18T08:00:00Z",
+        "url": "/api/fichiers/styles/medieval-stylise-v0/board/amphore-cd126f8d.png"
+      },
+      {
+        "id": 3,
+        "fichier": "lampe-ac4390f7.png",
+        "objet": "lampe",
+        "gardee": false,
+        "simule": true,
+        "credits": 3,
+        "cree_le": "2026-10-18T08:00:00Z",
+        "url": "/api/fichiers/styles/medieval-stylise-v0/board/lampe-ac4390f7.png"
+      },
+      {
+        "id": 4,
+        "fichier": "banc-beb45d6e.png",
+        "objet": "banc",
+        "gardee": false,
+        "simule": true,
+        "credits": 3,
+        "cree_le": "2026-10-18T08:00:00Z",
+        "url": "/api/fichiers/styles/medieval-stylise-v0/board/banc-beb45d6e.png"
+      },
+      {
+        "id": 5,
+        "fichier": "casque-c40f5230.png",
+        "objet": "casque",
+        "gardee": false,
+        "simule": true,
+        "credits": 3,
+        "cree_le": "2026-10-18T08:00:00Z",
+        "url": "/api/fichiers/styles/medieval-stylise-v0/board/casque-c40f5230.png"
+      },
+      {
+        "id": 6,
+        "fichier": "table-96b7736a.png",
+        "objet": "table",
+        "gardee": false,
+        "simule": true,
+        "credits": 3,
+        "cree_le": "2026-10-18T08:00:00Z",
+        "url": "/api/fichiers/styles/medieval-stylise-v0/board/table-96b7736a.png"
+      }
+    ],
+    "credits_planche": 18,
+    "inspirations": [],
+    "versions": [
+      {
+        "id": 2,
+        "code": "medieval-stylise-v0",
+        "version": 0,
+        "note": "Version initiale.",
+        "date": "2026-10-18T08:00:00Z",
+        "etat": "brouillon"
+      }
+    ],
+    "lots": [],
+    "peut_modifier": true
+  },
+  "GET /api/taches/{id}#echouee": {
+    "id": 2,
+    "type": "echec",
+    "file": "api",
+    "etat": "echouee",
+    "erreur": "RuntimeError: Meshy a échoué sur « caisse » : contenu refusé",
+    "tentatives": 1,
+    "max_tentatives": 1,
+    "priorite": 0,
+    "lot_id": null,
+    "objet_id": null,
+    "essai_id": null,
+    "cree_le": "2026-10-18T08:00:00Z",
+    "debute_le": "2026-10-18T08:00:00Z",
+    "fini_le": "2026-10-18T08:00:00Z",
+    "verrou": null,
+    "verrou_le": null,
+    "reprise_le": null,
+    "params": {
+      "message": "Meshy a échoué sur « caisse » : contenu refusé"
+    },
+    "resultat": null
   }
 }

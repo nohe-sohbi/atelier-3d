@@ -1,5 +1,5 @@
 import { vi } from "vitest";
-import type { Menu, Notifications, Recherche, Reglages, ResultatTest, StyleDetail, Styles } from "../api/types";
+import type { EstimationPlanche, Menu, Notifications, Recherche, Reglages, ResultatTest, StyleDetail, Styles, Tache, TacheLancee } from "../api/types";
 import contrat from "./contrat.json";
 
 type Reponse = unknown | ((init: RequestInit | undefined, url: URL) => unknown);
@@ -53,4 +53,11 @@ export const REGLAGES_DEFAUT = depuis<Reglages>("GET /api/reglages");
 export const REGLAGES = depuis<Reglages>("GET /api/reglages#rempli");
 export const STYLES = depuis<Styles>("GET /api/styles");
 export const STYLE_DETAIL = depuis<StyleDetail>("GET /api/styles/{id}");
+export const ESTIMATION_PLANCHE = depuis<EstimationPlanche>("GET /api/styles/estimation-planche");
+/** Un style créé (brouillon), puis le même avec sa planche simulée rangée par le worker. */
+export const STYLE_CREE = depuis<StyleDetail>("POST /api/styles");
+export const PLANCHE_LANCEE = depuis<TacheLancee>("POST /api/styles/{id}/planche");
+export const STYLE_PLANCHE = depuis<StyleDetail>("GET /api/styles/{id}#planche");
+export const TACHE_TERMINEE = depuis<Tache>("GET /api/taches/{id}");
+export const TACHE_ECHOUEE = depuis<Tache>("GET /api/taches/{id}#echouee");
 export const TEST_CONNEXION = (service: string) => depuis<ResultatTest>(`POST /api/reglages/tester/${service}`);

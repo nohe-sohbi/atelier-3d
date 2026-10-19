@@ -211,6 +211,8 @@ export interface StyleResume {
   direction: "stylise" | "semi_realiste";
   description: string;
   palette: Couleur[];
+  /** Images de la planche : une par objet à dessiner, 6 au plus. */
+  images_planche: number;
   usage: { lots: number; assets: number };
   cree_le: string;
   valide_le: string | null;
@@ -228,7 +230,8 @@ export interface MateriauStyle {
   hex: string;
   roughness: number;
   metallic: number;
-  usage_assets: number;
+  /** null : aucun asset ne note encore ses matériaux (bibliothèque, étape 9). */
+  usage_assets: number | null;
 }
 
 export interface BudgetStyle {
@@ -299,6 +302,13 @@ export interface StyleModifie {
   palette?: Record<string, string>;
   budgets_tris?: Record<string, number>;
   texel_density_px_per_m?: number;
+}
+
+/** GET /api/styles/estimation-planche : le tarif de l'adaptateur Meshy, seul chiffre affiché. */
+export interface EstimationPlanche {
+  credits_par_image: number;
+  images_max: number;
+  simule: boolean;
 }
 
 export interface TacheLancee {

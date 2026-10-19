@@ -7,4 +7,5 @@ TYPE = styles.TYPE_TACHE_PLANCHE
 
 
 def run(tache: dict, ctx) -> dict:
-    return styles.executer_planche(ctx.db, ctx.meshy, tache["params"], progression=ctx.progression)
+    return styles.executer_planche(ctx.db, ctx.meshy, tache["params"], tache_id=tache["id"],
+                                   progression=ctx.progression, arret=ctx.arret_demande)

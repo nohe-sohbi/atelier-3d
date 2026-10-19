@@ -161,6 +161,22 @@ def progression(conn: sqlite3.Connection, tache_id: int, pct: float, texte: str 
                           lot_id=t["lot_id"], objet_id=t["objet_id"], tache_id=tache_id)
 
 
+def noter_reprise(conn: sqlite3.Connection, tache_id: int, reprise: dict) -> None:
+    """Garde dans resultat_json.reprise de quoi reprendre sans refaire ce qui est déjà payé (ids de tâches
+    Meshy lancées, par exemple). Survit à une coupure, à un arrêt du worker et à une relance à la main."""
+    with db.transaction(conn):
+        t = lire_tache(conn, tache_id)
+        resultat = t["resultat"] if isinstance(t["resultat"], dict) else {}
+        resultat["reprise"] = reprise
+        conn.execute("UPDATE taches SET resultat_json = ? WHERE id = ?",
+                     (json.dumps(resultat, ensure_ascii=False), tache_id))
+
+
+def lire_reprise(conn: sqlite3.Connection, tache_id: int) -> dict:
+    t = lire_tache(conn, tache_id)
+    return dict((t["resultat"] or {}).get("reprise") or {}) if isinstance(t["resultat"], dict) else {}
+
+
 def terminer_tache(conn: sqlite3.Connection, tache_id: int, resultat: dict | None = None) -> None:
     with db.transaction(conn):
         t = lire_tache(conn, tache_id)
@@ -235,13 +251,15 @@ def annuler_tache(conn: sqlite3.Connection, tache_id: int) -> dict:
 
 
 def relancer_tache(conn: sqlite3.Connection, tache_id: int) -> dict:
-    """Remet une tâche échouée ou annulée en attente, compteur de tentatives à zéro."""
+    """Remet une tâche échouée ou annulée en attente, compteur de tentatives à zéro (la reprise est gardée)."""
     with db.transaction(conn):
         t = lire_tache(conn, tache_id)
         if t["etat"] not in ("echouee", "annulee"):
             raise TransitionInterdite(f"tâche {tache_id} est {t['etat']} : seule une tâche échouée ou annulée se relance")
+        reprise = (t["resultat"] or {}).get("reprise") if isinstance(t["resultat"], dict) else None
         conn.execute("""UPDATE taches SET etat = 'en_attente', tentatives = 0, erreur = NULL, fini_le = NULL,
-                        resultat_json = NULL, reprise_le = NULL WHERE id = ?""", (tache_id,))
+                        resultat_json = ?, reprise_le = NULL WHERE id = ?""",
+                     (json.dumps({"reprise": reprise}, ensure_ascii=False) if reprise else None, tache_id))
         evenements.ecrire(conn, "tache_relancee", f"Tâche {t['type']} relancée à la main", niveau="info",
                           lot_id=t["lot_id"], objet_id=t["objet_id"], tache_id=tache_id)
     return lire_tache(conn, tache_id)

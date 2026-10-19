@@ -1,4 +1,4 @@
-import type { StyleResume } from "../../api/types";
+import type { EstimationPlanche, StyleResume } from "../../api/types";
 
 export const formatNombre = new Intl.NumberFormat("fr-FR");
 
@@ -32,8 +32,12 @@ export function libelleEtat(etat: StyleResume["etat"]): "Actif" | "Brouillon" {
   return etat === "valide" ? "Actif" : "Brouillon";
 }
 
-export const NB_IMAGES = 6;
-export const CREDITS_PAR_IMAGE = 3;
+/** « 6 images, 18 crédits » d'après le tarif de l'adaptateur ; sans tarif lu, le nombre d'images seul. */
+export function coutPlanche(images: number, estimation: EstimationPlanche | null): string {
+  const texte = pluriel(images, "image", "images");
+  if (!estimation) return texte;
+  return `${texte}, ${pluriel(images * estimation.credits_par_image, "crédit", "crédits")}${estimation.simule ? " · simulé" : ""}`;
+}
 
 /** « caisse 0.6 0.4 0.4 » par ligne → {caisse: [0.6, 0.4, 0.4]}. Les lignes incomplètes sont ignorées. */
 export function lireDimensions(texte: string): Record<string, number[]> {

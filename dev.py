@@ -130,6 +130,20 @@ def preparer_config() -> Path:
     return chemin
 
 
+# --- rechargement du worker ----------------------------------------------------
+
+def surveiller_code(changement: threading.Event, arret: threading.Event,
+                    dossiers: tuple[Path, ...] = (RACINE / "api", RACINE / "worker")) -> None:
+    """Pose `changement` quand un .py change : uvicorn recharge l'API (--reload), le worker n'a pas d'équivalent."""
+    try:
+        from watchfiles import PythonFilter, watch
+    except ImportError:
+        dire("watchfiles absent : le worker ne se relance pas quand le code change")
+        return
+    for _ in watch(*dossiers, watch_filter=PythonFilter(), stop_event=arret):
+        changement.set()
+
+
 # --- ports -------------------------------------------------------------------
 
 def port_libre(port: int) -> bool:
@@ -255,7 +269,10 @@ def main(argv: list[str] | None = None) -> int:
 
     procs: dict[str, subprocess.Popen] = {}
     procs["api"] = _lancer("api", [sys.executable, "-m", "api", "--port", str(port_api), "--reload"], couleur, env)
-    procs["worker"] = _lancer("worker", [sys.executable, "-m", "worker"], couleur, env)
+    commande_worker = [sys.executable, "-m", "worker"]
+    procs["worker"] = _lancer("worker", commande_worker, couleur, env)
+    code_change, fin_surveillance = threading.Event(), threading.Event()
+    threading.Thread(target=surveiller_code, args=(code_change, fin_surveillance), daemon=True).start()
     adresse = f"http://127.0.0.1:{port_api}"
     if not args.sans_web:
         npm = _npm()
@@ -282,6 +299,11 @@ def main(argv: list[str] | None = None) -> int:
         elif all(p.poll() is None for p in procs.values()):
             dire(f"l'application ne répond pas sur {adresse}/api/sante : regarde les lignes [api] ci-dessus")
         while True:
+            if code_change.is_set():
+                code_change.clear()
+                dire("code modifié : redémarrage du worker")
+                _arreter({"worker": procs["worker"]})
+                procs["worker"] = _lancer("worker", commande_worker, couleur, env)
             for nom, p in procs.items():
                 if p.poll() is not None:
                     dire(f"{nom} s'est arrêté (code {p.returncode}) : arrêt de tout")
@@ -291,6 +313,7 @@ def main(argv: list[str] | None = None) -> int:
     except KeyboardInterrupt:
         dire("arrêt…")
     finally:
+        fin_surveillance.set()
         _arreter(procs)
     return code
 

@@ -1,4 +1,8 @@
-"""Meshy réel : API https://api.meshy.ai (Bearer). Jamais de clé dans les logs."""
+"""Meshy réel : API https://api.meshy.ai (Bearer). Jamais de clé dans les logs.
+
+Images (documentation Meshy, octobre 2026) : `text-to-image` sans image de référence, `image-to-image` avec
+1 à 5 images de référence ; une image par tâche ; modèle `nano-banana` à 3 crédits l'image.
+"""
 from __future__ import annotations
 
 import base64
@@ -6,13 +10,21 @@ import mimetypes
 from pathlib import Path
 
 from api.adapters import _commun
-from api.adapters.meshy.base import Meshy
+from api.adapters.meshy.base import CREDITS_IMAGE, Images, Meshy, RefusMeshy, liste_images
 
 BASE_URL = "https://api.meshy.ai"
+MODELE_IMAGE = "nano-banana"
+MAX_REFERENCES = 5
+# Préfixe de l'id d'une tâche image → chemin de l'API qui la lit.
+CHEMINS_IMAGE = {"img:": "/openapi/v1/image-to-image/", "txt:": "/openapi/v1/text-to-image/"}
+# Codes HTTP pour lesquels relancer la même demande n'y changera rien.
+REFUS = {400: "demande refusée par Meshy", 401: "clé API Meshy refusée", 402: "crédits Meshy insuffisants",
+         403: "clé API Meshy refusée"}
 
 
 class MeshyReel(Meshy):
     mode = "reel"
+    credits_image = CREDITS_IMAGE  # tarif du modèle MODELE_IMAGE
 
     def __init__(self, config: dict) -> None:
         meshy = config.get("services", {}).get("meshy", {})
@@ -51,18 +63,40 @@ class MeshyReel(Meshy):
         mime = mimetypes.guess_type(p.name)[0] or "image/png"
         return f"data:{mime};base64," + base64.b64encode(p.read_bytes()).decode("ascii")
 
+    def _lancer(self, chemin: str, corps: dict) -> str:
+        """POST d'une nouvelle tâche ; un refus (clé, crédits, demande invalide) lève RefusMeshy."""
+        try:
+            client = self._client(120)
+        except RuntimeError as e:  # clé absente
+            raise RefusMeshy(str(e)) from e
+        with client as c:
+            r = c.post(chemin, json=corps)
+        if r.status_code in REFUS:
+            detail = ""
+            try:
+                detail = str(r.json().get("message") or "")[:300]
+            except ValueError:
+                pass
+            raise RefusMeshy(f"{REFUS[r.status_code]} (HTTP {r.status_code}{' : ' + detail if detail else ''})")
+        r.raise_for_status()
+        return str(r.json()["result"])
+
     def image_vers_3d(self, image: str | Path, options: dict | None = None) -> str:
         corps = {"image_url": self._image_url(image), "should_texture": True, "enable_pbr": True,
                  "ai_model": "latest", **(options or {})}
-        with self._client(120) as c:
-            r = c.post("/openapi/v1/image-to-3d", json=corps)
-            r.raise_for_status()
-            return str(r.json()["result"])
+        return self._lancer("/openapi/v1/image-to-3d", corps)
+
+    @staticmethod
+    def _id_meshy(task_id: str) -> tuple[str, str]:
+        for prefixe, chemin in CHEMINS_IMAGE.items():
+            if task_id.startswith(prefixe):
+                return chemin, task_id.removeprefix(prefixe)
+        return "/openapi/v1/image-to-3d/", task_id
 
     def etat_tache(self, task_id: str) -> dict:
-        chemin = "/openapi/v1/image-to-image/" if task_id.startswith("img:") else "/openapi/v1/image-to-3d/"
+        chemin, brut = self._id_meshy(task_id)
         with self._client() as c:
-            r = c.get(chemin + task_id.removeprefix("img:"))
+            r = c.get(chemin + brut)
             r.raise_for_status()
             return r.json()
 
@@ -78,7 +112,7 @@ class MeshyReel(Meshy):
                 for i, url in enumerate(urls):
                     r = c.get(url)
                     r.raise_for_status()
-                    (dossier / f"{task_id.removeprefix('img:')}_{i + 1}.png").write_bytes(r.content)
+                    (dossier / f"{self._id_meshy(task_id)[1]}_{i + 1}.png").write_bytes(r.content)
                 return dossier
             url = (etat.get("model_urls") or {}).get("glb")
             if not url:
@@ -94,12 +128,11 @@ class MeshyReel(Meshy):
                     (dossier / f"{task_id}.png").write_bytes(rv.content)
         return cible
 
-    def image_vers_image(self, prompt: str, image: str | Path | None, n: int = 4) -> str:
-        # Point d'entrée à confirmer sur la documentation Meshy à l'étape 6 (Références).
-        corps = {"prompt": prompt, "num_images": max(1, int(n))}
-        if image:
-            corps["image_url"] = self._image_url(image)
-        with self._client(120) as c:
-            r = c.post("/openapi/v1/image-to-image", json=corps)
-            r.raise_for_status()
-            return "img:" + str(r.json()["result"])
+    def image_vers_image(self, prompt: str, image: Images = None, n: int = 1) -> str:
+        if int(n) != 1:
+            raise ValueError("Meshy produit une image par tâche : lance une tâche par image")
+        corps = {"ai_model": MODELE_IMAGE, "prompt": prompt}
+        references = [self._image_url(i) for i in liste_images(image)[:MAX_REFERENCES]]
+        if references:
+            return "img:" + self._lancer("/openapi/v1/image-to-image", {**corps, "reference_image_urls": references})
+        return "txt:" + self._lancer("/openapi/v1/text-to-image", corps)
