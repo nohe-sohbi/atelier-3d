@@ -1,0 +1,51 @@
+# Copie ce fichier en config.local.yaml (ignoré par Git) et adapte les chemins et clés.
+# `python dev.py` le fait tout seul au premier lancement et remplit le chemin de Blender
+# s'il le trouve sur ta machine. L'écran Réglages lit et écrit ce fichier ; les clés
+# n'en sortent jamais en clair. Tout est en mode "simule" par défaut.
+
+blender:
+  # Chemin de l'exécutable Blender 5.2 LTS (version figée pour tout le projet). Sous Windows, entre
+  # guillemets simples pour garder les antislashs : 'C:\Program Files\Blender Foundation\Blender 5.2\blender.exe'
+  chemin: ""
+
+gltf_validator:
+  chemin: "gltf_validator"
+
+butler:
+  chemin: "butler"
+
+services:
+  meshy:
+    mode: simule          # simule | reel
+    cle_api: ""
+    credits_mensuels: 1000
+    renouvellement_jour: 1   # 1 ou 15 : l'API donne le solde, pas la date
+    alerte_pct: 80           # 80, 90 ou 0 (ne pas prévenir)
+  claude:
+    mode: simule
+    cle_api: ""
+    modele: claude-sonnet-5-5   # claude-sonnet-5-5 | claude-haiku-5-5
+    plafond_mensuel_usd: 5.0
+  comfyui:
+    mode: simule
+    url: "http://127.0.0.1:8188"
+  itchio:
+    mode: simule
+    cle_api: ""
+    compte: ""
+    canal: "assets"
+
+bibliotheque:
+  dossier: "assets"        # relatif au dossier du projet
+  purge_rejets_jours: 30
+
+files:
+  # Trois files en parallèle : carte graphique (1 tâche), Meshy, Blender.
+  gpu: 1
+  meshy: 3
+  blender: 2
+  relances_max: 3
+
+notifications:
+  app: true
+  bureau: false

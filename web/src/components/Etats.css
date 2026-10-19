@@ -1,0 +1,36 @@
+.etat {
+  padding: 24px 20px;
+  border-radius: var(--rayon-carte);
+  font-size: 14px;
+  line-height: 1.5;
+}
+.etat--vide {
+  background: var(--blanc);
+  border: 1px dashed var(--bordure-forte);
+  color: var(--texte-secondaire);
+  text-align: center;
+}
+.etat--erreur {
+  background: var(--erreur-fond);
+  border: 1px solid var(--erreur);
+  color: var(--erreur);
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 16px;
+}
+.etat--chargement {
+  color: var(--texte-secondaire);
+}
+.etat__titre {
+  font-weight: 600;
+}
+.etat__texte {
+  margin-top: 4px;
+}
+.etat__corps {
+  flex: 1 1 240px;
+}
+.etat--erreur .bouton {
+  color: var(--texte);
+}

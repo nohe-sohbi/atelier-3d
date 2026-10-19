@@ -9,10 +9,19 @@ atelier.db-*
 __pycache__/
 *.pyc
 .venv/
+.pytest_cache/
+.ruff_cache/
+*.egg-info/
 
 # Node
 node_modules/
 dist/
+web/test-results/
+web/playwright-report/
+
+# Travail des lots et sorties locales (seuls les assets gardés sont versionnés, via Git LFS)
+lots/*/
+sources/*/
 
 # Blender
 *.blend1
@@ -20,3 +29,6 @@ dist/
 # Système
 .DS_Store
 Thumbs.db
+
+# Artefacts d'installation (pip/setuptools)
+build/

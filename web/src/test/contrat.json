@@ -1,0 +1,646 @@
+{
+  "GET /api/sante": {
+    "statut": "ok",
+    "version": "0.1.0",
+    "blender": false,
+    "db": "ok"
+  },
+  "GET /api/menu": {
+    "badges": {
+      "lots": 0,
+      "bibliotheque": 0,
+      "generateurs": 0
+    },
+    "collections": [],
+    "credits": {
+      "restants": 1000,
+      "total": 1000,
+      "utilises": 0,
+      "mode": "simule",
+      "renouvellement": "Renouvelés le 1er novembre"
+    }
+  },
+  "GET /api/notifications": {
+    "notifications": [],
+    "non_lues": 0
+  },
+  "GET /api/recherche?q=": {
+    "resultats": []
+  },
+  "GET /api/reglages": {
+    "services": {
+      "meshy": {
+        "mode": "simule",
+        "cle_api_definie": false,
+        "cle_api_apercu": "",
+        "credits_mensuels": 1000,
+        "renouvellement_jour": 1,
+        "alerte_pct": 80
+      },
+      "claude": {
+        "mode": "simule",
+        "cle_api_definie": false,
+        "cle_api_apercu": "",
+        "modele": "claude-sonnet-5-5",
+        "plafond_mensuel_usd": 5.0
+      },
+      "comfyui": {
+        "mode": "simule",
+        "url": "http://127.0.0.1:8188"
+      },
+      "itchio": {
+        "mode": "simule",
+        "cle_api_definie": false,
+        "cle_api_apercu": "",
+        "compte": "",
+        "canal": "assets"
+      }
+    },
+    "outils": {
+      "blender": {
+        "chemin": ""
+      },
+      "gltf_validator": {
+        "chemin": "gltf_validator"
+      },
+      "butler": {
+        "chemin": "butler"
+      }
+    },
+    "bibliotheque": {
+      "dossier": "assets",
+      "purge_rejets_jours": 30
+    },
+    "files": {
+      "gpu": 1,
+      "meshy": 3,
+      "blender": 2,
+      "relances_max": 3
+    },
+    "notifications": {
+      "app": true,
+      "bureau": false
+    },
+    "etat": {
+      "meshy_solde": {
+        "restants": 1000,
+        "total": 1000,
+        "utilises": 0,
+        "mode": "simule"
+      },
+      "claude_depense_mois": null,
+      "outils": {
+        "blender": {
+          "present": false,
+          "suggestion": null
+        },
+        "gltf_validator": {
+          "present": false
+        },
+        "butler": {
+          "present": false
+        },
+        "git_lfs": {
+          "present": true
+        }
+      }
+    }
+  },
+  "POST /api/reglages/tester/meshy": {
+    "ok": true,
+    "etat": "Connecté",
+    "message": "Meshy simulé : 1000 / 1000 crédits",
+    "details": {
+      "mode": "simule",
+      "solde": {
+        "restants": 1000,
+        "total": 1000
+      }
+    }
+  },
+  "POST /api/reglages/tester/claude": {
+    "ok": true,
+    "etat": "Connecté",
+    "message": "API Claude simulée, modèle claude-sonnet-5-5",
+    "details": {
+      "mode": "simule",
+      "modeles": [
+        "claude-sonnet-5-5",
+        "claude-haiku-5-5"
+      ],
+      "modele": "claude-sonnet-5-5"
+    }
+  },
+  "POST /api/reglages/tester/comfyui": {
+    "ok": true,
+    "etat": "Joignable",
+    "message": "ComfyUI simulé (GPU simulée, 12 Go)",
+    "details": {
+      "mode": "simule",
+      "gpu": "GPU simulée",
+      "vram_total_mo": 12288,
+      "vram_libre_mo": 11264,
+      "modeles": [
+        "Pixal3D",
+        "Trellis.2"
+      ],
+      "version": "simule"
+    }
+  },
+  "POST /api/reglages/tester/itchio": {
+    "ok": true,
+    "etat": "Connecté",
+    "message": "butler simulé 15.24.0 (simulé), compte (compte non renseigné)",
+    "details": {
+      "mode": "simule",
+      "version": "15.24.0 (simulé)",
+      "compte": ""
+    }
+  },
+  "POST /api/reglages/tester/blender": {
+    "ok": false,
+    "etat": "Introuvable",
+    "message": "Aucun Blender renseigné : installe Blender 5.2 LTS (blender.org) ou colle le chemin de l'exécutable",
+    "details": {
+      "suggestion": null
+    }
+  },
+  "POST /api/reglages/tester/gltf_validator": {
+    "ok": false,
+    "etat": "Introuvable",
+    "message": "glTF-Validator introuvable (gltf_validator) : installe-le depuis github.com/KhronosGroup/glTF-Validator et renseigne son chemin",
+    "details": {}
+  },
+  "GET /api/nexistepas": {
+    "erreur": "Not Found",
+    "detail": null
+  },
+  "GET /api/styles": {
+    "styles": [
+      {
+        "id": 1,
+        "code": "rome-stylise-v0",
+        "nom": "Rome antique stylisée",
+        "version": 0,
+        "etat": "valide",
+        "direction": "stylise",
+        "description": "Formes simples et lisibles, arêtes légèrement arrondies, couleurs franches, usure discrète.",
+        "palette": [
+          {
+            "nom": "terre_cuite",
+            "hex": "#B5582E"
+          },
+          {
+            "nom": "ocre",
+            "hex": "#C8902A"
+          },
+          {
+            "nom": "bronze",
+            "hex": "#8C6A2F"
+          },
+          {
+            "nom": "marbre",
+            "hex": "#E8E3D8"
+          },
+          {
+            "nom": "fer",
+            "hex": "#5B5E63"
+          },
+          {
+            "nom": "cuir",
+            "hex": "#6E4A2B"
+          },
+          {
+            "nom": "bois",
+            "hex": "#8A5F3A"
+          },
+          {
+            "nom": "pourpre",
+            "hex": "#6B2D4C"
+          },
+          {
+            "nom": "lin",
+            "hex": "#D9CBA8"
+          },
+          {
+            "nom": "pierre",
+            "hex": "#A39F93"
+          }
+        ],
+        "usage": {
+          "lots": 0,
+          "assets": 0
+        },
+        "cree_le": "2026-10-18T08:00:00Z",
+        "valide_le": "2026-10-18T08:00:00Z"
+      }
+    ]
+  },
+  "GET /api/styles/{id}": {
+    "id": 1,
+    "code": "rome-stylise-v0",
+    "nom": "Rome antique stylisée",
+    "version": 0,
+    "etat": "valide",
+    "direction": "stylise",
+    "description": "Formes simples et lisibles, arêtes légèrement arrondies, couleurs franches, usure discrète.",
+    "palette": [
+      {
+        "nom": "terre_cuite",
+        "hex": "#B5582E"
+      },
+      {
+        "nom": "ocre",
+        "hex": "#C8902A"
+      },
+      {
+        "nom": "bronze",
+        "hex": "#8C6A2F"
+      },
+      {
+        "nom": "marbre",
+        "hex": "#E8E3D8"
+      },
+      {
+        "nom": "fer",
+        "hex": "#5B5E63"
+      },
+      {
+        "nom": "cuir",
+        "hex": "#6E4A2B"
+      },
+      {
+        "nom": "bois",
+        "hex": "#8A5F3A"
+      },
+      {
+        "nom": "pourpre",
+        "hex": "#6B2D4C"
+      },
+      {
+        "nom": "lin",
+        "hex": "#D9CBA8"
+      },
+      {
+        "nom": "pierre",
+        "hex": "#A39F93"
+      }
+    ],
+    "usage": {
+      "lots": 0,
+      "assets": 0
+    },
+    "cree_le": "2026-10-18T08:00:00Z",
+    "valide_le": "2026-10-18T08:00:00Z",
+    "theme": "ROM",
+    "note_version": "Version initiale du thème pilote.",
+    "parent_id": null,
+    "racine_id": 1,
+    "materiaux": [
+      {
+        "nom": "bois",
+        "base": "bois",
+        "hex": "#8A5F3A",
+        "roughness": 0.75,
+        "metallic": 0.0,
+        "usage_assets": 0
+      },
+      {
+        "nom": "cuir",
+        "base": "cuir",
+        "hex": "#6E4A2B",
+        "roughness": 0.6,
+        "metallic": 0.0,
+        "usage_assets": 0
+      },
+      {
+        "nom": "bronze",
+        "base": "bronze",
+        "hex": "#8C6A2F",
+        "roughness": 0.35,
+        "metallic": 1.0,
+        "usage_assets": 0
+      },
+      {
+        "nom": "fer",
+        "base": "fer",
+        "hex": "#5B5E63",
+        "roughness": 0.45,
+        "metallic": 1.0,
+        "usage_assets": 0
+      },
+      {
+        "nom": "marbre",
+        "base": "marbre",
+        "hex": "#E8E3D8",
+        "roughness": 0.3,
+        "metallic": 0.0,
+        "usage_assets": 0
+      },
+      {
+        "nom": "terre_cuite",
+        "base": "terre_cuite",
+        "hex": "#B5582E",
+        "roughness": 0.8,
+        "metallic": 0.0,
+        "usage_assets": 0
+      },
+      {
+        "nom": "tissu",
+        "base": "lin",
+        "hex": "#D9CBA8",
+        "roughness": 0.9,
+        "metallic": 0.0,
+        "usage_assets": 0
+      },
+      {
+        "nom": "pierre",
+        "base": "pierre",
+        "hex": "#A39F93",
+        "roughness": 0.85,
+        "metallic": 0.0,
+        "usage_assets": 0
+      },
+      {
+        "nom": "pourpre",
+        "base": "pourpre",
+        "hex": "#6B2D4C",
+        "roughness": 0.85,
+        "metallic": 0.0,
+        "usage_assets": 0
+      },
+      {
+        "nom": "ocre",
+        "base": "ocre",
+        "hex": "#C8902A",
+        "roughness": 0.8,
+        "metallic": 0.0,
+        "usage_assets": 0
+      }
+    ],
+    "budgets": [
+      {
+        "cle": "petit_prop",
+        "libelle": "Petit objet",
+        "tris": 2000,
+        "textures_px": 1024
+      },
+      {
+        "cle": "prop_moyen",
+        "libelle": "Objet moyen",
+        "tris": 6000,
+        "textures_px": 1024
+      },
+      {
+        "cle": "grand_prop",
+        "libelle": "Grand objet",
+        "tris": 15000,
+        "textures_px": 2048
+      },
+      {
+        "cle": "module_archi",
+        "libelle": "Module d'architecture",
+        "tris": 8000,
+        "textures_px": 2048
+      }
+    ],
+    "texel_density": 512.0,
+    "unite": "1 = 1 m",
+    "tolerances": {
+      "dimensions_pct": 5.0,
+      "texel_pct": 15.0,
+      "symetrie_m": 0.005,
+      "lod_pct": 10.0
+    },
+    "dimensions_m": {
+      "scutum": [
+        0.65,
+        0.2,
+        1.1
+      ],
+      "gladius": [
+        0.08,
+        0.04,
+        0.65
+      ],
+      "pilum": [
+        0.06,
+        0.06,
+        2.0
+      ],
+      "amphore": [
+        0.35,
+        0.35,
+        0.9
+      ],
+      "colonne": [
+        0.6,
+        0.6,
+        4.5
+      ],
+      "brasero": [
+        0.6,
+        0.6,
+        0.9
+      ],
+      "table": [
+        1.2,
+        0.7,
+        0.75
+      ],
+      "banc": [
+        1.2,
+        0.35,
+        0.45
+      ],
+      "arche": [
+        3.0,
+        0.6,
+        4.0
+      ],
+      "mur": [
+        3.0,
+        0.4,
+        3.0
+      ],
+      "sol": [
+        2.0,
+        2.0,
+        0.1
+      ],
+      "casque": [
+        0.24,
+        0.3,
+        0.28
+      ],
+      "lampe": [
+        0.12,
+        0.08,
+        0.06
+      ],
+      "caisse": [
+        0.6,
+        0.4,
+        0.4
+      ],
+      "ratelier": [
+        1.2,
+        0.4,
+        1.6
+      ]
+    },
+    "objets_planche": [
+      "caisse",
+      "amphore",
+      "lampe",
+      "banc",
+      "casque",
+      "table"
+    ],
+    "prompts_reference": {
+      "prop": "{objet}, Rome antique stylisée, prop de jeu vidéo, formes lisibles, couleurs {palette}, fond neutre uni, éclairage doux, vue trois-quarts, sans texte",
+      "archi": "{objet}, module d'architecture romaine stylisée, jeu vidéo, proportions nettes, couleurs {palette}, fond neutre uni, vue trois-quarts, sans texte"
+    },
+    "planche": [],
+    "credits_planche": 0,
+    "inspirations": [],
+    "versions": [
+      {
+        "id": 1,
+        "code": "rome-stylise-v0",
+        "version": 0,
+        "note": "Version initiale du thème pilote.",
+        "date": "2026-10-18T08:00:00Z",
+        "etat": "valide"
+      }
+    ],
+    "lots": [],
+    "peut_modifier": true
+  },
+  "GET /api/menu#rempli": {
+    "badges": {
+      "lots": 3,
+      "bibliotheque": 2,
+      "generateurs": 1
+    },
+    "collections": [
+      {
+        "id": 1,
+        "nom": "Collection test",
+        "couleur": "#B5582E",
+        "nombre": 2
+      }
+    ],
+    "credits": {
+      "restants": 940,
+      "total": 1000,
+      "utilises": 60,
+      "mode": "simule",
+      "renouvellement": "Renouvelés le 1er novembre"
+    }
+  },
+  "GET /api/notifications#rempli": {
+    "notifications": [
+      {
+        "id": 4,
+        "date": "2026-10-18T08:00:00Z",
+        "type": "banc_termine",
+        "niveau": "info",
+        "titre": "Banc d'essai terminé",
+        "texte": "",
+        "lien": "/generateurs",
+        "lu": true
+      },
+      {
+        "id": 3,
+        "date": "2026-10-18T08:00:00Z",
+        "type": "revue_prete",
+        "niveau": "info",
+        "titre": "Revue prête · Lot test",
+        "texte": "4 objets à juger",
+        "lien": "/lots/1/revue",
+        "lu": false
+      }
+    ],
+    "non_lues": 1
+  },
+  "GET /api/reglages#rempli": {
+    "services": {
+      "meshy": {
+        "mode": "simule",
+        "cle_api_definie": true,
+        "cle_api_apercu": "••••ab12",
+        "credits_mensuels": 1000,
+        "renouvellement_jour": 1,
+        "alerte_pct": 80
+      },
+      "claude": {
+        "mode": "simule",
+        "cle_api_definie": false,
+        "cle_api_apercu": "",
+        "modele": "claude-sonnet-5-5",
+        "plafond_mensuel_usd": 5.0
+      },
+      "comfyui": {
+        "mode": "simule",
+        "url": "http://127.0.0.1:8188"
+      },
+      "itchio": {
+        "mode": "simule",
+        "cle_api_definie": true,
+        "cle_api_apercu": "••••zz99",
+        "compte": "mon-compte",
+        "canal": "assets"
+      }
+    },
+    "outils": {
+      "blender": {
+        "chemin": "/usr/bin/blender"
+      },
+      "gltf_validator": {
+        "chemin": "gltf_validator"
+      },
+      "butler": {
+        "chemin": "butler"
+      }
+    },
+    "bibliotheque": {
+      "dossier": "assets",
+      "purge_rejets_jours": 30
+    },
+    "files": {
+      "gpu": 1,
+      "meshy": 3,
+      "blender": 2,
+      "relances_max": 3
+    },
+    "notifications": {
+      "app": true,
+      "bureau": false
+    },
+    "etat": {
+      "meshy_solde": {
+        "restants": 940,
+        "total": 1000,
+        "utilises": 60,
+        "mode": "simule"
+      },
+      "claude_depense_mois": null,
+      "outils": {
+        "blender": {
+          "present": false,
+          "suggestion": null
+        },
+        "gltf_validator": {
+          "present": false
+        },
+        "butler": {
+          "present": false
+        },
+        "git_lfs": {
+          "present": true
+        }
+      }
+    }
+  }
+}
