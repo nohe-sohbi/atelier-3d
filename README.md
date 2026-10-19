@@ -42,7 +42,9 @@ ComfyUI, itch.io) sont en mode simulé par défaut : on bascule service par serv
 
 Options : `--sans-web` (API et worker seuls ; l'API sert alors `web/dist/` si l'interface a été construite
 avec `npm --prefix web run build`), `--sans-navigateur`, `--port 8000` (port de l'API ; sans cette option,
-dev.py en prend un libre si 8000 sert déjà à un autre programme), `--port-web 5173` (port de l'interface).
+dev.py en prend un libre si 8000 sert déjà à un autre programme), `--port-web 5173` (port de l'interface),
+`--reseau` (ouvre l'interface aux autres appareils du réseau local, sans mot de passe : réseau de confiance seulement ;
+dev.py affiche l'adresse à ouvrir ; l'API reste sur la machine, derrière l'interface).
 
 Séparément : `python -m api` (API sur http://127.0.0.1:8000, santé sur `/sante` et `/api/sante`,
 documentation sur `/api/docs`) et `npm --prefix web run dev` (interface).

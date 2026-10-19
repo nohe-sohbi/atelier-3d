@@ -79,3 +79,14 @@ def test_le_worker_se_relance_quand_le_code_change(tmp_path):
     finally:
         arret.set()
         t.join(5)
+
+
+def test_reseau_port_pris_sur_toutes_les_interfaces_et_adresse():
+    dev = importlib.import_module("dev")
+    with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as occupe:
+        occupe.bind(("0.0.0.0", 0))
+        occupe.listen()
+        port = occupe.getsockname()[1]
+        assert not dev.port_libre(port, "0.0.0.0")
+    ip = dev.adresse_reseau()
+    assert ip is None or (ip.count(".") == 3 and not ip.startswith("127."))

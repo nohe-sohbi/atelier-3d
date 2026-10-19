@@ -3,6 +3,7 @@
 
     python dev.py                 # API + worker + Vite, ouvre http://127.0.0.1:5173
     python dev.py --sans-web      # API + worker (sert web/dist/ si l'interface a été construite)
+    python dev.py --reseau        # ouvre l'app aux autres appareils du réseau local (PC, téléphone)
     python dev.py --installer     # crée .venv, installe le paquet et les dépendances web, puis quitte
 
 Au premier lancement : copie config.local.example.yaml vers config.local.yaml et y écrit le chemin de
@@ -146,13 +147,13 @@ def surveiller_code(changement: threading.Event, arret: threading.Event,
 
 # --- ports -------------------------------------------------------------------
 
-def port_libre(port: int) -> bool:
-    """Vrai si on peut écouter sur 127.0.0.1:port (comme uvicorn : SO_REUSEADDR hors Windows)."""
+def port_libre(port: int, hote: str = "127.0.0.1") -> bool:
+    """Vrai si on peut écouter sur hote:port (comme uvicorn : SO_REUSEADDR hors Windows)."""
     with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
         if os.name != "nt":
             s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
         try:
-            s.bind(("127.0.0.1", port))
+            s.bind((hote, port))
         except OSError:
             return False
         return True
@@ -168,6 +169,17 @@ def choisir_port_api(demande: int | None) -> int | None:
     with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
         s.bind(("127.0.0.1", 0))
         return s.getsockname()[1]
+
+
+def adresse_reseau() -> str | None:
+    """L'adresse de cette machine sur le réseau local (celle par où sortent les paquets), ou None."""
+    with socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as s:
+        try:
+            s.connect(("192.0.2.1", 9))  # adresse de documentation : rien n'est envoyé
+            ip = s.getsockname()[0]
+        except OSError:
+            return None
+    return None if ip.startswith("127.") else ip
 
 
 # --- processus ---------------------------------------------------------------
@@ -242,6 +254,8 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--port", type=int, default=None,
                         help=f"port de l'API (défaut {PORT_API}, ou un port libre si {PORT_API} est pris)")
     parser.add_argument("--port-web", type=int, default=5173, help="port de l'interface Vite (défaut 5173)")
+    parser.add_argument("--reseau", action="store_true",
+                        help="ouvre l'interface aux autres appareils du réseau local (l'API reste sur cette machine)")
     parser.add_argument("--sans-couleur", action="store_true")
     args = parser.parse_args(argv)
 
@@ -259,11 +273,14 @@ def main(argv: list[str] | None = None) -> int:
         return 2
     if args.port is None and port_api != PORT_API:
         dire(f"le port {PORT_API} sert déjà à un autre programme : l'API prend le port {port_api}")
-    if not args.sans_web and not port_libre(args.port_web):
+    hote_web = "0.0.0.0" if args.reseau else "127.0.0.1"
+    if args.reseau and args.sans_web:
+        dire("--reseau ouvre l'interface Vite : sans elle, l'API reste sur cette machine")
+    if not args.sans_web and not port_libre(args.port_web, hote_web):
         dire(f"le port {args.port_web} de l'interface est déjà pris (dev.py tourne déjà ?) : "
              "arrête l'autre programme, ou lance avec --port-web <port>")
         return 2
-    env = {**os.environ, "PYTHONUNBUFFERED": "1", "ATELIER_API_PORT": str(port_api)}
+    env = {**os.environ, "PYTHONUNBUFFERED": "1", "ATELIER_API_PORT": str(port_api), "ATELIER_WEB_HOTE": hote_web}
 
     preparer_config()
 
@@ -294,6 +311,10 @@ def main(argv: list[str] | None = None) -> int:
     try:
         if _attendre_sante(f"{adresse}/api/sante", 60, procs):
             dire(f"Ouvre {adresse}   (API : http://127.0.0.1:{port_api}/api/sante ; Ctrl+C pour tout arrêter)")
+            if args.reseau and "web" in procs:
+                ip = adresse_reseau()
+                dire(f"Depuis un autre appareil du réseau : http://{ip or '<adresse de cette machine>'}:{args.port_web}"
+                     " (sans mot de passe : réseau de confiance seulement)")
             if not args.sans_navigateur:
                 webbrowser.open(adresse)
         elif all(p.poll() is None for p in procs.values()):

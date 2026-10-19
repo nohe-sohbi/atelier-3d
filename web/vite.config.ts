@@ -9,7 +9,8 @@ export default defineConfig({
   server: {
     // 127.0.0.1 et pas « localhost » : là où localhost désigne d'abord ::1, Vite n'écouterait qu'en IPv6
     // et http://127.0.0.1:5173 (ouvert par dev.py, visé par les tests) ne répondrait pas.
-    host: "127.0.0.1",
+    // `python dev.py --reseau` passe 0.0.0.0 : l'interface s'ouvre aux autres appareils, l'API reste locale (proxy).
+    host: process.env.ATELIER_WEB_HOTE ?? "127.0.0.1",
     port: 5173,
     strictPort: true,
     proxy: {
