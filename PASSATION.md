@@ -8,13 +8,17 @@ Ce fichier n'est pas dans `docs/` (lecture seule) : il se supprime quand la pass
 
 ## 1. Où on en est
 
-**Mise à jour du 19 octobre 2026, session locale (Debian, sans Blender ni Git LFS).**
+**Mise à jour du 20 octobre 2026, session locale (Debian 13 ; Blender 5.2.2 LTS, glTF-Validator et Git LFS installés).**
 - La PR #1 a été fusionnée le 19 octobre (§4.3 fait) : on travaille sur `main`.
 - §4.0 fait : 3 correctifs propres à la machine (base créée à plusieurs, Vite en IPv4, port 8000 déjà pris).
 - §4.1 fait : relecture de l'étape 2 corrigée, un test par constat.
 - §4.2 fait : écrans de l'étape 3.
-- Prochaine étape : §4.4, étape 4 du plan.
-- Toujours pas vérifiés : Windows, Blender réel, Git LFS (absent de la machine), les services réels.
+- Étape 4 faite (file de tâches, Génération, dépenses), sauf la notification du bureau : Nohé a dit « plus tard »,
+  à reprendre à l'étape 8 (`A-TRANCHER.md` 4.6).
+- Étape 5 faite : Blender sans fenêtre, finition, 12 contrôles, rendus, planche, fabrication depuis Génération,
+  et les 6 premiers générateurs (scutum, gladius, pilum, amphore, colonne, caisse), chacun testé dans Blender.
+- Prochaine étape : 6, Références.
+- Toujours pas vérifiés : Windows, les services réels (Meshy, API Claude, ComfyUI, itch.io).
 
 Ce qui suit est l'état laissé par la session cloud.
 

@@ -25,8 +25,11 @@ api/            API FastAPI. Point d'entrée : api/main.py (app = create_app()).
 worker/         Worker : worker/main.py boucle sur la table `taches` (files gpu, meshy, blender, api ; limites
                 relues dans la config) ; worker/handlers/<type>.py expose TYPE et run(tache, ctx). Une
                 TacheDefinitive (outil absent, crédits insuffisants, étape non construite) échoue sans relance.
-pipeline/       Finition commune et scripts Blender (étape 5) : vide pour l'instant.
-generators/     Générateurs code (étape 5) : vide pour l'instant.
+pipeline/       Fabrication hors de l'app : blender.py lance Blender sans fenêtre (bpy_principal.py : generer,
+                finir, rendre) ; finition.py (LOD, collision, exports), validate.py (12 contrôles, hors Blender),
+                meta.py, rendu.py (5 vues), planche.py (planche de contact et vignette).
+generators/     Générateurs code : un fichier par type (MANIFESTE + build), _base.py leur cadre commun,
+                CONTRAT.md leur contrat. Livrés : scutum, gladius, pilum, amphore, colonne, caisse.
 style/          Un dossier par style et par version : style/<code>/style.yaml (seule source des couleurs,
                 matériaux, budgets, tolérances), board/ (planche de référence), inspiration/. Le style du
                 thème pilote est livré (rome-stylise-v0) ; les autres sont créés par l'écran Styles.
@@ -36,7 +39,7 @@ lots/           Travail des lots (ignoré par Git).
 web/            Vite + React + TypeScript. web/src/pages/<Ecran>/ par écran, web/src/components/
                 pour le menu, la barre du haut, les fenêtres et les états ; web/src/api/ client typé ;
                 web/e2e/ tests Playwright contre l'application réelle.
-tests/          pytest : tests/api. Les tests qui exigent Blender sont marqués `@pytest.mark.blender`
+tests/          pytest : tests/api, tests/pipeline. Les tests qui exigent Blender sont marqués `@pytest.mark.blender`
                 et sautés quand aucun Blender n'est configuré.
 ```
 
