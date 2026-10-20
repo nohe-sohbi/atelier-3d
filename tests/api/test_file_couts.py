@@ -214,3 +214,19 @@ def test_le_reglage_des_files_est_dans_la_vue(client, cfg, atelier):
     lid = _lot(client)["id"]
     assert client.get(f"/api/lots/{lid}/generation").json()["limites_files"]["blender"] == 4
     assert generation.FILES["gpu"] == "carte graphique"
+
+
+def test_alerte_credits_meshy_une_fois_par_mois(client, conn, cfg, atelier):
+    from api.services import credits
+    ecrire_config(atelier.config, lambda c: c["services"]["meshy"].update({"credits_mensuels": 100, "alerte_pct": 80}))
+    meshy = get_meshy(__import__("api.config", fromlist=["charger"]).charger())
+    meshy.image_vers_3d("a.png")  # 30 crédits : 30 %
+    credits.oublier_cache()
+    client.get("/api/menu")
+    assert client.get("/api/notifications").json()["non_lues"] == 0
+    meshy.image_vers_3d("b.png")
+    meshy.image_vers_image("c", None, 10)  # 30 + 30 + 30 = 90 %
+    for _ in range(2):  # le menu se relit souvent : une seule notification
+        client.get("/api/menu")
+    n = client.get("/api/notifications").json()
+    assert n["non_lues"] == 1 and n["notifications"][0]["titre"] == "Crédits Meshy à 90 % (simulé)"
