@@ -93,6 +93,35 @@ def rendre(entree: dict, style) -> dict:
                         int(entree.get("taille_px") or rendu.TAILLE_PX))
 
 
+@commande("apercus")
+def apercus(entree: dict, style) -> dict:
+    """Variantes d'un générateur, une image chacune, dans un seul lancement de Blender (écran Références).
+
+    entree : fichier (le .py du générateur), variantes ([{params, seed, sortie}]), moteur, taille_px. Une variante que
+    le générateur refuse (paramètres incompatibles) est rapportée en échec ; une erreur de rendu arrête tout (l'appelant
+    réessaie avec Cycles).
+    """
+    from pipeline import _bpy as P
+    from pipeline import rendu
+
+    module = charger_generateur(entree["fichier"])
+    resultats = []
+    for v in entree["variantes"]:
+        P.scene_vide()
+        try:
+            obj = module.build({**dict(v.get("params") or {}), "id": "apercu"}, style, int(v.get("seed", 0)))
+        except Exception as e:  # noqa: BLE001 - un jeu de paramètres refusé n'empêche pas les autres
+            resultats.append({"ok": False, "erreur": f"{type(e).__name__}: {e}"})
+            continue
+        if isinstance(obj, list | tuple):
+            obj = obj[0]
+        rendu.apercu(obj, v["sortie"], entree.get("moteur", "eevee"), int(entree.get("taille_px") or 384))
+        mini, maxi = P.boite(obj)
+        resultats.append({"ok": True, "sortie": v["sortie"], "tris": P.compter_tris(obj),
+                          "dimensions_m": [round(float(x), 4) for x in (maxi - mini)]})
+    return {"variantes": resultats, "moteur": entree.get("moteur", "eevee")}
+
+
 def main() -> int:
     chemin_entree, chemin_sortie = args_apres_double_tiret()[:2]
     entree = lire_json(chemin_entree)

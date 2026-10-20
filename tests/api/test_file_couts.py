@@ -94,7 +94,7 @@ def test_migration_030_reprend_les_couts_deja_ecrits(atelier, monkeypatch):
         c.execute("INSERT INTO couts(date, service, detail) VALUES ('2026-10-18T08:00:00Z', 'claude', ?)",
                   (json.dumps({"type": "brief", "lot_id": 1, "simule": True}),))
         monkeypatch.setattr(db, "lister_migrations", lambda: tout)
-        assert db.appliquer_migrations(c) == [30]
+        assert db.appliquer_migrations(c) == [30, 50]
         r = c.execute("SELECT type, lot_id, simule FROM couts").fetchone()
         assert (r["type"], r["lot_id"], r["simule"]) == ("brief", 1, 1)
     finally:
@@ -153,12 +153,14 @@ def test_generation_avant_la_fabrication(client, conn, cfg):
     lid = _lot_valide(client, cfg)
     g = client.get(f"/api/lots/{lid}/generation").json()
     f = g["fabrication"]  # objets simulés passés en voie IA : rien à lancer avant l'étape 7
-    assert (f["a_lancer"], f["voie_code"], f["autres_voies"]) == (0, 0, len(g["objets"])) and "étape 7" in f["raison_ia"]
+    assert f["autres_voies"] == len(g["objets"]) and "étape 7" in f["raison_ia"]
     assert all(not o["peut_fabriquer"] and "étape 7" in o["motif"] for o in g["objets"])
     assert g["objets"] and all(o["statut"].startswith("Attend sa référence") for o in g["objets"])
     assert all([p["etat"] for p in o["etapes"]] == ["a_faire"] * 4 for o in g["objets"])
-    assert [t["type"] for t in g["taches"]] == ["proposer_liste"]
-    assert g["taches"][0]["etat"] == "terminee" and g["taches"][0]["peut_relancer"] is False
+    # « Générer les références » : une tâche d'images de référence par objet, après la proposition de la liste.
+    types = [t["type"] for t in g["taches"]]
+    assert types[-1] == "proposer_liste" and types[:-1] == ["references_images"] * len(g["objets"])
+    assert g["taches"][-1]["etat"] == "terminee" and g["taches"][-1]["peut_relancer"] is False
     lot = client.get(f"/api/lots/{lid}").json()
     assert g["tuiles"] == {"prets_revue": 0, "fabriques": len(g["objets"]), "en_cours": 0, "relances": 0,
                            "credits_utilises": 0, "credits_simules": False, "credits_prevus": lot["credits_prevus"]}
@@ -180,7 +182,8 @@ def test_generation_suit_les_etapes_les_relances_et_les_credits(client, conn, cf
     assert [p["etat"] for p in par_id[ids[0]]["etapes"]] == ["fait", "en_cours", "a_faire", "a_faire"]
     assert par_id[ids[1]]["statut"] == "Prêt pour la revue" and par_id[ids[1]]["pct"] == 100
     t = g["tuiles"]
-    assert (t["prets_revue"], t["en_cours"], t["relances"], t["credits_utilises"], t["credits_simules"]) == (1, 2, 2, 60, True)
+    # En cours : l'objet en finition ; celui à « generation » sans essai est un objet IA qui attend l'étape 7.
+    assert (t["prets_revue"], t["en_cours"], t["relances"], t["credits_utilises"], t["credits_simules"]) == (1, 1, 2, 60, True)
     echec = next(x for x in g["taches"] if x["id"] == tid)
     assert echec["peut_relancer"] is True and echec["erreur"] == "RuntimeError: panne"
 

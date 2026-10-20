@@ -1449,6 +1449,8 @@
       "hors_perimetre": 0,
       "a_creer": 0,
       "references_a_choisir": 0,
+      "references_choisies": 0,
+      "cc0": 0,
       "en_generation": 0,
       "prets_revue": 0,
       "gardes": 0,
@@ -1526,6 +1528,8 @@
       "hors_perimetre": 0,
       "a_creer": 0,
       "references_a_choisir": 0,
+      "references_choisies": 0,
+      "cc0": 0,
       "en_generation": 0,
       "prets_revue": 0,
       "gardes": 0,
@@ -1603,6 +1607,8 @@
       "hors_perimetre": 0,
       "a_creer": 0,
       "references_a_choisir": 0,
+      "references_choisies": 0,
+      "cc0": 0,
       "en_generation": 0,
       "prets_revue": 0,
       "gardes": 0,
@@ -1652,6 +1658,8 @@
         "famille": "props",
         "cc0_ref": null,
         "ordre": 1,
+        "reference_id": null,
+        "consigne": null,
         "dimensions": {
           "largeur": 0.65,
           "profondeur": 0.2,
@@ -1688,6 +1696,8 @@
         "famille": "mobilier",
         "cc0_ref": null,
         "ordre": 2,
+        "reference_id": null,
+        "consigne": null,
         "dimensions": {
           "largeur": 0.99,
           "profondeur": 0.47,
@@ -1724,6 +1734,8 @@
         "famille": "contenants",
         "cc0_ref": null,
         "ordre": 3,
+        "reference_id": null,
+        "consigne": null,
         "dimensions": {
           "largeur": 0.45,
           "profondeur": 0.33,
@@ -1756,6 +1768,8 @@
         "famille": "archi",
         "cc0_ref": null,
         "ordre": 4,
+        "reference_id": null,
+        "consigne": null,
         "dimensions": {
           "largeur": 0.53,
           "profondeur": 0.54,
@@ -1812,6 +1826,8 @@
         "famille": "props",
         "cc0_ref": null,
         "ordre": 5,
+        "reference_id": null,
+        "consigne": null,
         "dimensions": {
           "largeur": 0.61,
           "profondeur": 0.38,
@@ -1912,6 +1928,8 @@
       "hors_perimetre": 0,
       "a_creer": 3,
       "references_a_choisir": 0,
+      "references_choisies": 0,
+      "cc0": 0,
       "en_generation": 0,
       "prets_revue": 0,
       "gardes": 0,
@@ -1980,6 +1998,8 @@
         "famille": "props",
         "cc0_ref": null,
         "ordre": 1,
+        "reference_id": null,
+        "consigne": null,
         "dimensions": {
           "largeur": 0.65,
           "profondeur": 0.2,
@@ -2016,6 +2036,8 @@
         "famille": "mobilier",
         "cc0_ref": null,
         "ordre": 2,
+        "reference_id": null,
+        "consigne": null,
         "dimensions": {
           "largeur": 0.99,
           "profondeur": 0.47,
@@ -2052,6 +2074,8 @@
         "famille": "contenants",
         "cc0_ref": null,
         "ordre": 3,
+        "reference_id": null,
+        "consigne": null,
         "dimensions": {
           "largeur": 0.45,
           "profondeur": 0.33,
@@ -2084,6 +2108,8 @@
         "famille": "archi",
         "cc0_ref": null,
         "ordre": 4,
+        "reference_id": null,
+        "consigne": null,
         "dimensions": {
           "largeur": 0.53,
           "profondeur": 0.54,
@@ -2140,6 +2166,8 @@
         "famille": "props",
         "cc0_ref": null,
         "ordre": 5,
+        "reference_id": null,
+        "consigne": null,
         "dimensions": {
           "largeur": 0.61,
           "profondeur": 0.38,
@@ -2287,6 +2315,8 @@
         "famille": "props",
         "cc0_ref": null,
         "ordre": 1,
+        "reference_id": null,
+        "consigne": null,
         "dimensions": {
           "largeur": 0.65,
           "profondeur": 0.2,
@@ -2323,6 +2353,8 @@
         "famille": "mobilier",
         "cc0_ref": null,
         "ordre": 2,
+        "reference_id": null,
+        "consigne": null,
         "dimensions": {
           "largeur": 0.99,
           "profondeur": 0.47,
@@ -2359,6 +2391,8 @@
         "famille": "contenants",
         "cc0_ref": null,
         "ordre": 3,
+        "reference_id": null,
+        "consigne": null,
         "dimensions": {
           "largeur": 0.45,
           "profondeur": 0.33,
@@ -2391,6 +2425,8 @@
         "famille": "archi",
         "cc0_ref": null,
         "ordre": 4,
+        "reference_id": null,
+        "consigne": null,
         "dimensions": {
           "largeur": 0.53,
           "profondeur": 0.54,
@@ -2447,6 +2483,8 @@
         "famille": "props",
         "cc0_ref": null,
         "ordre": 5,
+        "reference_id": null,
+        "consigne": null,
         "dimensions": {
           "largeur": 0.61,
           "profondeur": 0.38,
@@ -2520,7 +2558,7 @@
         "libelle": "Génération",
         "numero": 3,
         "lien": "/lots/5/generation",
-        "atteinte": true,
+        "atteinte": false,
         "faite": false
       },
       {
@@ -2547,6 +2585,8 @@
       "hors_perimetre": 0,
       "a_creer": 0,
       "references_a_choisir": 3,
+      "references_choisies": 0,
+      "cc0": 0,
       "en_generation": 0,
       "prets_revue": 0,
       "gardes": 0,
@@ -2554,15 +2594,1059 @@
       "finis": 0
     }
   },
+  "GET /api/lots/{id}/references#preparation": {
+    "lot_id": 5,
+    "objets": [
+      {
+        "id": 1,
+        "nom": "Objet simulé 1 (géométrique, type connu)",
+        "voie": "ia",
+        "genre": "images",
+        "etape": "references",
+        "piece_ia": null,
+        "consigne": "Objet simulé 1 (géométrique, type connu) : Réponse simulée de l'API Claude : objet géométrique, type connu d'exemple, prop moyen. En mode réel, Claude décrit ici l'objet demandé, Rome antique stylisée, prop de jeu vidéo, formes lisibles, couleurs terre cuite, ocre, bronze, marbre, fer, cuir, bois, pourpre, lin, pierre, fond neutre uni, éclairage doux, vue trois-quarts, sans texte",
+        "consigne_modifiee": false,
+        "peut_changer": true,
+        "choix_id": null,
+        "propositions": [],
+        "series": 0,
+        "preparation": {
+          "tache_id": 4,
+          "etat": "en_attente",
+          "pct": null,
+          "texte": null
+        },
+        "erreur": null
+      },
+      {
+        "id": 2,
+        "nom": "Objet simulé 2 (géométrique, type inconnu)",
+        "voie": "ia",
+        "genre": "images",
+        "etape": "references",
+        "piece_ia": null,
+        "consigne": "Objet simulé 2 (géométrique, type inconnu) : Réponse simulée de l'API Claude : objet géométrique, type inconnu d'exemple, grand prop. En mode réel, Claude décrit ici l'objet demandé, Rome antique stylisée, prop de jeu vidéo, formes lisibles, couleurs terre cuite, ocre, bronze, marbre, fer, cuir, bois, pourpre, lin, pierre, fond neutre uni, éclairage doux, vue trois-quarts, sans texte",
+        "consigne_modifiee": false,
+        "peut_changer": true,
+        "choix_id": null,
+        "propositions": [],
+        "series": 0,
+        "preparation": {
+          "tache_id": 5,
+          "etat": "en_attente",
+          "pct": null,
+          "texte": null
+        },
+        "erreur": null
+      },
+      {
+        "id": 4,
+        "nom": "Objet simulé 4 (mixte)",
+        "voie": "ia",
+        "genre": "images",
+        "etape": "references",
+        "piece_ia": null,
+        "consigne": "Objet simulé 4 (mixte) : Réponse simulée de l'API Claude : objet mixte d'exemple, module archi. En mode réel, Claude décrit ici l'objet demandé, module d'architecture romaine stylisée, jeu vidéo, proportions nettes, couleurs terre cuite, ocre, bronze, marbre, fer, cuir, bois, pourpre, lin, pierre, fond neutre uni, vue trois-quarts, sans texte",
+        "consigne_modifiee": false,
+        "peut_changer": true,
+        "choix_id": null,
+        "propositions": [],
+        "series": 0,
+        "preparation": {
+          "tache_id": 6,
+          "etat": "en_attente",
+          "pct": null,
+          "texte": null
+        },
+        "erreur": null
+      }
+    ],
+    "choisies": 0,
+    "a_choisir": 3,
+    "sans_choix": [
+      "Objet simulé 1 (géométrique, type connu)",
+      "Objet simulé 2 (géométrique, type inconnu)",
+      "Objet simulé 4 (mixte)"
+    ],
+    "sans_reference": [],
+    "deja_lances": 0,
+    "peut_lancer": false,
+    "credits_serie": 12,
+    "meshy_simule": true,
+    "style": {
+      "id": 1,
+      "code": "rome-stylise-v0",
+      "nom": "Rome antique stylisée",
+      "palette": [
+        {
+          "nom": "terre_cuite",
+          "hex": "#B5582E"
+        },
+        {
+          "nom": "ocre",
+          "hex": "#C8902A"
+        },
+        {
+          "nom": "bronze",
+          "hex": "#8C6A2F"
+        },
+        {
+          "nom": "marbre",
+          "hex": "#E8E3D8"
+        },
+        {
+          "nom": "fer",
+          "hex": "#5B5E63"
+        },
+        {
+          "nom": "cuir",
+          "hex": "#6E4A2B"
+        },
+        {
+          "nom": "bois",
+          "hex": "#8A5F3A"
+        },
+        {
+          "nom": "pourpre",
+          "hex": "#6B2D4C"
+        },
+        {
+          "nom": "lin",
+          "hex": "#D9CBA8"
+        },
+        {
+          "nom": "pierre",
+          "hex": "#A39F93"
+        }
+      ],
+      "materiaux": [
+        "bois",
+        "cuir",
+        "bronze",
+        "fer",
+        "marbre",
+        "terre_cuite",
+        "tissu",
+        "pierre",
+        "pourpre",
+        "ocre"
+      ],
+      "budgets": [
+        {
+          "libelle": "Petit objet",
+          "tris": 2000
+        },
+        {
+          "libelle": "Objet moyen",
+          "tris": 6000
+        },
+        {
+          "libelle": "Grand objet",
+          "tris": 15000
+        },
+        {
+          "libelle": "Module d'architecture",
+          "tris": 8000
+        }
+      ],
+      "texel_density": 512.0,
+      "unite": "1 = 1 m"
+    }
+  },
+  "GET /api/lots/{id}/references": {
+    "lot_id": 5,
+    "objets": [
+      {
+        "id": 1,
+        "nom": "Objet simulé 1 (géométrique, type connu)",
+        "voie": "ia",
+        "genre": "images",
+        "etape": "references",
+        "piece_ia": null,
+        "consigne": "Objet simulé 1 (géométrique, type connu) : Réponse simulée de l'API Claude : objet géométrique, type connu d'exemple, prop moyen. En mode réel, Claude décrit ici l'objet demandé, Rome antique stylisée, prop de jeu vidéo, formes lisibles, couleurs terre cuite, ocre, bronze, marbre, fer, cuir, bois, pourpre, lin, pierre, fond neutre uni, éclairage doux, vue trois-quarts, sans texte",
+        "consigne_modifiee": false,
+        "peut_changer": true,
+        "choix_id": null,
+        "propositions": [
+          {
+            "id": 1,
+            "genre": "image",
+            "serie": 1,
+            "rang": 0,
+            "legende": "",
+            "url": "/api/fichiers/references/1",
+            "simule": true,
+            "choisie": false
+          },
+          {
+            "id": 2,
+            "genre": "image",
+            "serie": 1,
+            "rang": 1,
+            "legende": "",
+            "url": "/api/fichiers/references/2",
+            "simule": true,
+            "choisie": false
+          },
+          {
+            "id": 3,
+            "genre": "image",
+            "serie": 1,
+            "rang": 2,
+            "legende": "",
+            "url": "/api/fichiers/references/3",
+            "simule": true,
+            "choisie": false
+          },
+          {
+            "id": 4,
+            "genre": "image",
+            "serie": 1,
+            "rang": 3,
+            "legende": "",
+            "url": "/api/fichiers/references/4",
+            "simule": true,
+            "choisie": false
+          }
+        ],
+        "series": 1,
+        "preparation": null,
+        "erreur": null
+      },
+      {
+        "id": 2,
+        "nom": "Objet simulé 2 (géométrique, type inconnu)",
+        "voie": "ia",
+        "genre": "images",
+        "etape": "references",
+        "piece_ia": null,
+        "consigne": "Objet simulé 2 (géométrique, type inconnu) : Réponse simulée de l'API Claude : objet géométrique, type inconnu d'exemple, grand prop. En mode réel, Claude décrit ici l'objet demandé, Rome antique stylisée, prop de jeu vidéo, formes lisibles, couleurs terre cuite, ocre, bronze, marbre, fer, cuir, bois, pourpre, lin, pierre, fond neutre uni, éclairage doux, vue trois-quarts, sans texte",
+        "consigne_modifiee": false,
+        "peut_changer": true,
+        "choix_id": null,
+        "propositions": [
+          {
+            "id": 5,
+            "genre": "image",
+            "serie": 1,
+            "rang": 0,
+            "legende": "",
+            "url": "/api/fichiers/references/5",
+            "simule": true,
+            "choisie": false
+          },
+          {
+            "id": 6,
+            "genre": "image",
+            "serie": 1,
+            "rang": 1,
+            "legende": "",
+            "url": "/api/fichiers/references/6",
+            "simule": true,
+            "choisie": false
+          },
+          {
+            "id": 7,
+            "genre": "image",
+            "serie": 1,
+            "rang": 2,
+            "legende": "",
+            "url": "/api/fichiers/references/7",
+            "simule": true,
+            "choisie": false
+          },
+          {
+            "id": 8,
+            "genre": "image",
+            "serie": 1,
+            "rang": 3,
+            "legende": "",
+            "url": "/api/fichiers/references/8",
+            "simule": true,
+            "choisie": false
+          }
+        ],
+        "series": 1,
+        "preparation": null,
+        "erreur": null
+      },
+      {
+        "id": 4,
+        "nom": "Objet simulé 4 (mixte)",
+        "voie": "ia",
+        "genre": "images",
+        "etape": "references",
+        "piece_ia": null,
+        "consigne": "Objet simulé 4 (mixte) : Réponse simulée de l'API Claude : objet mixte d'exemple, module archi. En mode réel, Claude décrit ici l'objet demandé, module d'architecture romaine stylisée, jeu vidéo, proportions nettes, couleurs terre cuite, ocre, bronze, marbre, fer, cuir, bois, pourpre, lin, pierre, fond neutre uni, vue trois-quarts, sans texte",
+        "consigne_modifiee": false,
+        "peut_changer": true,
+        "choix_id": null,
+        "propositions": [
+          {
+            "id": 9,
+            "genre": "image",
+            "serie": 1,
+            "rang": 0,
+            "legende": "",
+            "url": "/api/fichiers/references/9",
+            "simule": true,
+            "choisie": false
+          },
+          {
+            "id": 10,
+            "genre": "image",
+            "serie": 1,
+            "rang": 1,
+            "legende": "",
+            "url": "/api/fichiers/references/10",
+            "simule": true,
+            "choisie": false
+          },
+          {
+            "id": 11,
+            "genre": "image",
+            "serie": 1,
+            "rang": 2,
+            "legende": "",
+            "url": "/api/fichiers/references/11",
+            "simule": true,
+            "choisie": false
+          },
+          {
+            "id": 12,
+            "genre": "image",
+            "serie": 1,
+            "rang": 3,
+            "legende": "",
+            "url": "/api/fichiers/references/12",
+            "simule": true,
+            "choisie": false
+          }
+        ],
+        "series": 1,
+        "preparation": null,
+        "erreur": null
+      }
+    ],
+    "choisies": 0,
+    "a_choisir": 3,
+    "sans_choix": [
+      "Objet simulé 1 (géométrique, type connu)",
+      "Objet simulé 2 (géométrique, type inconnu)",
+      "Objet simulé 4 (mixte)"
+    ],
+    "sans_reference": [],
+    "deja_lances": 0,
+    "peut_lancer": false,
+    "credits_serie": 12,
+    "meshy_simule": true,
+    "style": {
+      "id": 1,
+      "code": "rome-stylise-v0",
+      "nom": "Rome antique stylisée",
+      "palette": [
+        {
+          "nom": "terre_cuite",
+          "hex": "#B5582E"
+        },
+        {
+          "nom": "ocre",
+          "hex": "#C8902A"
+        },
+        {
+          "nom": "bronze",
+          "hex": "#8C6A2F"
+        },
+        {
+          "nom": "marbre",
+          "hex": "#E8E3D8"
+        },
+        {
+          "nom": "fer",
+          "hex": "#5B5E63"
+        },
+        {
+          "nom": "cuir",
+          "hex": "#6E4A2B"
+        },
+        {
+          "nom": "bois",
+          "hex": "#8A5F3A"
+        },
+        {
+          "nom": "pourpre",
+          "hex": "#6B2D4C"
+        },
+        {
+          "nom": "lin",
+          "hex": "#D9CBA8"
+        },
+        {
+          "nom": "pierre",
+          "hex": "#A39F93"
+        }
+      ],
+      "materiaux": [
+        "bois",
+        "cuir",
+        "bronze",
+        "fer",
+        "marbre",
+        "terre_cuite",
+        "tissu",
+        "pierre",
+        "pourpre",
+        "ocre"
+      ],
+      "budgets": [
+        {
+          "libelle": "Petit objet",
+          "tris": 2000
+        },
+        {
+          "libelle": "Objet moyen",
+          "tris": 6000
+        },
+        {
+          "libelle": "Grand objet",
+          "tris": 15000
+        },
+        {
+          "libelle": "Module d'architecture",
+          "tris": 8000
+        }
+      ],
+      "texel_density": 512.0,
+      "unite": "1 = 1 m"
+    }
+  },
+  "PUT /api/lots/{id}/objets/{oid}/reference": {
+    "id": 1,
+    "nom": "Objet simulé 1 (géométrique, type connu)",
+    "voie": "ia",
+    "genre": "images",
+    "etape": "references",
+    "piece_ia": null,
+    "consigne": "Objet simulé 1 (géométrique, type connu) : Réponse simulée de l'API Claude : objet géométrique, type connu d'exemple, prop moyen. En mode réel, Claude décrit ici l'objet demandé, Rome antique stylisée, prop de jeu vidéo, formes lisibles, couleurs terre cuite, ocre, bronze, marbre, fer, cuir, bois, pourpre, lin, pierre, fond neutre uni, éclairage doux, vue trois-quarts, sans texte",
+    "consigne_modifiee": false,
+    "peut_changer": true,
+    "choix_id": 1,
+    "propositions": [
+      {
+        "id": 1,
+        "genre": "image",
+        "serie": 1,
+        "rang": 0,
+        "legende": "",
+        "url": "/api/fichiers/references/1",
+        "simule": true,
+        "choisie": true
+      },
+      {
+        "id": 2,
+        "genre": "image",
+        "serie": 1,
+        "rang": 1,
+        "legende": "",
+        "url": "/api/fichiers/references/2",
+        "simule": true,
+        "choisie": false
+      },
+      {
+        "id": 3,
+        "genre": "image",
+        "serie": 1,
+        "rang": 2,
+        "legende": "",
+        "url": "/api/fichiers/references/3",
+        "simule": true,
+        "choisie": false
+      },
+      {
+        "id": 4,
+        "genre": "image",
+        "serie": 1,
+        "rang": 3,
+        "legende": "",
+        "url": "/api/fichiers/references/4",
+        "simule": true,
+        "choisie": false
+      }
+    ],
+    "series": 1,
+    "preparation": null,
+    "erreur": null
+  },
+  "PUT /api/lots/{id}/objets/{oid}/consigne": {
+    "id": 1,
+    "nom": "Objet simulé 1 (géométrique, type connu)",
+    "voie": "ia",
+    "genre": "images",
+    "etape": "references",
+    "piece_ia": null,
+    "consigne": "Une consigne réécrite à la main.",
+    "consigne_modifiee": true,
+    "peut_changer": true,
+    "choix_id": 1,
+    "propositions": [
+      {
+        "id": 1,
+        "genre": "image",
+        "serie": 1,
+        "rang": 0,
+        "legende": "",
+        "url": "/api/fichiers/references/1",
+        "simule": true,
+        "choisie": true
+      },
+      {
+        "id": 2,
+        "genre": "image",
+        "serie": 1,
+        "rang": 1,
+        "legende": "",
+        "url": "/api/fichiers/references/2",
+        "simule": true,
+        "choisie": false
+      },
+      {
+        "id": 3,
+        "genre": "image",
+        "serie": 1,
+        "rang": 2,
+        "legende": "",
+        "url": "/api/fichiers/references/3",
+        "simule": true,
+        "choisie": false
+      },
+      {
+        "id": 4,
+        "genre": "image",
+        "serie": 1,
+        "rang": 3,
+        "legende": "",
+        "url": "/api/fichiers/references/4",
+        "simule": true,
+        "choisie": false
+      }
+    ],
+    "series": 1,
+    "preparation": null,
+    "erreur": null
+  },
+  "POST /api/lots/{id}/objets/{oid}/propositions": {
+    "tache_id": 7,
+    "objet": {
+      "id": 1,
+      "nom": "Objet simulé 1 (géométrique, type connu)",
+      "voie": "ia",
+      "genre": "images",
+      "etape": "references",
+      "piece_ia": null,
+      "consigne": "Une consigne réécrite à la main.",
+      "consigne_modifiee": true,
+      "peut_changer": true,
+      "choix_id": 1,
+      "propositions": [
+        {
+          "id": 1,
+          "genre": "image",
+          "serie": 1,
+          "rang": 0,
+          "legende": "",
+          "url": "/api/fichiers/references/1",
+          "simule": true,
+          "choisie": true
+        },
+        {
+          "id": 2,
+          "genre": "image",
+          "serie": 1,
+          "rang": 1,
+          "legende": "",
+          "url": "/api/fichiers/references/2",
+          "simule": true,
+          "choisie": false
+        },
+        {
+          "id": 3,
+          "genre": "image",
+          "serie": 1,
+          "rang": 2,
+          "legende": "",
+          "url": "/api/fichiers/references/3",
+          "simule": true,
+          "choisie": false
+        },
+        {
+          "id": 4,
+          "genre": "image",
+          "serie": 1,
+          "rang": 3,
+          "legende": "",
+          "url": "/api/fichiers/references/4",
+          "simule": true,
+          "choisie": false
+        }
+      ],
+      "series": 1,
+      "preparation": {
+        "tache_id": 7,
+        "etat": "en_attente",
+        "pct": null,
+        "texte": null
+      },
+      "erreur": null
+    }
+  },
+  "POST /api/lots/{id}/objets/{oid}/propositions#409": {
+    "erreur": "des propositions sont déjà en préparation pour cet objet",
+    "detail": null
+  },
+  "POST /api/lots/{id}/objets/{oid}/image": {
+    "id": 2,
+    "nom": "Objet simulé 2 (géométrique, type inconnu)",
+    "voie": "ia",
+    "genre": "images",
+    "etape": "references",
+    "piece_ia": null,
+    "consigne": "Objet simulé 2 (géométrique, type inconnu) : Réponse simulée de l'API Claude : objet géométrique, type inconnu d'exemple, grand prop. En mode réel, Claude décrit ici l'objet demandé, Rome antique stylisée, prop de jeu vidéo, formes lisibles, couleurs terre cuite, ocre, bronze, marbre, fer, cuir, bois, pourpre, lin, pierre, fond neutre uni, éclairage doux, vue trois-quarts, sans texte",
+    "consigne_modifiee": false,
+    "peut_changer": true,
+    "choix_id": 13,
+    "propositions": [
+      {
+        "id": 5,
+        "genre": "image",
+        "serie": 1,
+        "rang": 0,
+        "legende": "",
+        "url": "/api/fichiers/references/5",
+        "simule": true,
+        "choisie": false
+      },
+      {
+        "id": 6,
+        "genre": "image",
+        "serie": 1,
+        "rang": 1,
+        "legende": "",
+        "url": "/api/fichiers/references/6",
+        "simule": true,
+        "choisie": false
+      },
+      {
+        "id": 7,
+        "genre": "image",
+        "serie": 1,
+        "rang": 2,
+        "legende": "",
+        "url": "/api/fichiers/references/7",
+        "simule": true,
+        "choisie": false
+      },
+      {
+        "id": 8,
+        "genre": "image",
+        "serie": 1,
+        "rang": 3,
+        "legende": "",
+        "url": "/api/fichiers/references/8",
+        "simule": true,
+        "choisie": false
+      },
+      {
+        "id": 13,
+        "genre": "perso",
+        "serie": 0,
+        "rang": 0,
+        "legende": "Ton image",
+        "url": "/api/fichiers/references/13",
+        "simule": false,
+        "choisie": true
+      }
+    ],
+    "series": 1,
+    "preparation": null,
+    "erreur": null
+  },
+  "GET /api/lots/{id}/references#choix": {
+    "lot_id": 5,
+    "objets": [
+      {
+        "id": 1,
+        "nom": "Objet simulé 1 (géométrique, type connu)",
+        "voie": "ia",
+        "genre": "images",
+        "etape": "references",
+        "piece_ia": null,
+        "consigne": "Une consigne réécrite à la main.",
+        "consigne_modifiee": true,
+        "peut_changer": true,
+        "choix_id": 1,
+        "propositions": [
+          {
+            "id": 1,
+            "genre": "image",
+            "serie": 1,
+            "rang": 0,
+            "legende": "",
+            "url": "/api/fichiers/references/1",
+            "simule": true,
+            "choisie": true
+          },
+          {
+            "id": 2,
+            "genre": "image",
+            "serie": 1,
+            "rang": 1,
+            "legende": "",
+            "url": "/api/fichiers/references/2",
+            "simule": true,
+            "choisie": false
+          },
+          {
+            "id": 3,
+            "genre": "image",
+            "serie": 1,
+            "rang": 2,
+            "legende": "",
+            "url": "/api/fichiers/references/3",
+            "simule": true,
+            "choisie": false
+          },
+          {
+            "id": 4,
+            "genre": "image",
+            "serie": 1,
+            "rang": 3,
+            "legende": "",
+            "url": "/api/fichiers/references/4",
+            "simule": true,
+            "choisie": false
+          }
+        ],
+        "series": 1,
+        "preparation": {
+          "tache_id": 7,
+          "etat": "en_attente",
+          "pct": null,
+          "texte": null
+        },
+        "erreur": null
+      },
+      {
+        "id": 2,
+        "nom": "Objet simulé 2 (géométrique, type inconnu)",
+        "voie": "ia",
+        "genre": "images",
+        "etape": "references",
+        "piece_ia": null,
+        "consigne": "Objet simulé 2 (géométrique, type inconnu) : Réponse simulée de l'API Claude : objet géométrique, type inconnu d'exemple, grand prop. En mode réel, Claude décrit ici l'objet demandé, Rome antique stylisée, prop de jeu vidéo, formes lisibles, couleurs terre cuite, ocre, bronze, marbre, fer, cuir, bois, pourpre, lin, pierre, fond neutre uni, éclairage doux, vue trois-quarts, sans texte",
+        "consigne_modifiee": false,
+        "peut_changer": true,
+        "choix_id": 13,
+        "propositions": [
+          {
+            "id": 5,
+            "genre": "image",
+            "serie": 1,
+            "rang": 0,
+            "legende": "",
+            "url": "/api/fichiers/references/5",
+            "simule": true,
+            "choisie": false
+          },
+          {
+            "id": 6,
+            "genre": "image",
+            "serie": 1,
+            "rang": 1,
+            "legende": "",
+            "url": "/api/fichiers/references/6",
+            "simule": true,
+            "choisie": false
+          },
+          {
+            "id": 7,
+            "genre": "image",
+            "serie": 1,
+            "rang": 2,
+            "legende": "",
+            "url": "/api/fichiers/references/7",
+            "simule": true,
+            "choisie": false
+          },
+          {
+            "id": 8,
+            "genre": "image",
+            "serie": 1,
+            "rang": 3,
+            "legende": "",
+            "url": "/api/fichiers/references/8",
+            "simule": true,
+            "choisie": false
+          },
+          {
+            "id": 13,
+            "genre": "perso",
+            "serie": 0,
+            "rang": 0,
+            "legende": "Ton image",
+            "url": "/api/fichiers/references/13",
+            "simule": false,
+            "choisie": true
+          }
+        ],
+        "series": 1,
+        "preparation": null,
+        "erreur": null
+      },
+      {
+        "id": 4,
+        "nom": "Objet simulé 4 (mixte)",
+        "voie": "ia",
+        "genre": "images",
+        "etape": "references",
+        "piece_ia": null,
+        "consigne": "Objet simulé 4 (mixte) : Réponse simulée de l'API Claude : objet mixte d'exemple, module archi. En mode réel, Claude décrit ici l'objet demandé, module d'architecture romaine stylisée, jeu vidéo, proportions nettes, couleurs terre cuite, ocre, bronze, marbre, fer, cuir, bois, pourpre, lin, pierre, fond neutre uni, vue trois-quarts, sans texte",
+        "consigne_modifiee": false,
+        "peut_changer": true,
+        "choix_id": null,
+        "propositions": [
+          {
+            "id": 9,
+            "genre": "image",
+            "serie": 1,
+            "rang": 0,
+            "legende": "",
+            "url": "/api/fichiers/references/9",
+            "simule": true,
+            "choisie": false
+          },
+          {
+            "id": 10,
+            "genre": "image",
+            "serie": 1,
+            "rang": 1,
+            "legende": "",
+            "url": "/api/fichiers/references/10",
+            "simule": true,
+            "choisie": false
+          },
+          {
+            "id": 11,
+            "genre": "image",
+            "serie": 1,
+            "rang": 2,
+            "legende": "",
+            "url": "/api/fichiers/references/11",
+            "simule": true,
+            "choisie": false
+          },
+          {
+            "id": 12,
+            "genre": "image",
+            "serie": 1,
+            "rang": 3,
+            "legende": "",
+            "url": "/api/fichiers/references/12",
+            "simule": true,
+            "choisie": false
+          }
+        ],
+        "series": 1,
+        "preparation": null,
+        "erreur": null
+      }
+    ],
+    "choisies": 2,
+    "a_choisir": 3,
+    "sans_choix": [
+      "Objet simulé 4 (mixte)"
+    ],
+    "sans_reference": [],
+    "deja_lances": 0,
+    "peut_lancer": true,
+    "credits_serie": 12,
+    "meshy_simule": true,
+    "style": {
+      "id": 1,
+      "code": "rome-stylise-v0",
+      "nom": "Rome antique stylisée",
+      "palette": [
+        {
+          "nom": "terre_cuite",
+          "hex": "#B5582E"
+        },
+        {
+          "nom": "ocre",
+          "hex": "#C8902A"
+        },
+        {
+          "nom": "bronze",
+          "hex": "#8C6A2F"
+        },
+        {
+          "nom": "marbre",
+          "hex": "#E8E3D8"
+        },
+        {
+          "nom": "fer",
+          "hex": "#5B5E63"
+        },
+        {
+          "nom": "cuir",
+          "hex": "#6E4A2B"
+        },
+        {
+          "nom": "bois",
+          "hex": "#8A5F3A"
+        },
+        {
+          "nom": "pourpre",
+          "hex": "#6B2D4C"
+        },
+        {
+          "nom": "lin",
+          "hex": "#D9CBA8"
+        },
+        {
+          "nom": "pierre",
+          "hex": "#A39F93"
+        }
+      ],
+      "materiaux": [
+        "bois",
+        "cuir",
+        "bronze",
+        "fer",
+        "marbre",
+        "terre_cuite",
+        "tissu",
+        "pierre",
+        "pourpre",
+        "ocre"
+      ],
+      "budgets": [
+        {
+          "libelle": "Petit objet",
+          "tris": 2000
+        },
+        {
+          "libelle": "Objet moyen",
+          "tris": 6000
+        },
+        {
+          "libelle": "Grand objet",
+          "tris": 15000
+        },
+        {
+          "libelle": "Module d'architecture",
+          "tris": 8000
+        }
+      ],
+      "texel_density": 512.0,
+      "unite": "1 = 1 m"
+    }
+  },
+  "GET /api/lots/{id}#references": {
+    "id": 5,
+    "nom": "Lot simulé e1a6",
+    "theme": "Thème de test",
+    "besoin": "Un besoin de test : des contenants, du mobilier et un peu de décor.",
+    "style": {
+      "id": 1,
+      "code": "rome-stylise-v0",
+      "nom": "Rome antique stylisée",
+      "version": 0,
+      "racine_id": 1
+    },
+    "style_plus_recent": null,
+    "etat": "en_cours",
+    "cree_le": "2026-10-18T08:00:00Z",
+    "maj_le": "2026-10-18T08:00:00Z",
+    "duplique_de_id": null,
+    "credits_prevus": 126,
+    "proposition_tache_id": 3,
+    "nom_propose": "Lot simulé e1a6",
+    "etape_courante": 2,
+    "etapes": [
+      {
+        "cle": "brief",
+        "libelle": "Brief",
+        "numero": 1,
+        "lien": "/lots/5/brief",
+        "atteinte": true,
+        "faite": true
+      },
+      {
+        "cle": "references",
+        "libelle": "Références",
+        "numero": 2,
+        "lien": "/lots/5/references",
+        "atteinte": true,
+        "faite": false
+      },
+      {
+        "cle": "generation",
+        "libelle": "Génération",
+        "numero": 3,
+        "lien": "/lots/5/generation",
+        "atteinte": false,
+        "faite": false
+      },
+      {
+        "cle": "revue",
+        "libelle": "Revue",
+        "numero": 4,
+        "lien": "/lots/5/revue",
+        "atteinte": false,
+        "faite": false
+      }
+    ],
+    "ligne_etat": "3 objets · 2 références choisies · 0 sans référence (import, réutilisation)",
+    "etape": 2,
+    "libelle_etape": "Étape 2 sur 4 · Références",
+    "statut": "À toi",
+    "ton": "warn",
+    "detail": "1 référence à choisir",
+    "lien": "/lots/5/references",
+    "action": "Reprendre",
+    "compteurs": {
+      "total": 3,
+      "fabriques": 3,
+      "reutilises": 0,
+      "hors_perimetre": 0,
+      "a_creer": 0,
+      "references_a_choisir": 1,
+      "references_choisies": 2,
+      "cc0": 0,
+      "en_generation": 0,
+      "prets_revue": 0,
+      "gardes": 0,
+      "rejetes": 0,
+      "finis": 0
+    }
+  },
+  "POST /api/lots/{id}/lancer": {
+    "taches": [],
+    "lances": 2,
+    "par_code": 0,
+    "en_attente_ia": 2,
+    "mis_de_cote": [
+      "Objet simulé 4 (mixte)"
+    ]
+  },
   "GET /api/lots/{id}/generation": {
     "lot_id": 5,
     "tuiles": {
       "prets_revue": 0,
-      "fabriques": 3,
+      "fabriques": 2,
       "en_cours": 0,
       "relances": 0,
-      "credits_utilises": 0,
-      "credits_simules": false,
+      "credits_utilises": 36,
+      "credits_simules": true,
       "credits_prevus": 126
     },
     "objets": [
@@ -2593,15 +3677,16 @@
             "etat": "a_faire"
           }
         ],
-        "statut": "Attend sa référence (écran Références, étape 6 du plan)",
+        "statut": "Référence choisie · en attente : la fabrication par IA arrive à l'étape 7 du plan",
         "ton": "idle",
         "pct": 0,
         "essai": null,
-        "vignette": null,
+        "vignette": "/api/fichiers/references/1",
         "planche": null,
         "asset_id": null,
         "peut_fabriquer": false,
-        "motif": "voie IA, mixte ou import : la fabrication arrive à l'étape 7 du plan"
+        "motif": "voie IA, mixte ou import : la fabrication arrive à l'étape 7 du plan",
+        "peut_rechoisir": false
       },
       {
         "id": 2,
@@ -2630,56 +3715,100 @@
             "etat": "a_faire"
           }
         ],
-        "statut": "Attend sa référence (écran Références, étape 6 du plan)",
+        "statut": "Référence choisie · en attente : la fabrication par IA arrive à l'étape 7 du plan",
         "ton": "idle",
         "pct": 0,
         "essai": null,
-        "vignette": null,
+        "vignette": "/api/fichiers/references/13",
         "planche": null,
         "asset_id": null,
         "peut_fabriquer": false,
-        "motif": "voie IA, mixte ou import : la fabrication arrive à l'étape 7 du plan"
-      },
-      {
-        "id": 4,
-        "nom": "Objet simulé 4 (mixte)",
-        "voie": "ia",
-        "fournisseur": "IA · Meshy (simulé) · file Meshy",
-        "etapes": [
-          {
-            "cle": "generation",
-            "libelle": "Génération",
-            "etat": "a_faire"
-          },
-          {
-            "cle": "finition",
-            "libelle": "Finition",
-            "etat": "a_faire"
-          },
-          {
-            "cle": "tests",
-            "libelle": "Tests",
-            "etat": "a_faire"
-          },
-          {
-            "cle": "rendus",
-            "libelle": "Rendus",
-            "etat": "a_faire"
-          }
-        ],
-        "statut": "Attend sa référence (écran Références, étape 6 du plan)",
-        "ton": "idle",
-        "pct": 0,
-        "essai": null,
-        "vignette": null,
-        "planche": null,
-        "asset_id": null,
-        "peut_fabriquer": false,
-        "motif": "voie IA, mixte ou import : la fabrication arrive à l'étape 7 du plan"
+        "motif": "voie IA, mixte ou import : la fabrication arrive à l'étape 7 du plan",
+        "peut_rechoisir": false
       }
     ],
     "reutilises": [],
     "taches": [
+      {
+        "id": 7,
+        "type": "references_images",
+        "libelle": "Images de référence (Meshy)",
+        "file": "meshy",
+        "libelle_file": "Meshy",
+        "etat": "annulee",
+        "tentatives": 0,
+        "max_tentatives": 4,
+        "erreur": null,
+        "progression": null,
+        "cree_le": "2026-10-18T08:00:00Z",
+        "debute_le": null,
+        "fini_le": "2026-10-18T08:00:00Z",
+        "reprise_le": null,
+        "lot_id": 5,
+        "objet_id": 1,
+        "peut_relancer": true,
+        "peut_annuler": false
+      },
+      {
+        "id": 6,
+        "type": "references_images",
+        "libelle": "Images de référence (Meshy)",
+        "file": "meshy",
+        "libelle_file": "Meshy",
+        "etat": "terminee",
+        "tentatives": 1,
+        "max_tentatives": 4,
+        "erreur": null,
+        "progression": null,
+        "cree_le": "2026-10-18T08:00:00Z",
+        "debute_le": "2026-10-18T08:00:00Z",
+        "fini_le": "2026-10-18T08:00:00Z",
+        "reprise_le": null,
+        "lot_id": 5,
+        "objet_id": 4,
+        "peut_relancer": false,
+        "peut_annuler": false
+      },
+      {
+        "id": 5,
+        "type": "references_images",
+        "libelle": "Images de référence (Meshy)",
+        "file": "meshy",
+        "libelle_file": "Meshy",
+        "etat": "terminee",
+        "tentatives": 1,
+        "max_tentatives": 4,
+        "erreur": null,
+        "progression": null,
+        "cree_le": "2026-10-18T08:00:00Z",
+        "debute_le": "2026-10-18T08:00:00Z",
+        "fini_le": "2026-10-18T08:00:00Z",
+        "reprise_le": null,
+        "lot_id": 5,
+        "objet_id": 2,
+        "peut_relancer": false,
+        "peut_annuler": false
+      },
+      {
+        "id": 4,
+        "type": "references_images",
+        "libelle": "Images de référence (Meshy)",
+        "file": "meshy",
+        "libelle_file": "Meshy",
+        "etat": "terminee",
+        "tentatives": 1,
+        "max_tentatives": 4,
+        "erreur": null,
+        "progression": null,
+        "cree_le": "2026-10-18T08:00:00Z",
+        "debute_le": "2026-10-18T08:00:00Z",
+        "fini_le": "2026-10-18T08:00:00Z",
+        "reprise_le": null,
+        "lot_id": 5,
+        "objet_id": 1,
+        "peut_relancer": false,
+        "peut_annuler": false
+      },
       {
         "id": 3,
         "type": "proposer_liste",
@@ -2730,14 +3859,12 @@
       "en_attente": 0
     },
     "fabrication": {
-      "a_lancer": 0,
-      "voie_code": 0,
-      "autres_voies": 3,
+      "autres_voies": 2,
       "raison_ia": "La voie IA, le mixte et l'import CC0 se fabriqueront ici à l'étape 7 du plan"
     },
     "limites_files": {
       "gpu": 1,
-      "meshy": 3,
+      "meshy": 1,
       "blender": 2,
       "api": 4
     }
@@ -2746,7 +3873,7 @@
     "tache_id": 3,
     "evenements": [
       {
-        "id": 17,
+        "id": 18,
         "date": "2026-10-18T08:00:00Z",
         "type": "tache_creee",
         "niveau": "debug",
@@ -2754,7 +3881,7 @@
         "texte": "File api."
       },
       {
-        "id": 18,
+        "id": 19,
         "date": "2026-10-18T08:00:00Z",
         "type": "tache_debutee",
         "niveau": "debug",
@@ -2762,7 +3889,7 @@
         "texte": "Tentative 1 sur 4."
       },
       {
-        "id": 19,
+        "id": 20,
         "date": "2026-10-18T08:00:00Z",
         "type": "tache_progression",
         "niveau": "debug",
@@ -2770,7 +3897,7 @@
         "texte": "10 %"
       },
       {
-        "id": 20,
+        "id": 21,
         "date": "2026-10-18T08:00:00Z",
         "type": "liste_proposee",
         "niveau": "succes",
@@ -2778,7 +3905,7 @@
         "texte": "5 objets classés et routés."
       },
       {
-        "id": 21,
+        "id": 22,
         "date": "2026-10-18T08:00:00Z",
         "type": "tache_progression",
         "niveau": "debug",
@@ -2786,7 +3913,7 @@
         "texte": "100 %"
       },
       {
-        "id": 22,
+        "id": 23,
         "date": "2026-10-18T08:00:00Z",
         "type": "tache_terminee",
         "niveau": "succes",
@@ -2833,6 +3960,102 @@
         "peut_relancer": true,
         "peut_annuler": false,
         "contexte": null
+      },
+      {
+        "id": 7,
+        "type": "references_images",
+        "libelle": "Images de référence (Meshy)",
+        "file": "meshy",
+        "libelle_file": "Meshy",
+        "etat": "annulee",
+        "tentatives": 0,
+        "max_tentatives": 4,
+        "erreur": null,
+        "progression": null,
+        "cree_le": "2026-10-18T08:00:00Z",
+        "debute_le": null,
+        "fini_le": "2026-10-18T08:00:00Z",
+        "reprise_le": null,
+        "lot_id": 5,
+        "objet_id": 1,
+        "peut_relancer": true,
+        "peut_annuler": false,
+        "contexte": {
+          "libelle": "Lot simulé e1a6",
+          "lien": "/lots/5/references"
+        }
+      },
+      {
+        "id": 6,
+        "type": "references_images",
+        "libelle": "Images de référence (Meshy)",
+        "file": "meshy",
+        "libelle_file": "Meshy",
+        "etat": "terminee",
+        "tentatives": 1,
+        "max_tentatives": 4,
+        "erreur": null,
+        "progression": null,
+        "cree_le": "2026-10-18T08:00:00Z",
+        "debute_le": "2026-10-18T08:00:00Z",
+        "fini_le": "2026-10-18T08:00:00Z",
+        "reprise_le": null,
+        "lot_id": 5,
+        "objet_id": 4,
+        "peut_relancer": false,
+        "peut_annuler": false,
+        "contexte": {
+          "libelle": "Lot simulé e1a6",
+          "lien": "/lots/5/references"
+        }
+      },
+      {
+        "id": 5,
+        "type": "references_images",
+        "libelle": "Images de référence (Meshy)",
+        "file": "meshy",
+        "libelle_file": "Meshy",
+        "etat": "terminee",
+        "tentatives": 1,
+        "max_tentatives": 4,
+        "erreur": null,
+        "progression": null,
+        "cree_le": "2026-10-18T08:00:00Z",
+        "debute_le": "2026-10-18T08:00:00Z",
+        "fini_le": "2026-10-18T08:00:00Z",
+        "reprise_le": null,
+        "lot_id": 5,
+        "objet_id": 2,
+        "peut_relancer": false,
+        "peut_annuler": false,
+        "contexte": {
+          "libelle": "Lot simulé e1a6",
+          "lien": "/lots/5/references"
+        }
+      },
+      {
+        "id": 4,
+        "type": "references_images",
+        "libelle": "Images de référence (Meshy)",
+        "file": "meshy",
+        "libelle_file": "Meshy",
+        "etat": "terminee",
+        "tentatives": 1,
+        "max_tentatives": 4,
+        "erreur": null,
+        "progression": null,
+        "cree_le": "2026-10-18T08:00:00Z",
+        "debute_le": "2026-10-18T08:00:00Z",
+        "fini_le": "2026-10-18T08:00:00Z",
+        "reprise_le": null,
+        "lot_id": 5,
+        "objet_id": 1,
+        "peut_relancer": false,
+        "peut_annuler": false,
+        "contexte": {
+          "libelle": "Lot simulé e1a6",
+          "lien": "/lots/5/references"
+        }
       },
       {
         "id": 3,
@@ -2896,7 +4119,7 @@
         "id": 5,
         "nom": "Lot simulé e1a6",
         "theme": "Thème de test",
-        "nb_objets": 3,
+        "nb_objets": 2,
         "style": {
           "id": 1,
           "code": "rome-stylise-v0",
@@ -2907,21 +4130,23 @@
         "etat": "en_cours",
         "cree_le": "2026-10-18T08:00:00Z",
         "maj_le": "2026-10-18T08:00:00Z",
-        "etape": 2,
-        "libelle_etape": "Étape 2 sur 4 · Références",
-        "statut": "À toi",
-        "ton": "warn",
-        "detail": "3 références à choisir",
-        "lien": "/lots/5/references",
-        "action": "Reprendre",
+        "etape": 3,
+        "libelle_etape": "Étape 3 sur 4 · Génération",
+        "statut": "En génération",
+        "ton": "run",
+        "detail": "0 sur 2 générés",
+        "lien": "/lots/5/generation",
+        "action": "Suivre",
         "compteurs": {
-          "total": 3,
-          "fabriques": 3,
+          "total": 2,
+          "fabriques": 2,
           "reutilises": 0,
           "hors_perimetre": 0,
           "a_creer": 0,
-          "references_a_choisir": 3,
-          "en_generation": 0,
+          "references_a_choisir": 0,
+          "references_choisies": 2,
+          "cc0": 0,
+          "en_generation": 2,
           "prets_revue": 0,
           "gardes": 0,
           "rejetes": 0,
@@ -2951,6 +4176,8 @@
           "hors_perimetre": 0,
           "a_creer": 0,
           "references_a_choisir": 0,
+          "references_choisies": 0,
+          "cc0": 0,
           "en_generation": 0,
           "prets_revue": 0,
           "gardes": 0,
@@ -2981,6 +4208,8 @@
           "hors_perimetre": 0,
           "a_creer": 0,
           "references_a_choisir": 0,
+          "references_choisies": 0,
+          "cc0": 0,
           "en_generation": 0,
           "prets_revue": 0,
           "gardes": 0,
@@ -3011,6 +4240,8 @@
           "hors_perimetre": 0,
           "a_creer": 0,
           "references_a_choisir": 0,
+          "references_choisies": 0,
+          "cc0": 0,
           "en_generation": 0,
           "prets_revue": 0,
           "gardes": 0,
@@ -3041,6 +4272,8 @@
           "hors_perimetre": 0,
           "a_creer": 0,
           "references_a_choisir": 0,
+          "references_choisies": 0,
+          "cc0": 0,
           "en_generation": 0,
           "prets_revue": 0,
           "gardes": 0,
@@ -3105,7 +4338,7 @@
         "faite": false
       }
     ],
-    "ligne_etat": "3 objets · créé le 18 oct.",
+    "ligne_etat": "2 objets · créé le 18 oct.",
     "etape": 1,
     "libelle_etape": "Étape 1 sur 4 · Brief",
     "statut": "Brouillon",
@@ -3114,12 +4347,14 @@
     "lien": "/lots/6/brief",
     "action": "Reprendre",
     "compteurs": {
-      "total": 3,
-      "fabriques": 3,
+      "total": 2,
+      "fabriques": 2,
       "reutilises": 0,
       "hors_perimetre": 0,
       "a_creer": 0,
       "references_a_choisir": 0,
+      "references_choisies": 0,
+      "cc0": 0,
       "en_generation": 0,
       "prets_revue": 0,
       "gardes": 0,
@@ -3151,7 +4386,7 @@
     "credits_prevus": 126,
     "proposition_tache_id": 3,
     "nom_propose": "Lot simulé e1a6",
-    "etape_courante": 2,
+    "etape_courante": 3,
     "etapes": [
       {
         "cle": "brief",
@@ -3167,7 +4402,7 @@
         "numero": 2,
         "lien": "/lots/5/references",
         "atteinte": true,
-        "faite": false
+        "faite": true
       },
       {
         "cle": "generation",
@@ -3186,22 +4421,24 @@
         "faite": false
       }
     ],
-    "ligne_etat": "3 objets · 0 référence choisie · 0 sans référence (import, réutilisation)",
-    "etape": 2,
-    "libelle_etape": "Étape 2 sur 4 · Références",
-    "statut": "À toi",
-    "ton": "warn",
-    "detail": "3 références à choisir",
-    "lien": "/lots/5/references",
-    "action": "Reprendre",
+    "ligne_etat": "2 objets · 2 références choisies · 0 sans référence (import, réutilisation)",
+    "etape": 3,
+    "libelle_etape": "Étape 3 sur 4 · Génération",
+    "statut": "En génération",
+    "ton": "run",
+    "detail": "0 sur 2 générés",
+    "lien": "/lots/5/generation",
+    "action": "Suivre",
     "compteurs": {
-      "total": 3,
-      "fabriques": 3,
+      "total": 2,
+      "fabriques": 2,
       "reutilises": 0,
       "hors_perimetre": 0,
       "a_creer": 0,
-      "references_a_choisir": 3,
-      "en_generation": 0,
+      "references_a_choisir": 0,
+      "references_choisies": 2,
+      "cc0": 0,
+      "en_generation": 2,
       "prets_revue": 0,
       "gardes": 0,
       "rejetes": 0,
@@ -3210,8 +4447,11 @@
   },
   "GET /api/lots/{id}/appliquer-style": {
     "objets_code": [],
-    "objets_ia": [],
-    "credits": 0,
+    "objets_ia": [
+      "Objet simulé 1 (géométrique, type connu)",
+      "Objet simulé 2 (géométrique, type inconnu)"
+    ],
+    "credits": 60,
     "lancement_possible": false,
     "raison": "Refaire les objets arrive avec la fabrication (étapes 5 et 7 du plan)"
   }

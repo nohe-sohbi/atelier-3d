@@ -571,7 +571,7 @@ def deplier_uv(obj, marge: float = 0.02, angle_limite_deg: float = 66.0) -> None
 
 
 def finaliser(obj, manifeste: dict[str, Any], style: Style, params: dict[str, Any],
-              point_poignee=None, marge_uv: float = 0.02) -> Any:
+              point_poignee=None, marge_uv: float = 0.02, pieces: int | None = None) -> Any:
     """Queue commune de build() : nettoyage, pivot selon la famille, transformations appliquées,
     UV dépliées, nom et métadonnées. Renvoie l'objet final."""
     nettoyer(obj)
@@ -586,7 +586,7 @@ def finaliser(obj, manifeste: dict[str, Any], style: Style, params: dict[str, An
     obj["categorie"] = manifeste["categorie"]
     obj["famille"] = manifeste["famille"]
     obj["symetrique"] = manifeste["symetrique"] or ""
-    obj["pieces_declarees"] = int(manifeste["pieces_declarees"])
+    obj["pieces_declarees"] = int(manifeste["pieces_declarees"] if pieces is None else pieces)
     obj["pivot"] = mode
     return obj
 

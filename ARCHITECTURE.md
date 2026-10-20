@@ -18,7 +18,9 @@ api/            API FastAPI. Point d'entrée : api/main.py (app = create_app()).
                 (journal et notifications), credits.py (solde Meshy, une seule source), outils.py (Blender,
                 glTF-Validator, butler, Git LFS), style_yaml.py (chargeur de style.yaml), styles.py (écran Styles),
                 couts.py (coûts Meshy et Claude, dépense du mois, plafond), workers.py (battement du worker),
-                generation.py (écran Génération d'un lot, tâches récentes de Réglages).
+                generation.py (écran Génération d'un lot, tâches récentes de Réglages), references.py (écran
+                Références : propositions, consigne, image donnée, lancement), images_meshy.py (demander des
+                images à Meshy sans jamais payer deux fois), fabrication.py (voie code).
   adapters/     Services externes : meshy/, claude/, comfyui/, itchio/. Chaque dossier a
                 base.py (interface), simule.py, reel.py et __init__.py avec `get_<service>(config)`.
                 Le simulé est le défaut ; il répond comme le vrai sans dépenser de crédits.
@@ -26,7 +28,7 @@ worker/         Worker : worker/main.py boucle sur la table `taches` (files gpu,
                 relues dans la config) ; worker/handlers/<type>.py expose TYPE et run(tache, ctx). Une
                 TacheDefinitive (outil absent, crédits insuffisants, étape non construite) échoue sans relance.
 pipeline/       Fabrication hors de l'app : blender.py lance Blender sans fenêtre (bpy_principal.py : generer,
-                finir, rendre) ; finition.py (LOD, collision, exports), validate.py (12 contrôles, hors Blender),
+                finir, rendre, apercus) ; finition.py (LOD, collision, exports), validate.py (12 contrôles, hors Blender),
                 meta.py, rendu.py (5 vues), planche.py (planche de contact et vignette).
 generators/     Générateurs code : un fichier par type (MANIFESTE + build), _base.py leur cadre commun,
                 CONTRAT.md leur contrat. Livrés : scutum, gladius, pilum, amphore, colonne, caisse.

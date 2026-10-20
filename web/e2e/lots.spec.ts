@@ -55,7 +55,7 @@ test.describe("Étape 3 · Lots et Brief", () => {
 
     await page.getByRole("button", { name: "Générer les références" }).click();
     await expect(page).toHaveURL(/\/lots\/\d+\/references$/);
-    await expect(page.getByText("Arrive à l'étape 6 du plan")).toBeVisible();
+    await expect(page.getByRole("heading", { name: "Choisis une référence par objet" })).toBeVisible();
     await expect(etapes.getByRole("link", { name: /Références/ })).toHaveAttribute("aria-current", "step");
 
     const nom = (await page.getByRole("heading", { level: 1 }).textContent())!;

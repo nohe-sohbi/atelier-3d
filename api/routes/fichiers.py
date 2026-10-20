@@ -4,7 +4,7 @@ from __future__ import annotations
 from fastapi import APIRouter, HTTPException
 from fastapi.responses import FileResponse
 
-from api.services import fabrication, styles
+from api.services import fabrication, references, styles
 
 router = APIRouter(prefix="/fichiers", tags=["fichiers"])
 
@@ -22,5 +22,14 @@ def fichier_essai(essai_id: int, fichier: str) -> FileResponse:
     """Rendus d'un essai (vignette, planche, vues) : une liste fermée de noms."""
     try:
         return FileResponse(fabrication.fichier_public(essai_id, fichier))
+    except FileNotFoundError as e:
+        raise HTTPException(404, "fichier introuvable") from e
+
+
+@router.get("/references/{proposition_id}")
+def fichier_reference(proposition_id: int) -> FileResponse:
+    """Une proposition de l'écran Références (image Meshy, variante Blender, image donnée)."""
+    try:
+        return FileResponse(references.fichier_public(proposition_id))
     except FileNotFoundError as e:
         raise HTTPException(404, "fichier introuvable") from e

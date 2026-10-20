@@ -59,6 +59,16 @@ def _remplir(conn, client) -> None:
     conn.commit()
 
 
+def _png_minimal() -> bytes:
+    import io
+
+    from PIL import Image
+
+    tampon = io.BytesIO()
+    Image.new("RGB", (8, 8), (181, 88, 46)).save(tampon, "PNG")
+    return tampon.getvalue()
+
+
 def _faire_tourner_le_worker() -> None:
     """Un vrai passage du worker (adaptateurs simulés) : les réponses de tâches du contrat sont réelles."""
     from api import config as cfgmod
@@ -124,9 +134,34 @@ def _lots(client, contrat: dict, pilote: int) -> None:
     for o in objets["objets"]:
         if o["voie"] == "a_creer":
             contrat["PATCH /api/lots/{id}/objets/{oid}#ia"] = client.patch(f"/api/lots/{lid}/objets/{o['id']}", json={"voie": "ia"}).json()
+    # Une tâche Meshy à la fois : les images de référence arrivent toujours dans le même ordre (ids stables).
+    from api import chemins
+    from tests.conftest import ecrire_config
+    ecrire_config(chemins.chemin_config(), lambda c: c["files"].update({"meshy": 1}))
     contrat["POST /api/lots/{id}/valider-brief"] = client.post(f"/api/lots/{lid}/valider-brief").json()
+    refs_preparation = client.get(f"/api/lots/{lid}/references").json()
+    contrat["GET /api/lots/{id}/references#preparation"] = refs_preparation
+    for _ in refs_preparation["objets"]:  # une tâche par passage (file Meshy à 1)
+        _faire_tourner_le_worker()  # les images de référence simulées arrivent
+    refs = client.get(f"/api/lots/{lid}/references").json()
+    contrat["GET /api/lots/{id}/references"] = refs
+    premier, *autres = refs["objets"]
+    contrat["PUT /api/lots/{id}/objets/{oid}/reference"] = client.put(
+        f"/api/lots/{lid}/objets/{premier['id']}/reference", json={"proposition_id": premier["propositions"][0]["id"]}).json()
+    contrat["PUT /api/lots/{id}/objets/{oid}/consigne"] = client.put(
+        f"/api/lots/{lid}/objets/{premier['id']}/consigne", json={"consigne": "Une consigne réécrite à la main."}).json()
+    contrat["POST /api/lots/{id}/objets/{oid}/propositions"] = client.post(
+        f"/api/lots/{lid}/objets/{premier['id']}/propositions", json={}).json()
+    contrat["POST /api/lots/{id}/objets/{oid}/propositions#409"] = client.post(
+        f"/api/lots/{lid}/objets/{premier['id']}/propositions", json={}).json()
+    if autres:
+        contrat["POST /api/lots/{id}/objets/{oid}/image"] = client.post(
+            f"/api/lots/{lid}/objets/{autres[0]['id']}/image", files={"fichier": ("croquis.png", _png_minimal(), "image/png")}).json()
+    contrat["GET /api/lots/{id}/references#choix"] = client.get(f"/api/lots/{lid}/references").json()
+    contrat["GET /api/lots/{id}#references"] = client.get(f"/api/lots/{lid}", params={"etape": "references"}).json()
+    contrat["POST /api/lots/{id}/lancer"] = client.post(f"/api/lots/{lid}/lancer").json()
     contrat["GET /api/lots/{id}/generation"] = client.get(f"/api/lots/{lid}/generation").json()
-    proposition = contrat["GET /api/lots/{id}/generation"]["taches"][0]["id"]
+    proposition = next(t["id"] for t in contrat["GET /api/lots/{id}/generation"]["taches"] if t["type"] == "proposer_liste")
     contrat["GET /api/taches/{id}/journal"] = client.get(f"/api/taches/{proposition}/journal").json()
     contrat["GET /api/worker"] = client.get("/api/worker").json()
     contrat["GET /api/worker/taches"] = client.get("/api/worker/taches").json()

@@ -56,18 +56,12 @@ def _moteur(scene: bpy.types.Scene, moteur: str, taille_px: int) -> None:
     scene.render.image_settings.file_format = "PNG"
 
 
-def rendre(blend: str | Path, dossier: str | Path, id_asset: str, moteur: str = "eevee",
-           taille_px: int = TAILLE_PX) -> dict[str, Any]:
-    bpy.ops.wm.open_mainfile(filepath=str(blend))
-    scene = bpy.context.scene
-    lod0 = bpy.data.objects.get(f"{id_asset}_LOD0")
-    if lod0 is None:
-        raise ValueError(f"{id_asset}_LOD0 absent du fichier : la finition n'a pas été faite")
-    for o in scene.objects:
-        o.hide_render = o is not lod0
+def _photographier(scene: bpy.types.Scene, obj: bpy.types.Object, sorties: dict[str, Path], moteur: str,
+                   taille_px: int) -> None:
+    """Lumières, moteur et caméra cadrée sur la sphère englobante de `obj`, puis une image par vue demandée."""
     _lumieres(scene)
     _moteur(scene, moteur, taille_px)
-    mini, maxi = boite(lod0)
+    mini, maxi = boite(obj)
     centre = Vector(((mini[0] + maxi[0]) / 2, (mini[1] + maxi[1]) / 2, (mini[2] + maxi[2]) / 2))
     rayon = max(0.05, (Vector(maxi) - Vector(mini)).length / 2)
     camera = bpy.data.objects.new("camera", bpy.data.cameras.new("camera"))
@@ -77,14 +71,33 @@ def rendre(blend: str | Path, dossier: str | Path, id_asset: str, moteur: str = 
     demi_champ = camera.data.angle / 2
     distance = rayon / math.sin(demi_champ) * 1.08
     camera.data.clip_end = distance * 4
-    sortie = Path(dossier)
-    sortie.mkdir(parents=True, exist_ok=True)
-    fichiers = {}
-    for nom, direction in VUES.items():
-        d = Vector(direction).normalized()
+    for nom, chemin in sorties.items():
+        d = Vector(VUES[nom]).normalized()
         camera.location = centre + d * distance
         camera.rotation_euler = (-d).to_track_quat("-Z", "Y").to_euler()
-        scene.render.filepath = str(sortie / f"{nom}.png")
+        chemin.parent.mkdir(parents=True, exist_ok=True)
+        scene.render.filepath = str(chemin)
         bpy.ops.render.render(write_still=True)
-        fichiers[nom] = f"{nom}.png"
-    return {"moteur": moteur, "vues": fichiers, "taille_px": taille_px}
+
+
+def rendre(blend: str | Path, dossier: str | Path, id_asset: str, moteur: str = "eevee",
+           taille_px: int = TAILLE_PX) -> dict[str, Any]:
+    bpy.ops.wm.open_mainfile(filepath=str(blend))
+    scene = bpy.context.scene
+    lod0 = bpy.data.objects.get(f"{id_asset}_LOD0")
+    if lod0 is None:
+        raise ValueError(f"{id_asset}_LOD0 absent du fichier : la finition n'a pas été faite")
+    for o in scene.objects:
+        o.hide_render = o is not lod0
+    sortie = Path(dossier)
+    _photographier(scene, lod0, {nom: sortie / f"{nom}.png" for nom in VUES}, moteur, taille_px)
+    return {"moteur": moteur, "vues": {nom: f"{nom}.png" for nom in VUES}, "taille_px": taille_px}
+
+
+def apercu(obj: bpy.types.Object, fichier: str | Path, moteur: str = "eevee", taille_px: int = 384,
+           vue: str = "trois_quarts") -> None:
+    """Une seule vue de l'objet tel que le générateur l'a construit (variantes des Références)."""
+    scene = bpy.context.scene
+    for o in scene.objects:
+        o.hide_render = o is not obj
+    _photographier(scene, obj, {vue: Path(fichier)}, moteur, taille_px)

@@ -7,11 +7,14 @@ import type {
   EtatWorker,
   Generation,
   JournalTache,
+  Lancement,
   Lots,
   Menu,
   Notifications,
   ObjetsLot,
+  ObjetReferences,
   Recherche,
+  References,
   Reglages,
   ResultatTest,
   StyleDetail,
@@ -102,6 +105,18 @@ export const PROPOSITION_LANCEE = depuis<{ tache_id: number }>("POST /api/lots/{
 export const DEMANDE = depuis<DemandeClaudeCode>("GET /api/lots/{id}/objets/{oid}/demande");
 export const DEMANDE_ECRITE = depuis<DemandeClaudeCode>("POST /api/lots/{id}/objets/{oid}/demande");
 export const ESTIMATION_APPLIQUER = depuis<EstimationAppliquerStyle>("GET /api/lots/{id}/appliquer-style");
+/* Les Références du même lot : en préparation (le worker n'est pas passé), puis les images simulées arrivées ; un
+   choix, une consigne réécrite, « 4 autres » (et son refus pendant la préparation), une image donnée, le lancement. */
+export const REFERENCES_EN_PREPARATION = depuis<References>("GET /api/lots/{id}/references#preparation");
+export const REFERENCES = depuis<References>("GET /api/lots/{id}/references");
+export const REFERENCES_CHOIX = depuis<References>("GET /api/lots/{id}/references#choix");
+export const OBJET_REFERENCE_CHOISIE = depuis<ObjetReferences>("PUT /api/lots/{id}/objets/{oid}/reference");
+export const OBJET_CONSIGNE = depuis<ObjetReferences>("PUT /api/lots/{id}/objets/{oid}/consigne");
+export const QUATRE_AUTRES = depuis<{ tache_id: number; objet: ObjetReferences }>("POST /api/lots/{id}/objets/{oid}/propositions");
+export const REFUS_QUATRE_AUTRES = depuis<{ erreur: string; detail: unknown }>("POST /api/lots/{id}/objets/{oid}/propositions#409");
+export const OBJET_IMAGE_DONNEE = depuis<ObjetReferences>("POST /api/lots/{id}/objets/{oid}/image");
+export const LOT_ENTETE_REFERENCES = depuis<EnTeteLot>("GET /api/lots/{id}#references");
+export const LANCEMENT = depuis<Lancement>("POST /api/lots/{id}/lancer");
 export const GENERATION = depuis<Generation>("GET /api/lots/{id}/generation");
 export const JOURNAL = depuis<JournalTache>("GET /api/taches/{id}/journal");
 export const WORKER_ARRETE = depuis<EtatWorker>("GET /api/worker");

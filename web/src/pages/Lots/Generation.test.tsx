@@ -8,6 +8,7 @@ import {
   LOT_ENTETE_PROPOSE,
   MENU_VIDE,
   NOTIFICATIONS_VIDES,
+  REFERENCES,
   REGLAGES,
   TACHES_RECENTES,
   mockApi,
@@ -25,7 +26,7 @@ const BASE = {
   "GET /api/notifications": NOTIFICATIONS_VIDES,
   [`GET /api/lots/${LID}`]: { ...LOT_ENTETE_PROPOSE, id: LID },
 };
-const PROPOSITION = GENERATION.taches[0]!;
+const PROPOSITION = GENERATION.taches.find((t) => t.type === "proposer_liste")!;
 
 /** Le même lot, plus avancé : dérivé du contrat (même forme), comme le serait la réponse de l'API à l'étape 5. */
 function avancee(): Generation {
@@ -39,13 +40,14 @@ function avancee(): Generation {
       { ...b!, statut: "Prêt pour la revue", ton: "good", pct: 100, etapes: b!.etapes.map((p) => ({ ...p, etat: "fait" })) },
       ...reste,
     ],
-    taches: [echec, ...GENERATION.taches],
+    taches: [echec, PROPOSITION],
   };
 }
 
 describe("Génération", () => {
-  it("avant la fabrication : tuiles réelles, worker arrêté, objets en attente, tâches du lot et leur journal", async () => {
-    mockApi({ ...BASE, [`GET /api/lots/${LID}/generation`]: GENERATION, [`GET /api/taches/${PROPOSITION.id}/journal`]: JOURNAL });
+  it("objets IA lancés, en attente de l'étape 7 : tuiles réelles, worker arrêté, rien en cours, tâches du lot et leur journal", async () => {
+    const g: Generation = { ...GENERATION, taches: [PROPOSITION] };
+    mockApi({ ...BASE, [`GET /api/lots/${LID}/generation`]: g, [`GET /api/taches/${PROPOSITION.id}/journal`]: JOURNAL });
     const utilisateur = userEvent.setup();
     rendreApp(`/lots/${LID}/generation`);
     const tuiles = within(await screen.findByRole("list", { name: "Où en est la fabrication" }));
@@ -53,7 +55,7 @@ describe("Génération", () => {
     expect(tuiles.getByText(new RegExp(`${GENERATION.tuiles.credits_prevus}.prévus`))).toBeInTheDocument();
     expect(screen.getByText(/Le worker ne tourne pas/)).toBeInTheDocument();
     expect(screen.getByText(new RegExp(GENERATION.fabrication.raison_ia.slice(0, 40)))).toBeInTheDocument();
-    expect(screen.queryByRole("button", { name: /Fabriquer les objets code/ })).not.toBeInTheDocument(); // rien en voie code
+    expect(screen.getAllByText(/Référence choisie · en attente/)).toHaveLength(GENERATION.objets.length);
     const objets = within(screen.getByRole("list", { name: "Objets du lot" }));
     expect(objets.getAllByRole("listitem", { name: "" }).length).toBeGreaterThan(0);
     for (const o of GENERATION.objets) {
@@ -106,44 +108,43 @@ describe("Génération", () => {
 });
 
 describe("Génération · fabrication par code", () => {
-  it("un objet code prêt : Fabriquer ; un échec : son motif et Refaire ; un objet fini : vignette et planche", async () => {
-    const [a, b, c] = GENERATION.objets;
+  it("un échec : son motif, Refaire, ou Choisir une autre version (retour aux Références) ; un objet fini : vignette et planche", async () => {
+    const [a, b] = GENERATION.objets;
     const essai = (id: number, etat: string, erreur: string | null = null) => ({ id, numero: 1, etat, erreur });
-    let g: Generation = {
+    const g: Generation = {
       ...GENERATION,
-      fabrication: { ...GENERATION.fabrication, a_lancer: 2, voie_code: 3 },
       objets: [
-        { ...a!, voie: "code", peut_fabriquer: true, motif: null, essai: null, statut: "Prêt à fabriquer" },
         {
-          ...b!, voie: "code", peut_fabriquer: true, motif: null, essai: essai(40, "echec", "Blender introuvable"), ton: "warn",
-          statut: "Échec à l'étape Génération : Blender introuvable", etapes: b!.etapes.map((p, i) => ({ ...p, etat: i === 0 ? "echec" : "a_faire" })),
+          ...a!, voie: "code", peut_fabriquer: true, peut_rechoisir: true, motif: null, essai: essai(40, "echec", "contrôles en échec : Dimensions"),
+          ton: "warn", statut: "Échec à l'étape Tests : contrôles en échec : Dimensions",
+          etapes: a!.etapes.map((p, i) => ({ ...p, etat: i < 2 ? "fait" : i === 2 ? "echec" : "a_faire" })),
         },
         {
-          ...c!, voie: "code", peut_fabriquer: false, motif: "déjà fabriqué : il attend la revue", essai: essai(41, "pret"),
+          ...b!, voie: "code", peut_fabriquer: false, peut_rechoisir: false, motif: "déjà fabriqué : il attend la revue", essai: essai(41, "pret"),
           vignette: "/api/fichiers/essais/41/vignette.png", planche: "/api/fichiers/essais/41/planche.png", asset_id: "TST_PROP_Objet_A",
-          statut: "Prêt pour la revue", ton: "good", pct: 100, etapes: c!.etapes.map((p) => ({ ...p, etat: "fait" })),
+          statut: "Prêt pour la revue", ton: "good", pct: 100, etapes: b!.etapes.map((p) => ({ ...p, etat: "fait" })),
         },
       ],
     };
     const { appels } = mockApi({
       ...BASE,
-      [`GET /api/lots/${LID}/generation`]: () => g,
-      [`POST /api/lots/${LID}/fabriquer`]: (init: RequestInit | undefined) => {
-        if (!("objet_id" in JSON.parse(String(init?.body)))) g = { ...g, fabrication: { ...g.fabrication, a_lancer: 0 } };
-        return { taches: [1, 2] };
-      },
+      [`GET /api/lots/${LID}/generation`]: g,
+      [`POST /api/lots/${LID}/fabriquer`]: { taches: [1] },
+      [`POST /api/lots/${LID}/objets/${a!.id}/rouvrir`]: {},
+      [`GET /api/lots/${LID}/references`]: REFERENCES,
     });
     const utilisateur = userEvent.setup();
     rendreApp(`/lots/${LID}/generation`);
-    expect(await screen.findByRole("img", { name: `Vignette de ${c!.nom}` })).toHaveAttribute("src", "/api/fichiers/essais/41/vignette.png");
+    expect(await screen.findByRole("img", { name: `Vignette de ${b!.nom}` })).toHaveAttribute("src", "/api/fichiers/essais/41/vignette.png");
     expect(screen.getByRole("link", { name: "Voir la planche" })).toHaveAttribute("href", "/api/fichiers/essais/41/planche.png");
     expect(screen.getByText("TST_PROP_Objet_A")).toBeInTheDocument();
     expect(screen.getByText(/: en échec/)).toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: /Fabriquer les objets code/ })).not.toBeInTheDocument(); // on lance depuis les Références
     await utilisateur.click(screen.getByRole("button", { name: "Refaire (essai 2)" }));
-    await utilisateur.click(screen.getByRole("button", { name: "Fabriquer les objets code · 2" }));
-    const corps = appels.filter((x) => x.methode === "POST").map((x) => x.corps);
-    expect(corps).toEqual([{ objet_id: b!.id }, {}]);
-    await waitFor(() => expect(screen.queryByRole("button", { name: /Fabriquer les objets code/ })).not.toBeInTheDocument());
+    await waitFor(() => expect(appels.some((x) => x.methode === "POST" && x.chemin === `/api/lots/${LID}/fabriquer`)).toBe(true));
+    expect(appels.find((x) => x.chemin === `/api/lots/${LID}/fabriquer`)!.corps).toEqual({ objet_id: a!.id });
+    await utilisateur.click(screen.getByRole("button", { name: "Choisir une autre version" }));
+    expect(await screen.findByRole("heading", { name: "Choisis une référence par objet" })).toBeInTheDocument();
   });
 });
 
@@ -158,15 +159,16 @@ describe("Réglages · File de tâches et dépenses", () => {
       ...BASE,
       "GET /api/reglages": reglages,
       "GET /api/worker/taches": TACHES_RECENTES,
-      [`POST /api/taches/${echec.id}/relancer`]: {},
+      ...Object.fromEntries(TACHES_RECENTES.taches.filter((t) => t.peut_relancer).map((t) => [`POST /api/taches/${t.id}/relancer`, {}])),
     });
     const utilisateur = userEvent.setup();
     rendreApp("/reglages");
     expect(await screen.findByText("0,0312 $ · 2 briefs, 0 avis · 3 appels simulés, gratuits")).toBeInTheDocument();
     for (const t of TACHES_RECENTES.taches.filter((x) => x.contexte)) {
-      expect(screen.getByRole("link", { name: t.contexte!.libelle })).toHaveAttribute("href", t.contexte!.lien);
+      const liens = screen.getAllByRole("link", { name: t.contexte!.libelle }).map((l) => l.getAttribute("href"));
+      expect(liens).toContain(t.contexte!.lien);
     }
-    await utilisateur.click(screen.getByRole("button", { name: "Relancer" }));
+    await utilisateur.click(screen.getAllByRole("button", { name: "Relancer" })[0]!);
     await waitFor(() => expect(appels.some((a) => a.methode === "POST" && a.chemin === `/api/taches/${echec.id}/relancer`)).toBe(true));
   });
 });

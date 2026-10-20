@@ -20,7 +20,7 @@ MANIFESTE = {
     "famille": "contenants",
     "dimensions_type": "amphore",
     "symetrique": "X",
-    "pieces_declarees": 3,  # le corps et les deux anses
+    "pieces_declarees": 3,  # le corps et les deux anses ; sans anses : 1 (voir pieces())
     "parametres": {
         "hauteur_m": {"type": "float", "defaut": 0.90, "min": 0.4, "max": 1.4, "style_dim": "z",
                       "aide": "Hauteur totale (par défaut : style)"},
@@ -42,6 +42,11 @@ MANIFESTE = {
         "B": {"pied": "plat", "epaule": 0.55, "col_ratio": 0.38},
     },
 }
+
+
+def pieces(params: dict) -> int:
+    """Pièces construites avec ces réglages (lu sans Blender) : le corps, plus deux anses s'il en a."""
+    return 3 if B.lire_params(MANIFESTE, params)["anses"] == "deux" else 1
 
 
 def _profil(p: dict) -> tuple[list[tuple[float, float]], dict[str, float]]:
@@ -145,9 +150,9 @@ def build(params: dict, style, seed: int = 0):
     profil, rep = _profil(p)
     corps = B.revolution(profil, n, lisser=True, nom="amphore",
                          materiau=B.materiau(style, "terre_cuite"))
-    pieces = [corps]
+    morceaux = [corps]
     if p["anses"] == "deux":
-        pieces.append(_anse(profil, rep, style, +1.0))
-        pieces.append(_anse(profil, rep, style, -1.0))
-    obj = B.joindre(pieces, "amphore")
-    return B.finaliser(obj, MANIFESTE, style, p)
+        morceaux.append(_anse(profil, rep, style, +1.0))
+        morceaux.append(_anse(profil, rep, style, -1.0))
+    obj = B.joindre(morceaux, "amphore")
+    return B.finaliser(obj, MANIFESTE, style, p, pieces=len(morceaux))

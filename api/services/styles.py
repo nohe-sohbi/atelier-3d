@@ -17,22 +17,19 @@ import os
 import re
 import shutil
 import sqlite3
-import time
 import unicodedata
 from pathlib import Path
 from typing import Any
 
 from api import chemins, db
-from api.adapters.meshy.base import RefusMeshy
-from api.services import couts, style_yaml, taches
-from api.services.taches import TacheDefinitive
+from api.services import couts, images_meshy, style_yaml, taches
 
 log = logging.getLogger("api.styles")
 
 TYPE_TACHE_PLANCHE = "planche_style"
 NB_IMAGES_PLANCHE = 6  # au plus : un style qui connaît moins de types d'objets en dessine moins
 MAX_INSPIRATIONS = 5  # images de référence envoyées à Meshy (limite de l'API)
-EXTENSIONS_IMAGE = (".png", ".jpg", ".jpeg", ".webp")
+EXTENSIONS_IMAGE = images_meshy.EXTENSIONS_IMAGE
 _CODE = re.compile(r"^[a-z0-9]+(?:-[a-z0-9]+)*-v(\d+)$")
 _FICHIER = re.compile(r"^[A-Za-z0-9._-]+$")
 ETATS = ("brouillon", "valide")
@@ -435,25 +432,11 @@ def prompt_planche(s: style_yaml.Style, objet: str) -> str:
     return gabarit.replace("{objet}", objet.replace("_", " ")).replace("{palette}", ", ".join(s.palette))
 
 
-def _pluriel(n: int, singulier: str, pluriel: str) -> str:
-    return f"{n} {pluriel if n > 1 else singulier}"
-
-
-def _erreur_meshy(etat: dict) -> str:
-    e = etat.get("task_error")
-    if isinstance(e, dict):
-        return str(e.get("message") or e)
-    return str(e or etat.get("status"))
-
-
 def executer_planche(conn: sqlite3.Connection, meshy, params: dict, tache_id: int | None = None, progression=None,
                      arret=None, attente_s: float = 0.5, max_lectures: int = 600) -> dict:
-    """Corps de la tâche `planche_style` (worker) : une tâche Meshy par objet (Meshy rend une image par tâche),
-    guidée par les images d'inspiration du style ; puis rangement dans board/ et en base.
-
-    Rien n'est payé deux fois : chaque id Meshy lancé est noté dans la tâche (taches.noter_reprise) ; une reprise
-    (arrêt du worker, coupure, relance) relit ceux qui existent et ne lance que les manquants. Le rangement remplace
-    les lignes de cette tâche dans une seule transaction : le refaire ne double rien.
+    """Corps de la tâche `planche_style` (worker) : une image Meshy par objet, guidée par les images d'inspiration du
+    style (images_meshy.generer : rien n'est payé deux fois) ; puis rangement dans board/ et en base. Le rangement
+    remplace les lignes de cette tâche dans une seule transaction : le refaire ne double rien.
     """
     r = _ligne(conn, int(params["style_id"]))
     s = charger_style(r["code"])
@@ -461,49 +444,7 @@ def executer_planche(conn: sqlite3.Connection, meshy, params: dict, tache_id: in
     references = inspirations(r["code"])[:MAX_INSPIRATIONS]
     simule = 1 if getattr(meshy, "mode", "") == "simule" else 0
     service = "Meshy simulé" if simule else "Meshy"
-    reprise = taches.lire_reprise(conn, tache_id) if tache_id is not None else {}
-    lances = {int(k): str(v) for k, v in (reprise.get("meshy") or {}).items() if int(k) < len(objets)}
-
-    def noter() -> None:
-        if tache_id is not None:
-            taches.noter_reprise(conn, tache_id, {"meshy": {str(k): v for k, v in sorted(lances.items())}})
-
-    def avancer(pct: float, texte: str) -> None:
-        if progression:
-            progression(pct, f"{service} : {texte}")
-
-    for i, objet in enumerate(objets):
-        if i in lances:
-            continue
-        try:
-            lances[i] = meshy.image_vers_image(prompt_planche(s, objet), references or None)
-        except RefusMeshy as e:
-            raise TacheDefinitive(f"{e} : planche impossible ({_pluriel(len(objets), 'image', 'images')})") from e
-        noter()
-    avancer(10, _pluriel(len(objets), "image demandée", "images demandées"))
-
-    etats: dict[int, dict] = {}
-    for _ in range(max_lectures):
-        if arret is not None and arret():
-            raise InterruptedError(f"arrêt du worker pendant l'attente de {service}")
-        for i, mid in lances.items():
-            if etats.get(i, {}).get("status") != "SUCCEEDED":
-                etats[i] = meshy.etat_tache(mid)
-        echecs = [i for i, e in sorted(etats.items()) if e.get("status") in ("FAILED", "CANCELED")]
-        if echecs:
-            message = _erreur_meshy(etats[echecs[0]])
-            for i in echecs:  # une relance en redemandera une ; les images réussies sont gardées
-                del lances[i]
-            noter()
-            raise RuntimeError(f"{service} a échoué sur « {objets[echecs[0]]} » : {message}")
-        finies = sum(1 for e in etats.values() if e.get("status") == "SUCCEEDED")
-        if finies == len(objets):
-            break
-        pct = sum(float(e.get("progress") or 0) for e in etats.values()) / len(objets)
-        avancer(10 + 0.8 * pct, f"{finies} sur {_pluriel(len(objets), 'image', 'images')} · {round(pct)} %")
-        time.sleep(attente_s)
-    else:
-        raise RuntimeError(f"{service} ne finit pas (délai dépassé)")
+    demandes = [images_meshy.Demande(prompt_planche(s, o), references, o) for o in objets]
 
     board = dossier_style(r["code"]) / "board"
     tmp = board / f".tmp-{tache_id if tache_id is not None else 'direct'}"
@@ -511,15 +452,12 @@ def executer_planche(conn: sqlite3.Connection, meshy, params: dict, tache_id: in
     rangees: list[tuple[str, str, int]] = []
     ancienne = None
     try:
-        for i, objet in enumerate(objets):
-            sous = tmp / str(i)
-            meshy.telecharger(lances[i], sous)
-            fichiers = sorted(p for p in sous.iterdir() if p.suffix.lower() in EXTENSIONS_IMAGE)
-            if not fichiers:
-                raise RuntimeError(f"{service} n'a rendu aucune image pour « {objet} »")
-            nom = f"{slug(objet)}-{lances[i][-8:]}{fichiers[0].suffix.lower()}"
-            os.replace(fichiers[0], board / nom)  # même nom à la reprise : remplacé
-            rangees.append((objet, nom, int(etats[i].get("consumed_credits") or meshy.credits_image)))
+        recues = images_meshy.generer(conn, meshy, demandes, tmp, tache_id=tache_id, progression=progression,
+                                      arret=arret, quoi="planche", attente_s=attente_s, max_lectures=max_lectures)
+        for image, objet in zip(recues, objets, strict=True):
+            nom = f"{slug(objet)}-{image.meshy_id[-8:]}{image.fichier.suffix.lower()}"
+            os.replace(image.fichier, board / nom)  # même nom à la reprise : remplacé
+            rangees.append((objet, nom, image.credits))
         with db.transaction(conn):
             if tache_id is not None:
                 conn.execute("DELETE FROM planche_images WHERE tache_id = ?", (tache_id,))
@@ -541,7 +479,8 @@ def executer_planche(conn: sqlite3.Connection, meshy, params: dict, tache_id: in
         shutil.rmtree(tmp, ignore_errors=True)
     if ancienne and ancienne["fichier"] not in {nom for _, nom, _ in rangees}:
         (board / ancienne["fichier"]).unlink(missing_ok=True)
-    avancer(100, "planche rangée")
+    if progression:
+        progression(100, f"{service} : planche rangée")
     return {"images": crees, "simule": bool(simule), "credits": sum(c for _, _, c in rangees)}
 
 

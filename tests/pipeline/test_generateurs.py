@@ -25,14 +25,28 @@ def test_les_six_generateurs_livres_sont_valides_pour_le_theme_pilote():
         assert generateurs_registre.trouver_pour_type(nom, valides) == nom
 
 
+def test_pieces_selon_les_reglages():
+    from api.services import fabrication
+
+    racine = chemins.racine() / "generators"
+    m = generateurs_registre.charger("amphore", racine).MANIFESTE
+    assert fabrication.pieces_declarees(m, {}, racine) == 3 and fabrication.pieces_declarees(m, {"anses": "aucune"}, racine) == 1
+    m = generateurs_registre.charger("scutum", racine).MANIFESTE
+    assert fabrication.pieces_declarees(m, {"motif": "uni"}, racine) == m["pieces_declarees"]  # pas de pieces() : le MANIFESTE
+
+
 @pytest.mark.blender
-@pytest.mark.parametrize("nom", LIVRES)
-def test_generateur_de_bout_en_bout(nom, cfg_blender, tmp_path):
+@pytest.mark.parametrize(("nom", "params"), [*((n, None) for n in LIVRES), ("amphore", {"anses": "aucune"})])
+def test_generateur_de_bout_en_bout(nom, params, cfg_blender, tmp_path):
+    from api.services import fabrication
+
     style = _style()
     m = generateurs_registre.charger(nom, chemins.racine() / "generators").MANIFESTE
+    params = m["variantes"]["A"] if params is None else params
+    m = {**m, "pieces_declarees": fabrication.pieces_declarees(m, params, chemins.racine() / "generators")}
     ident = f"ROM_PROP_{nom.capitalize()}_A"
     fichier = chemins.racine() / "generators" / f"{nom}.py"
-    g = blender.lancer("generer", {"fichier": str(fichier), "params": m["variantes"]["A"], "seed": 0, "id": ident,
+    g = blender.lancer("generer", {"fichier": str(fichier), "params": params, "seed": 0, "id": ident,
                                    "dossier": str(tmp_path)}, cfg_blender, tmp_path, style=style)
     assert g["tris"] <= style.budget(m["categorie"])
     assert g["dimensions_m"] == pytest.approx(style.dimensions(m["dimensions_type"]), abs=1e-3)  # au millimètre près

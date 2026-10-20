@@ -21,6 +21,8 @@ import {
   OBJETS_UN_DECOCHE,
   OBJETS_VIDES,
   PROPOSITION_LANCEE,
+  REFERENCES,
+  REFERENCES_EN_PREPARATION,
   REFUS_VALIDATION,
   STYLES,
   TACHE_TERMINEE,
@@ -92,9 +94,9 @@ describe("Lots", () => {
   });
 
   it("/lots/:id ouvre le lot sur l'étape où il en est", async () => {
-    mockApi({ ...BASE, [`GET /api/lots/${LID}`]: LOT_VALIDE });
+    mockApi({ ...BASE, [`GET /api/lots/${LID}`]: LOT_VALIDE, [`GET /api/lots/${LID}/references`]: REFERENCES });
     rendreApp(`/lots/${LID}`);
-    expect(await screen.findByText("Arrive à l'étape 6 du plan")).toBeInTheDocument();
+    expect(await screen.findByRole("heading", { name: "Choisis une référence par objet" })).toBeInTheDocument();
   });
 });
 
@@ -137,15 +139,15 @@ describe("En-tête de lot", () => {
       ...BASE,
       [`GET /api/lots/${LID}`]: LOT_ENTETE_STYLE_PLUS_RECENT,
       [`GET /api/lots/${LID}/appliquer-style`]: ESTIMATION_APPLIQUER,
+      [`GET /api/lots/${LID}/references`]: REFERENCES,
     });
     const utilisateur = userEvent.setup();
     rendreApp(`/lots/${LID}/references`);
     const v = LOT_ENTETE_STYLE_PLUS_RECENT.style_plus_recent!;
     await utilisateur.click(await screen.findByRole("button", { name: `Appliquer la v${v.version}` }));
     const fenetre = screen.getByRole("dialog", { name: `Appliquer la v${v.version} · ${v.code}` });
-    expect(await within(fenetre).findByText(/rien à refaire/)).toBeInTheDocument();
+    expect(await within(fenetre).findByText(new RegExp(`${ESTIMATION_APPLIQUER.objets_ia.length} objets? IA à régénérer`))).toBeInTheDocument();
     expect(within(fenetre).getByRole("status")).toHaveTextContent(ESTIMATION_APPLIQUER.raison);
-    expect(screen.getByText("Arrive à l'étape 6 du plan")).toBeInTheDocument();
   });
 });
 
@@ -185,6 +187,7 @@ describe("Brief", () => {
     mockApi({
       ...BRIEF,
       [`POST /api/lots/${LID}/valider-brief`]: () => (accepte ? LOT_VALIDE : reponseErreur(409, REFUS_VALIDATION.erreur)),
+      [`GET /api/lots/${LID}/references`]: REFERENCES_EN_PREPARATION,
     });
     const utilisateur = userEvent.setup();
     rendreApp(`/lots/${LID}/brief`);
@@ -192,7 +195,8 @@ describe("Brief", () => {
     expect(await screen.findByRole("alert")).toHaveTextContent(REFUS_VALIDATION.erreur);
     accepte = true;
     await utilisateur.click(screen.getByRole("button", { name: "Générer les références" }));
-    expect(await screen.findByText("Arrive à l'étape 6 du plan")).toBeInTheDocument();
+    expect(await screen.findByRole("heading", { name: "Choisis une référence par objet" })).toBeInTheDocument();
+    expect(screen.getAllByText(/En attente/).length).toBeGreaterThan(0); // les 4 propositions se préparent
   });
 
   it("Proposer la liste : enregistre le besoin tapé, lance la tâche, suit la tâche, recharge la liste", async () => {

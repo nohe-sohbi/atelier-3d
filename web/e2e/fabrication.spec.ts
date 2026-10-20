@@ -2,13 +2,14 @@ import { expect, test } from "./garde-fous";
 
 interface Objet {
   id: number;
+  nom: string;
   voie: string;
   type_objet: string;
   retire: boolean;
 }
 
 test.describe("Étape 5 · Fabrication par code", () => {
-  test("Fabriquer depuis Génération : le vrai Blender génère, finit, contrôle et rend ; l'objet est prêt pour la revue", async ({ page, request }) => {
+  test("Références puis Génération : 4 versions rendues par le vrai Blender, on en choisit une, on lance ; l'objet est prêt pour la revue", async ({ page, request }) => {
     // Blender de la machine (proposé par Réglages) ; sans Blender, ce scénario n'a pas lieu d'être.
     const reglages = (await (await request.get("/api/reglages")).json()) as { etat: { outils: { blender: { suggestion: string | null } } } } & Record<string, unknown>;
     const blender = reglages.etat.outils.blender.suggestion;
@@ -36,8 +37,17 @@ test.describe("Étape 5 · Fabrication par code", () => {
       }
       expect((await request.post(`/api/lots/${lot.id}/valider-brief`)).ok()).toBe(true);
 
-      await page.goto(`/lots/${lot.id}/generation`);
-      await page.getByRole("button", { name: "Fabriquer les objets code · 1" }).click();
+      // Références : les 4 versions du générateur arrivent (Blender, gratuit) ; on choisit la 2e, puis on lance.
+      await page.goto(`/lots/${lot.id}/references`);
+      const carte = page.getByRole("region", { name: scutum.nom });
+      await expect(carte.getByText("4 versions du générateur · gratuites")).toBeVisible();
+      const versions = carte.getByRole("button", { name: /^Version \d sur 4 pour/ });
+      await expect(versions).toHaveCount(4, { timeout: 120_000 });
+      await versions.nth(1).click();
+      await expect(versions.nth(1)).toHaveAttribute("aria-pressed", "true");
+      await expect(page.getByText("1 sur 1 choisie")).toBeVisible();
+      await page.getByRole("button", { name: "Lancer la génération 3D" }).click();
+      await expect(page).toHaveURL(new RegExp(`/lots/${lot.id}/generation$`));
       await expect(page.getByText("Prêt pour la revue")).toBeVisible({ timeout: 180_000 });
       await expect(page.getByRole("img", { name: /^Vignette de / })).toBeVisible();
       await expect(page.getByRole("link", { name: "Voir la planche" })).toHaveAttribute("href", /\/api\/fichiers\/essais\/\d+\/planche\.png$/);

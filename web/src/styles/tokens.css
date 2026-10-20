@@ -34,6 +34,7 @@
   --ombre-fenetre: rgba(29, 28, 26, 0.18);
   --voile: rgba(29, 28, 26, 0.4);
   --liseret: rgba(0, 0, 0, 0.08);
+  --voile-clair: rgba(255, 255, 255, 0.86); /* légende posée sur une image */
 
   --police: "IBM Plex Sans", system-ui, sans-serif;
   --police-mono: "IBM Plex Mono", ui-monospace, monospace;

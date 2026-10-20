@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { api, messageErreur } from "../../api/client";
 import { signalerChangement } from "../../api/rafraichissement";
 import type { Generation as GenerationApi } from "../../api/types";
@@ -24,6 +24,7 @@ export function Generation({ lotId, onChangement }: Props) {
   const [alerte, setAlerte] = useState<string | null>(null);
   const [occupe, setOccupe] = useState(false);
   const minuteur = useRef<number | null>(null);
+  const naviguer = useNavigate();
 
   const charger = useCallback(async () => {
     try {
@@ -53,20 +54,34 @@ export function Generation({ lotId, onChangement }: Props) {
     onChangement();
   }, [charger, onChangement]);
 
-  /** Lance la fabrication des objets en voie code (tous, ou un seul). */
-  const fabriquer = async (objetId?: number) => {
+  const agir = async (action: () => Promise<void>) => {
     setAlerte(null);
     setOccupe(true);
     try {
-      await api(`/lots/${lotId}/fabriquer`, { method: "POST", body: JSON.stringify(objetId === undefined ? {} : { objet_id: objetId }) });
-      signalerChangement();
-      changement();
+      await action();
     } catch (e) {
       setAlerte(messageErreur(e));
     } finally {
       setOccupe(false);
     }
   };
+
+  /** « Refaire » : un nouvel essai du même objet, avec la même référence (utile si l'échec venait de la machine). */
+  const refaire = (objetId: number) =>
+    agir(async () => {
+      await api(`/lots/${lotId}/fabriquer`, { method: "POST", body: JSON.stringify({ objet_id: objetId }) });
+      signalerChangement();
+      changement();
+    });
+
+  /** « Choisir une autre version » : l'objet revient aux Références. */
+  const rechoisir = (objetId: number) =>
+    agir(async () => {
+      await api(`/lots/${lotId}/objets/${objetId}/rouvrir`, { method: "POST" });
+      signalerChangement();
+      onChangement();
+      naviguer(`/lots/${lotId}/references`);
+    });
 
   if (erreur && !g) return <Erreur message={erreur} onReessayer={charger} />;
   if (!g) return <Chargement />;
@@ -119,14 +134,6 @@ export function Generation({ lotId, onChangement }: Props) {
             graphique ({g.limites_files.gpu ?? "?"}). Les tâches sont enregistrées : si l'ordinateur s'éteint, elles reprennent au redémarrage.
             {g.reutilises.length > 0 ? ` Réutilisés depuis ta bibliothèque, rien à fabriquer : ${g.reutilises.join(", ")}.` : ""}
           </p>
-          {g.fabrication.a_lancer > 0 ? (
-            <div className="generation__lancer">
-              <button type="button" className="bouton bouton--primaire" onClick={() => fabriquer()} disabled={occupe}>
-                Fabriquer les objets code · {g.fabrication.a_lancer}
-              </button>
-              <span className="secondaire">Script Blender, finition, tests et rendus : gratuit, sur ce serveur.</span>
-            </div>
-          ) : null}
           {g.fabrication.autres_voies > 0 ? <p className="generation__a-venir">{g.fabrication.raison_ia}.</p> : null}
           {alerte ? (
             <div role="alert" className="brief__alerte">
@@ -134,7 +141,7 @@ export function Generation({ lotId, onChangement }: Props) {
             </div>
           ) : null}
           {g.objets.length === 0 ? (
-            <p className="secondaire">Aucun objet à fabriquer dans ce lot : valide d'abord le brief.</p>
+            <p className="secondaire">Aucun objet à fabriquer dans ce lot : valide le brief, puis choisis les références.</p>
           ) : (
             <ul role="list" aria-label="Objets du lot" className="generation__objets">
               {g.objets.map((o) => (
@@ -169,12 +176,16 @@ export function Generation({ lotId, onChangement }: Props) {
                         </a>
                       ) : null}
                       {o.asset_id ? <span className="mono secondaire">{o.asset_id}</span> : null}
+                      {o.peut_rechoisir ? (
+                        <button type="button" className="bouton bouton--petit" onClick={() => rechoisir(o.id)} disabled={occupe}>
+                          Choisir une autre version
+                        </button>
+                      ) : null}
                       {o.peut_fabriquer && o.essai ? (
-                        <button type="button" className="bouton bouton--petit" onClick={() => fabriquer(o.id)} disabled={occupe}>
+                        <button type="button" className="bouton bouton--petit" onClick={() => refaire(o.id)} disabled={occupe}>
                           Refaire (essai {o.essai.numero + 1})
                         </button>
                       ) : null}
-                      {!o.peut_fabriquer && o.voie === "code" && o.motif && !o.essai ? <span className="secondaire">{o.motif}</span> : null}
                     </div>
                   </div>
                 </li>

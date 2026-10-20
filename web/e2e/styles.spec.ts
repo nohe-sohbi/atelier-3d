@@ -1,7 +1,9 @@
 import { expect, test } from "./garde-fous";
 
 test.describe("Étape 2 · Styles", () => {
-  test("le style du thème pilote est là ; un nouveau style se crée, reçoit sa planche simulée et se valide", async ({ page }) => {
+  test("le style du thème pilote est là ; un nouveau style se crée, reçoit sa planche simulée et se valide", async ({ page, request }) => {
+    // La jauge part de ce que les autres scénarios ont déjà dépensé (crédits simulés) : on mesure la différence.
+    const avant = ((await (await request.get("/api/menu")).json()) as { credits: { utilises: number } }).credits.utilises;
     await page.goto("/styles");
     await expect(page.getByRole("heading", { level: 1, name: "Styles" })).toBeVisible();
     const pilote = page.getByRole("button", { name: /Rome antique stylisée/ });
@@ -36,7 +38,7 @@ test.describe("Étape 2 · Styles", () => {
     await expect(nouveau.getByText("Actif")).toBeVisible();
     await expect(page.getByRole("heading", { level: 2, name: "Style de bout en bout" })).toBeVisible();
     await expect(page.getByRole("list", { name: "Images de la planche" }).getByRole("img")).toHaveCount(2);
-    await expect(page.getByRole("progressbar", { name: "Crédits Meshy utilisés" })).toHaveAttribute("aria-valuenow", "18");
+    await expect(page.getByRole("progressbar", { name: "Crédits Meshy utilisés" })).toHaveAttribute("aria-valuenow", String(avant + 18));
 
     // Dupliquer en v1 : nouvelle version ouverte, l'ancienne reste dans la liste.
     await page.getByRole("button", { name: "Dupliquer en v1" }).click();

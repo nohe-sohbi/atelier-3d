@@ -1,7 +1,7 @@
 """Journal d'événements (table evenements) et notifications.
 
 Chaque changement d'état de la file, chaque alerte, écrit ici. `notification=1` marque les
-types qui remontent dans la cloche : revue prête, échec après N relances, banc terminé,
+types qui remontent dans la cloche : références prêtes, revue prête, échec après N relances, banc terminé,
 crédits à 80 %.
 """
 from __future__ import annotations
@@ -13,10 +13,11 @@ from api import db
 
 # Types d'événements qui deviennent des notifications.
 REVUE_PRETE = "revue_prete"
+REFERENCES_PRETES = "references_pretes"
 TACHE_ECHEC_FINAL = "tache_echec_final"
 BANC_TERMINE = "banc_termine"
 CREDITS_ALERTE = "credits_alerte"
-TYPES_NOTIFIES = frozenset({REVUE_PRETE, TACHE_ECHEC_FINAL, BANC_TERMINE, CREDITS_ALERTE})
+TYPES_NOTIFIES = frozenset({REFERENCES_PRETES, REVUE_PRETE, TACHE_ECHEC_FINAL, BANC_TERMINE, CREDITS_ALERTE})
 
 NIVEAUX = ("debug", "info", "succes", "alerte", "erreur")
 

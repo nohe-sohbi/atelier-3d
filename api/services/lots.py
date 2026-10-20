@@ -75,7 +75,11 @@ def _compter(objets: list[dict]) -> dict:
         "reutilises": len([o for o in objets if not o["retire"] and o["voie"] == "reutilise"]),
         "hors_perimetre": len([o for o in objets if not o["retire"] and o["voie"] == "hors_perimetre"]),
         "a_creer": len([o for o in fab if o["voie"] == "a_creer"]),
-        "references_a_choisir": len([o for o in fab if o["etape"] == "references"]),
+        "references_a_choisir": len([o for o in fab if o["etape"] == "references" and o["voie"] != "cc0"
+                                     and o.get("reference_id") is None]),
+        "references_choisies": len([o for o in fab if o["voie"] != "cc0" and (
+            o.get("reference_id") is not None or RANG.get(o["etape"], 1) > 2)]),
+        "cc0": len([o for o in fab if o["voie"] == "cc0"]),
         "en_generation": len([o for o in fab if RANG.get(o["etape"], 1) == 3]),
         "prets_revue": len([o for o in fab if o["etape"] == "revue"]),
         "gardes": len([o for o in fab if o["etape"] == "garde"]),
@@ -97,8 +101,9 @@ def situation(lot: dict, objets: list[dict]) -> dict:
         detail = "liste à valider" if c["total"] else "aucun objet pour l'instant"
         s = ("Brouillon", "idle", detail, f"/lots/{lid}/brief", "Reprendre")
     elif etape == 2:
-        s = ("À toi", "warn", f"{_pluriel(c['references_a_choisir'], 'référence à choisir', 'références à choisir')}",
-             f"/lots/{lid}/references", "Reprendre")
+        detail = (_pluriel(c["references_a_choisir"], "référence à choisir", "références à choisir")
+                  if c["references_a_choisir"] else "références choisies : lance la génération")
+        s = ("À toi", "warn", detail, f"/lots/{lid}/references", "Reprendre")
     elif etape == 3:
         s = ("En génération", "run", f"{c['fabriques'] - c['en_generation']} sur {c['fabriques']} générés",
              f"/lots/{lid}/generation", "Suivre")
@@ -119,8 +124,8 @@ def ligne_etat(lot: dict, objets: list[dict], etape_courante: str) -> str:
     if etape_courante == "brief":
         return f"{n} · créé le {_date_courte(lot['cree_le'])}"
     if etape_courante == "references":
-        sans = c["reutilises"] + c["hors_perimetre"]
-        choisies = _pluriel(c["fabriques"] - c["references_a_choisir"], "référence choisie", "références choisies")
+        sans = c["reutilises"] + c["hors_perimetre"] + c["cc0"]
+        choisies = _pluriel(c["references_choisies"], "référence choisie", "références choisies")
         return f"{n} · {choisies} · {sans} sans référence (import, réutilisation)"
     if etape_courante == "generation":
         prets = _pluriel(c["prets_revue"] + c["finis"], "prêt", "prêts")
@@ -182,8 +187,7 @@ def en_tete(conn: sqlite3.Connection, lot_id: int, etape_courante: str = "brief"
     etapes = []
     for i, cle in enumerate(ETAPES, start=1):
         etapes.append({"cle": cle, "libelle": LIBELLES_ETAPES[cle], "numero": i, "lien": f"/lots/{lot_id}/{cle}",
-                       # Génération s'ouvre dès le brief validé : la fabrication s'y lance (A-TRANCHER 4.1, 5.x)
-                       "atteinte": True if sit["etape"] >= 5 else i <= max(sit["etape"], 1) or (cle == "generation" and sit["etape"] >= 2),
+                       "atteinte": True if sit["etape"] >= 5 else i <= max(sit["etape"], 1),
                        "faite": i < sit["etape"]})
     return {"id": lot_id, "nom": lot["nom"], "theme": lot["theme"], "besoin": lot["besoin"], "style": style,
             "style_plus_recent": version_plus_recente, "etat": lot["etat"], "cree_le": lot["cree_le"], "maj_le": lot["maj_le"],

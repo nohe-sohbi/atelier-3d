@@ -9,6 +9,7 @@ import {
   NOTIFICATIONS,
   OBJETS,
   OBJETS_VIDES,
+  REFERENCES,
   REGLAGES,
   STYLES,
   STYLE_DETAIL,
@@ -76,10 +77,14 @@ describe("Navigation", () => {
     await screen.findByRole("button", { name: "Notifications : 1 nouvelle" });
   });
 
-  it.each([
-    ["references", 6],
-    ["revue", 8],
-  ])("/lots/:id/%s : l'en-tête du lot, puis « Arrive à l'étape %i du plan »", async (etape, numero) => {
+  it("/lots/:id/references : l'en-tête du lot, puis l'écran Références", async () => {
+    mockApi({ ...API, [`GET /api/lots/${LOT_ENTETE_PROPOSE.id}/references`]: REFERENCES });
+    rendreApp(`/lots/${LOT_ENTETE_PROPOSE.id}/references`);
+    expect(await screen.findByRole("heading", { level: 1, name: LOT_ENTETE_PROPOSE.nom })).toBeInTheDocument();
+    expect(await screen.findByRole("heading", { name: "Choisis une référence par objet" })).toBeInTheDocument();
+  });
+
+  it.each([["revue", 8]])("/lots/:id/%s : l'en-tête du lot, puis « Arrive à l'étape %i du plan »", async (etape, numero) => {
     mockApi(API);
     rendreApp(`/lots/${LOT_ENTETE_PROPOSE.id}/${etape}`);
     expect(await screen.findByRole("heading", { level: 1, name: LOT_ENTETE_PROPOSE.nom })).toBeInTheDocument();

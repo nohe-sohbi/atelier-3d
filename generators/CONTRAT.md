@@ -14,7 +14,8 @@ seul `build` tourne dans Blender 5.2 LTS (`blender -b --factory-startup -P …`)
 - **Couleurs, matériaux, budgets et dimensions viennent du style** (`style.materiau(nom)`, `style.budget(cat)`,
   `style.dimensions(type)`), jamais en dur.
 - `pieces_declarees` = nombre de pièces séparées que l'objet contient (1 pour un objet d'un seul bloc) ;
-  les tests comptent les morceaux et comparent.
+  les tests comptent les morceaux et comparent. Si ce nombre dépend des réglages (une amphore sans anses), le
+  générateur expose aussi `pieces(params) -> int`, lisible sans Blender : la fabrication l'utilise à la place.
 
 ## MANIFESTE
 

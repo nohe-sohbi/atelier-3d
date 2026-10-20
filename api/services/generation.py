@@ -1,7 +1,8 @@
 """Écran Génération d'un lot (Generation.dc.html) : ce qui se fabrique, ce qui tourne, ce que ça coûte.
 
 Tout vient de la base : étapes des objets, tâches du lot, coûts, registre des générateurs, battement du worker.
-Avant les étapes 5 (voie code) et 7 (voie IA) du plan, aucun objet n'avance au-delà des Références : l'écran le dit.
+Les objets y arrivent depuis les Références (« Lancer la génération 3D ») ; la voie IA se fabriquera ici à l'étape 7
+du plan : en attendant, ses objets attendent avec leur référence choisie, et l'écran le dit.
 """
 from __future__ import annotations
 
@@ -19,6 +20,7 @@ LIBELLES = {"generation": "Génération", "finition": "Finition", "tests": "Test
 FINIES = ("revue", "garde", "rejete", "archive")
 TYPES_TACHES = {"proposer_liste": "Proposition de la liste par Claude", "planche_style": "Planche de style (images Meshy)",
                 "fabriquer_code": "Fabrication par code (Blender)",
+                "references_images": "Images de référence (Meshy)", "references_variantes": "Variantes de référence (Blender)",
                 "echec": "Tâche d'essai (échoue exprès)", "attendre": "Tâche d'essai (attend)"}
 FILES = {"gpu": "carte graphique", "meshy": "Meshy", "blender": "Blender", "api": "API Claude"}
 FABRICATION_IA = "La voie IA, le mixte et l'import CC0 se fabriqueront ici à l'étape 7 du plan"
@@ -27,6 +29,8 @@ FABRICATION_IA = "La voie IA, le mixte et l'import CC0 se fabriqueront ici à l'
 def _puces(o: dict, essai: dict | None = None) -> list[dict]:
     if o["etape"] in FINIES:
         rang = len(ETAPES)
+    elif o["etape"] == "generation" and essai is None and o["voie"] != "code":
+        rang = -1  # voie IA ou import en attente de l'étape 7 : rien ne tourne encore
     elif o["etape"] in ETAPES:
         rang = ETAPES.index(o["etape"])
     else:
@@ -57,14 +61,20 @@ def _statut(o: dict, essai: dict | None = None) -> tuple[str, str, int]:
         return f"Échec à l'étape {LIBELLES[o['etape']]} : {essai['erreur'] or 'motif inconnu'}", "warn", round(100 * i / len(ETAPES))
     if o["etape"] in FINIES:
         return "Prêt pour la revue", "good", 100
+    if o["etape"] == "generation" and essai is None and o["voie"] != "code":
+        if o["voie"] == "cc0":
+            return "En attente : l'import CC0 arrive à l'étape 7 du plan", "idle", 0
+        return "Référence choisie · en attente : la fabrication par IA arrive à l'étape 7 du plan", "idle", 0
     if o["etape"] in ETAPES:
         i = ETAPES.index(o["etape"])
         return f"{LIBELLES[o['etape']]} en cours", "run", round(100 * i / len(ETAPES))
     if o["etape"] == "references":
-        if o["voie"] == "code":
-            return "Prêt à fabriquer (sa référence, variantes Blender, se choisira à l'étape 6)", "idle", 0
-        return "Attend sa référence (écran Références, étape 6 du plan)", "idle", 0
+        return "Attend sa référence (écran Références)", "idle", 0
     return "Au brief", "idle", 0
+
+
+def _en_attente_ia(conn: sqlite3.Connection, o: dict) -> bool:
+    return o["voie"] != "code" and o["etape"] == "generation" and not db.une(conn, "SELECT 1 FROM essais WHERE objet_id = ?", (o["id"],))
 
 
 def tache_vue(t: dict) -> dict:
@@ -103,18 +113,25 @@ def vue(conn: sqlite3.Connection, cfg: dict, lot_id: int) -> dict:
     lignes = []
     for o in fabriques:
         essai = db.une(conn, "SELECT * FROM essais WHERE objet_id = ? ORDER BY numero DESC LIMIT 1", (o["id"],))
-        texte, ton, pct = _statut(o, essai)
-        motif = fabrication.motif_refus(conn, o, manifestes)
         rendus = fabrication.dossier_essai(essai) / "asset" / "rendus" if essai else None
+        texte, ton, pct = _statut(o, essai)
+        if rendus is None or not (rendus / "vignette.png").is_file():
+            vignette = f"/api/fichiers/references/{o['reference_id']}" if o.get("reference_id") else None
+        else:
+            vignette = f"/api/fichiers/essais/{essai['id']}/vignette.png"
+        motif = fabrication.motif_refus(conn, o, manifestes)
         asset = db.une(conn, "SELECT id FROM assets WHERE objet_id = ?", (o["id"],))
         lignes.append({
             "id": o["id"], "nom": o["nom"], "voie": o["voie"], "fournisseur": _fournisseur(o, meshy_simule),
             "etapes": _puces(o, essai), "statut": texte, "ton": ton, "pct": pct,
             "essai": {"id": essai["id"], "numero": essai["numero"], "etat": essai["etat"], "erreur": essai["erreur"]} if essai else None,
-            "vignette": f"/api/fichiers/essais/{essai['id']}/vignette.png" if rendus and (rendus / "vignette.png").is_file() else None,
+            # Le rendu de l'objet fabriqué ; avant, la référence choisie aux Références.
+            "vignette": vignette,
             "planche": f"/api/fichiers/essais/{essai['id']}/planche.png" if rendus and (rendus / "planche.png").is_file() else None,
             "asset_id": asset["id"] if asset else None,
-            "peut_fabriquer": motif is None, "motif": motif})
+            "peut_fabriquer": motif is None, "motif": motif,
+            # Un objet code en échec peut repartir d'une autre variante, choisie aux Références.
+            "peut_rechoisir": o["voie"] == "code" and essai is not None and essai["etat"] == "echec" and motif is None})
     liste = [taches._charger(r) for r in db.toutes(conn, "SELECT * FROM taches WHERE lot_id = ? ORDER BY id DESC", (lot_id,))]
     credits = couts.credits_meshy_lot(conn, lot_id)
     prets = sum(1 for o in fabriques if o["etape"] in FINIES)
@@ -122,7 +139,8 @@ def vue(conn: sqlite3.Connection, cfg: dict, lot_id: int) -> dict:
         "lot_id": lot_id,
         "tuiles": {
             "prets_revue": prets, "fabriques": len(fabriques),
-            "en_cours": sum(1 for o in fabriques if o["etape"] in ETAPES),
+            # Un objet IA lancé attend l'étape 7 : il n'est pas « en cours » tant que rien ne tourne pour lui.
+            "en_cours": sum(1 for o in fabriques if o["etape"] in ETAPES and not _en_attente_ia(conn, o)),
             "relances": sum(max(0, t["tentatives"] - 1) for t in liste),
             "credits_utilises": credits["credits"], "credits_simules": credits["simule"],
             "credits_prevus": int(lot["credits_prevus"] or 0),
@@ -132,9 +150,7 @@ def vue(conn: sqlite3.Connection, cfg: dict, lot_id: int) -> dict:
         "taches": [tache_vue(t) for t in liste],
         "generateurs": generateurs_branches(cfg),
         "worker": workers.etat(conn),
-        "fabrication": {"a_lancer": sum(1 for x in lignes if x["peut_fabriquer"]),
-                        "voie_code": sum(1 for o in fabriques if o["voie"] == "code"),
-                        "autres_voies": sum(1 for o in fabriques if o["voie"] != "code"), "raison_ia": FABRICATION_IA},
+        "fabrication": {"autres_voies": sum(1 for o in fabriques if o["voie"] != "code"), "raison_ia": FABRICATION_IA},
         "limites_files": {f: int(v) for f, v in cfgmod.limites_files(cfg).items()},
     }
 
@@ -150,7 +166,8 @@ def taches_recentes(conn: sqlite3.Connection, limite: int = 20) -> list[dict]:
         if t["lot_id"]:
             lot = db.une(conn, "SELECT nom FROM lots WHERE id = ?", (t["lot_id"],))
             nom = lot["nom"] if lot and lot["nom"] else f"Lot n° {t['lot_id']}"
-            vue_t["contexte"] = {"libelle": nom, "lien": f"/lots/{t['lot_id']}/generation"}
+            ecran = "references" if t["type"] in ("references_images", "references_variantes") else "generation"
+            vue_t["contexte"] = {"libelle": nom, "lien": f"/lots/{t['lot_id']}/{ecran}"}
         elif t["type"] == "planche_style" and isinstance(t["params"], dict):
             code = t["params"].get("code", "")
             vue_t["contexte"] = {"libelle": f"Style {code}", "lien": f"/styles?style={code}"}

@@ -570,6 +570,8 @@ export interface ObjetGeneration {
   peut_fabriquer: boolean;
   /** Pourquoi l'objet ne peut pas être fabriqué maintenant. */
   motif: string | null;
+  /** Objet code en échec : il peut repartir d'une autre variante, choisie aux Références. */
+  peut_rechoisir: boolean;
 }
 
 /** GET /api/lots/{id}/generation */
@@ -589,6 +591,76 @@ export interface Generation {
   taches: TacheVue[];
   generateurs: Array<{ nom: string; detail: string; etat: string; ton: TonLot }>;
   worker: EtatWorker;
-  fabrication: { a_lancer: number; voie_code: number; autres_voies: number; raison_ia: string };
+  fabrication: { autres_voies: number; raison_ia: string };
   limites_files: Record<string, number>;
+}
+
+/** Une proposition de l'écran Références : image Meshy, variante Blender, ou image donnée par l'utilisateur. */
+export interface Proposition {
+  id: number;
+  genre: "image" | "variante" | "perso";
+  serie: number;
+  rang: number;
+  /** Variante : ce qui la distingue (« Motif foudre · Courbure 0,35 ») ; image donnée : « Ton image ». */
+  legende: string;
+  url: string;
+  simule: boolean;
+  choisie: boolean;
+}
+
+export interface ObjetReferences {
+  id: number;
+  nom: string;
+  voie: Voie;
+  /** « images » : voie IA ou mixte ; « variantes » : voie code. */
+  genre: "images" | "variantes";
+  etape: string;
+  /** Objet mixte : la pièce faite par IA, seule à recevoir des images. */
+  piece_ia: string | null;
+  /** La phrase envoyée à l'IA (objets IA) ; null pour un objet code. */
+  consigne: string | null;
+  consigne_modifiee: boolean;
+  /** Aux Références et pas encore lancé : on peut encore choisir. */
+  peut_changer: boolean;
+  choix_id: number | null;
+  propositions: Proposition[];
+  series: number;
+  preparation: { tache_id: number; etat: EtatTache; pct: number | null; texte: string | null } | null;
+  erreur: { tache_id: number; message: string; peut_relancer: boolean } | null;
+}
+
+/** GET /api/lots/{id}/references */
+export interface References {
+  lot_id: number;
+  objets: ObjetReferences[];
+  choisies: number;
+  a_choisir: number;
+  /** Objets encore sans référence : mis de côté au lancement. */
+  sans_choix: string[];
+  /** Objets qui n'ont pas besoin de référence (import CC0). */
+  sans_reference: string[];
+  deja_lances: number;
+  peut_lancer: boolean;
+  /** Crédits Meshy d'une série de 4 images. */
+  credits_serie: number;
+  meshy_simule: boolean;
+  style: {
+    id: number;
+    code: string;
+    nom: string;
+    palette: Array<{ nom: string; hex: string }>;
+    materiaux: string[];
+    budgets: Array<{ libelle: string; tris: number | null }>;
+    texel_density: number;
+    unite: string;
+  };
+}
+
+/** POST /api/lots/{id}/lancer */
+export interface Lancement {
+  taches: number[];
+  lances: number;
+  par_code: number;
+  en_attente_ia: number;
+  mis_de_cote: string[];
 }

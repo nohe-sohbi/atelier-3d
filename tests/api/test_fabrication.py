@@ -27,6 +27,26 @@ def avec_scutum(atelier):
     shutil.copy(chemins.racine() / "generators" / "scutum.py", atelier.generateurs / "scutum.py")
 
 
+def _choisir_variante(client, conn, lid, oid, params=None):
+    """La variante que l'écran Références aurait rendue et que l'utilisateur choisit (posée en base : pas de Blender)."""
+    pid = db.inserer(conn, "propositions", {
+        "objet_id": oid, "serie": 1, "rang": 0, "genre": "variante", "fichier": "s1-1.png", "legende": "Motif ailes",
+        "params_json": json.dumps(params or {"variante": "A", "motif": "ailes", "courbure": 0.5}), "credits": 0,
+        "simule": 0, "cree_le": db.maintenant()})
+    conn.commit()
+    assert client.put(f"/api/lots/{lid}/objets/{oid}/reference", json={"proposition_id": pid}).status_code == 200
+    return pid
+
+
+def _lancer_scutum(client, conn, cfg, garder_seulement_le_scutum=True):
+    """Brief validé, variante du scutum choisie, « Lancer la génération 3D » : la tâche de fabrication du scutum."""
+    lid, scutum = _lot_avec_scutum(client, cfg, garder_seulement_le_scutum)
+    _choisir_variante(client, conn, lid, scutum)
+    r = client.post(f"/api/lots/{lid}/lancer")
+    assert r.status_code == 202, r.text
+    return lid, scutum, r.json()["taches"][0]
+
+
 def _lot_avec_scutum(client, cfg, garder_seulement_le_scutum=False):
     """Un lot dont la liste simulée contient un objet « scutum » : en voie code grâce au générateur."""
     lot = client.post("/api/lots", json={"theme": "Thème", "besoin": BESOIN}).json()
@@ -44,16 +64,22 @@ def _lot_avec_scutum(client, cfg, garder_seulement_le_scutum=False):
     return lot["id"], scutum["id"]
 
 
-def test_refus_clairs(client, cfg, avec_scutum):
+def test_refus_clairs(client, conn, cfg, avec_scutum):
     lot = client.post("/api/lots", json={"theme": "T", "besoin": BESOIN}).json()
-    r = client.post(f"/api/lots/{lot['id']}/fabriquer", json={})
-    assert r.status_code == 409 and "aucun objet en voie code" in r.json()["erreur"]
-    lid, _scutum = _lot_avec_scutum(client, cfg)
+    r = client.post(f"/api/lots/{lot['id']}/lancer")
+    assert r.status_code == 409 and "choisis d'abord une référence" in r.json()["erreur"]
+    lid, scutum = _lot_avec_scutum(client, cfg)
+    r = client.post(f"/api/lots/{lid}/fabriquer", json={"objet_id": scutum})
+    assert r.status_code == 409 and "choisis d'abord sa référence" in r.json()["erreur"]
     ia = next(o for o in client.get(f"/api/lots/{lid}/objets").json()["objets"] if o["voie"] == "ia" and not o["retire"])
     r = client.post(f"/api/lots/{lid}/fabriquer", json={"objet_id": ia["id"]})
     assert r.status_code == 409 and "étape 7" in r.json()["erreur"]
     assert client.post(f"/api/lots/{lid}/fabriquer", json={"objet_id": 999}).status_code == 404
-    # L'onglet Génération s'ouvre dès le brief validé : la fabrication s'y lance.
+    # La fabrication se lance depuis les Références : l'onglet Génération s'ouvre au lancement.
+    etapes = {e["cle"]: e for e in client.get(f"/api/lots/{lid}").json()["etapes"]}
+    assert etapes["generation"]["atteinte"] is False
+    _choisir_variante(client, conn, lid, scutum)
+    assert client.post(f"/api/lots/{lid}/lancer").status_code == 202
     etapes = {e["cle"]: e for e in client.get(f"/api/lots/{lid}").json()["etapes"]}
     assert etapes["generation"]["atteinte"] is True and etapes["revue"]["atteinte"] is False
 
@@ -61,8 +87,10 @@ def test_refus_clairs(client, cfg, avec_scutum):
 def test_sans_blender_echec_definitif_puis_nouvel_essai(client, conn, cfg, avec_scutum, atelier):
     lid, scutum = _lot_avec_scutum(client, cfg)
     code = [o["id"] for o in client.get(f"/api/lots/{lid}/objets").json()["objets"] if o["voie"] == "code" and not o["retire"]]
-    assert client.get(f"/api/lots/{lid}/generation").json()["fabrication"]["a_lancer"] == len(code) >= 1
-    r = client.post(f"/api/lots/{lid}/fabriquer", json={})
+    assert len(code) >= 1
+    for oid in code:
+        _choisir_variante(client, conn, lid, oid)
+    r = client.post(f"/api/lots/{lid}/lancer")
     assert r.status_code == 202 and len(r.json()["taches"]) == len(code)  # une tâche Blender par objet code
     tid = next(t for t in r.json()["taches"] if client.get(f"/api/taches/{t}").json()["objet_id"] == scutum)
     t = client.get(f"/api/taches/{tid}").json()
@@ -102,8 +130,7 @@ def cfg_blender(cfg, atelier):
 
 @pytest.mark.blender
 def test_scutum_fabrique_par_le_worker_jusqu_a_la_revue(client, conn, cfg_blender, avec_scutum):
-    lid, scutum = _lot_avec_scutum(client, cfg_blender, garder_seulement_le_scutum=True)
-    tid = client.post(f"/api/lots/{lid}/fabriquer", json={}).json()["taches"][0]
+    lid, scutum, tid = _lancer_scutum(client, conn, cfg_blender)
     _worker_tourne(cfg_blender, timeout=300)
     t = client.get(f"/api/taches/{tid}").json()
     assert t["etat"] == "terminee", t["erreur"]
@@ -132,8 +159,7 @@ def test_scutum_fabrique_par_le_worker_jusqu_a_la_revue(client, conn, cfg_blende
 def test_reprise_apres_arret_sans_refaire_la_generation(client, conn, cfg_blender, avec_scutum, monkeypatch):
     from pipeline import blender
 
-    lid, _scutum = _lot_avec_scutum(client, cfg_blender, garder_seulement_le_scutum=True)
-    tid = client.post(f"/api/lots/{lid}/fabriquer", json={}).json()["taches"][0]
+    _lid, _scutum, tid = _lancer_scutum(client, conn, cfg_blender)
     vrai = blender.lancer
     appels = []
 

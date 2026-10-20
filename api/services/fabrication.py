@@ -29,7 +29,7 @@ TYPE_TACHE = "fabriquer_code"
 ETAPES = ("generation", "finition", "tests", "rendus")
 LIBELLES = {"generation": "Génération", "finition": "Finition", "tests": "Tests", "rendus": "Rendus"}
 ETAPES_RELANCABLES = ("references", *ETAPES)
-VARIANTE = "A"  # provisoire : la variante se choisira à l'écran Références (étape 6, correction 1)
+VARIANTE_PAR_DEFAUT = "A"  # objet sans référence choisie (lot d'avant l'étape 6) : la première variante du générateur
 FICHIERS_PUBLICS = ("vignette.png", "planche.png", "face.png", "dos.png", "profil.png", "trois_quarts.png", "dessus.png")
 
 
@@ -93,6 +93,8 @@ def motif_refus(conn: sqlite3.Connection, o: dict, manifestes: dict) -> str | No
         return "voie IA, mixte ou import : la fabrication arrive à l'étape 7 du plan"
     if o["etape"] == "brief":
         return "valide d'abord le brief"
+    if o["etape"] == "references" and o.get("reference_id") is None:
+        return "choisis d'abord sa référence (écran Références)"
     if o["etape"] not in ETAPES_RELANCABLES:
         return "déjà fabriqué : il attend la revue"
     if _tache_active(conn, o["id"]):
@@ -100,6 +102,24 @@ def motif_refus(conn: sqlite3.Connection, o: dict, manifestes: dict) -> str | No
     if not o["generateur"] or o["generateur"] not in manifestes:
         return f"générateur « {o['generateur'] or '?'} » introuvable dans generators/"
     return None
+
+
+def pieces_declarees(m: dict, params: dict, racine: Path | None = None) -> int:
+    """Pièces attendues : `pieces(params)` du générateur quand le nombre dépend des réglages, sinon le MANIFESTE."""
+    try:
+        f = getattr(generateurs_registre.charger(m["nom"], racine), "pieces", None)
+    except KeyError:
+        f = None
+    return int(f(params)) if callable(f) else int(m["pieces_declarees"])
+
+
+def params_choisis(conn: sqlite3.Connection, o: dict, m: dict) -> dict:
+    """Les réglages de la variante choisie aux Références ; sans choix, la première variante du générateur."""
+    if o.get("reference_id") is not None:
+        p = db.une(conn, "SELECT params_json FROM propositions WHERE id = ? AND genre = 'variante'", (o["reference_id"],))
+        if p is not None:
+            return dict(json.loads(p["params_json"] or "{}"))
+    return {"variante": VARIANTE_PAR_DEFAUT, **dict((m.get("variantes") or {}).get(VARIANTE_PAR_DEFAUT) or {})}
 
 
 def lancer(conn: sqlite3.Connection, cfg: dict, lot_id: int, objet_id: int | None = None) -> list[int]:
@@ -120,7 +140,7 @@ def lancer(conn: sqlite3.Connection, cfg: dict, lot_id: int, objet_id: int | Non
         m = manifestes[o["generateur"]]
         numero = 1 + int(db.une(conn, "SELECT COALESCE(MAX(numero), 0) AS n FROM essais WHERE objet_id = ?",
                                 (o["id"],))["n"])
-        params = {"variante": VARIANTE, **dict((m.get("variantes") or {}).get(VARIANTE) or {})}
+        params = params_choisis(conn, o, m)
         with db.transaction(conn):
             essai_id = db.inserer(conn, "essais", {
                 "objet_id": o["id"], "numero": numero, "generateur": o["generateur"],
@@ -184,6 +204,8 @@ def executer(conn: sqlite3.Connection, cfg: dict, params: dict, tache_id: int | 
     id_asset = reprise.get("id") or identifiant(conn, style.theme, m["categorie"], objet["type_objet"] or m["nom"], objet["id"])
     dossier = dossier_essai(essai)
     asset = dossier / "asset"
+    params_essai = json.loads(essai["params_json"] or "{}")
+    m = {**m, "pieces_declarees": pieces_declarees(m, params_essai)}  # selon les réglages choisis (amphore sans anses)
     infos = {**m, "id": id_asset}
 
     def noter(nom: str, donnees: dict | None = None) -> None:
@@ -196,7 +218,6 @@ def executer(conn: sqlite3.Connection, cfg: dict, params: dict, tache_id: int | 
         if progression:
             progression(pct, texte)
 
-    params_essai = json.loads(essai["params_json"] or "{}")
     etape_courante = "generation"
     try:
         if "generation" not in faites:
