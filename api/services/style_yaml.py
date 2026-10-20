@@ -3,7 +3,9 @@
 C'est la seule source des seuils : budgets de triangles, tolérances, palette, matériaux,
 dimensions réelles par type d'objet. Aucun code ne recopie ces valeurs en dur.
 
-Ce module ne dépend pas de bpy : il tourne dans l'API, le worker, les tests et, plus tard, Blender.
+Ce module ne dépend pas de bpy : il tourne dans l'API, le worker, les tests et dans Blender. Le Python de Blender
+n'a pas PyYAML : l'app y passe le style déjà lu, en JSON (`depuis_dict`), et `yaml` n'est importé que pour lire
+ou écrire le fichier.
 """
 from __future__ import annotations
 
@@ -11,8 +13,6 @@ import re
 from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any
-
-import yaml
 
 CHAMPS_OBLIGATOIRES = (
     "style", "theme", "version", "direction", "units", "conventions", "texel_density_px_per_m",
@@ -225,6 +225,8 @@ def valider(brut: dict[str, Any]) -> None:
 
 def charger(chemin: str | Path) -> Style:
     """Charge et valide un style.yaml."""
+    import yaml
+
     chemin = Path(chemin)
     with chemin.open("r", encoding="utf-8") as f:
         brut = yaml.safe_load(f)
@@ -239,6 +241,8 @@ def depuis_dict(brut: dict[str, Any]) -> Style:
 
 def ecrire(brut: dict[str, Any], chemin: str | Path) -> Path:
     """Valide puis écrit un style.yaml (écriture atomique, clés dans l'ordre du dictionnaire)."""
+    import yaml
+
     valider(brut)
     chemin = Path(chemin)
     chemin.parent.mkdir(parents=True, exist_ok=True)
