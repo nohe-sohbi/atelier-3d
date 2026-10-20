@@ -31,6 +31,68 @@ def version(entree: dict, style) -> dict:
     return {"version": bpy.app.version_string}
 
 
+def charger_generateur(fichier: str):
+    """Le module d'un générateur, chargé depuis son fichier (generators/<nom>.py ou un dossier de test)."""
+    import importlib.util
+
+    chemin = Path(fichier)
+    spec = importlib.util.spec_from_file_location(f"atelier_generateur_{chemin.stem}", chemin)
+    if spec is None or spec.loader is None:
+        raise ValueError(f"générateur illisible : {chemin}")
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    return module
+
+
+@commande("generer")
+def generer(entree: dict, style) -> dict:
+    """Construit l'objet avec son générateur, l'enregistre en generation.blend et rapporte ce qui a été fait.
+
+    entree : fichier (le .py du générateur), params, seed, id (nom de l'objet), dossier (de l'essai).
+    """
+    import bpy
+
+    from pipeline import _bpy as P
+
+    P.scene_vide()
+    module = charger_generateur(entree["fichier"])
+    params = {**dict(entree.get("params") or {}), "id": entree["id"]}
+    obj = module.build(params, style, int(entree.get("seed", 0)))
+    if isinstance(obj, list | tuple):
+        obj = obj[0]
+    dossier = Path(entree["dossier"])
+    dossier.mkdir(parents=True, exist_ok=True)
+    blend = dossier / "generation.blend"
+    bpy.ops.wm.save_as_mainfile(filepath=str(blend))
+    mini, maxi = P.boite(obj)
+    m = module.MANIFESTE
+    return {
+        "blend": str(blend), "objet": obj.name, "tris": P.compter_tris(obj),
+        "dimensions_m": [round(float(x), 4) for x in (maxi - mini)],
+        "materiaux": [mat.name for mat in obj.data.materials if mat is not None],
+        "generateur": {"nom": m["nom"], "version": m["version"]},
+        "params": {k: v for k, v in dict(obj.items()).items() if isinstance(v, int | float | str)},
+    }
+
+
+@commande("finir")
+def finir(entree: dict, style) -> dict:
+    """Finition commune : entree = blend (de la génération), dossier (de l'asset), id, infos, voie."""
+    from pipeline import finition
+
+    return finition.finir(entree["blend"], entree["dossier"], entree["id"], style, entree["infos"],
+                          entree.get("voie", "code"))
+
+
+@commande("rendre")
+def rendre(entree: dict, style) -> dict:
+    """Les 5 vues du LOD0 : entree = blend (de l'asset), dossier (des rendus), id, moteur (eevee | cycles)."""
+    from pipeline import rendu
+
+    return rendu.rendre(entree["blend"], entree["dossier"], entree["id"], entree.get("moteur", "eevee"),
+                        int(entree.get("taille_px") or rendu.TAILLE_PX))
+
+
 def main() -> int:
     chemin_entree, chemin_sortie = args_apres_double_tiret()[:2]
     entree = lire_json(chemin_entree)
