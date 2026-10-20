@@ -124,3 +124,20 @@ audit > maquette.
 | 4.13 | Lancer la fabrication | Plan cloud : `POST /api/lots/{id}/lancer` | Pas de route ni de tâche tant que les étapes 5 et 7 ne sont pas construites : aucune tâche fantôme | — |
 | 4.14 | Ports | — | `python dev.py` prend le premier port libre au-dessus de 5173 si un autre projet le tient, et l'annonce ; les tests bout en bout tournent sur 5199 (`ATELIER_E2E_PORT`) | — |
 | 4.15 | Alerte crédits Meshy | Réglages : notification « crédits à 80 % » (ou 90 %) | Une notification dans la cloche quand la part utilisée du mois atteint le seuil, une seule par mois, marquée « (simulé) » en mode simulé | — |
+
+## Étape 5 · Fabrication par code
+
+| # | Sujet | Ce que disent les sources | Choix provisoire dans le code | Question |
+|---|---|---|---|---|
+| 5.1 | Lancer la fabrication | Correction 1 : pour un objet code, l'écran Références montre 4 variantes rendues par Blender et tu en choisis une (étape 6) | En attendant l'étape 6 : bouton « Fabriquer les objets code » sur Génération, avec la variante A du générateur ; l'onglet Génération s'ouvre dès le brief validé ; « Refaire » relance un objet (nouvel essai) | — |
+| 5.2 | Un contrôle bloquant en échec | Maquette : « relance 2 sur 3 » | Voie code : échec tout de suite, sans relance (un générateur rejouable redonne le même résultat), avec la liste des contrôles en échec ; les relances de qualité sont pour la voie IA (étape 7) | — |
+| 5.3 | Matériaux d'un générateur | Générateur : « matériaux du style, jamais en dur » | Le générateur nomme les matériaux du style qu'il emploie (le scutum : pourpre, bois, bronze, ocre, cuir) ; un style qui ne les a pas fait échouer la génération avec le nom du matériau manquant | Des rôles (métal, bois, peinture) que chaque style relie à ses matériaux ? |
+| 5.4 | Textures de la voie code | Spécification : textures PBR (couleur, normal, ORM), usure du style | Pas encore de cuisson : les couleurs viennent des matériaux du style, l'usure n'est pas appliquée, la densité de texels dit « aucune texture » (non bloquant) | Cuire les textures (et l'usure) pour la voie code ? |
+| 5.5 | Licence d'un asset | Cahier : licence de publication proposée CC0, choisie à la publication ; `validate.py` refuse une source hors liste blanche | `meta.json` sans licence tant que l'asset n'est pas publié ; seules les sources sont contrôlées | — |
+| 5.6 | glTF-Validator absent | Contrôle bloquant | Bloquant aussi quand l'outil manque, avec « renseigne son chemin dans Réglages » (l'archive le rendait facultatif) | — |
+| 5.7 | Rendus | « 5 vues standard, une planche de contact par lot, une vue en contexte » | 5 vues de 512 px par asset, lumière et caméra fixes, EEVEE (Cycles en secours) ; une planche par asset ; la planche du lot et la vue en contexte viennent avec la Revue (étape 8) | — |
+| 5.8 | Pièces déclarées | `CONTRAT.md` : toutes les pièces séparées | Le scutum de l'archive en déclarait 2 pour 3 (coque, umbo, poignée) : corrigé | — |
+| 5.9 | Nom d'un asset | `ROM_PROP_Scutum_A` | Thème du style, PROP (ou ARCHI pour un module d'architecture), type d'objet en un mot, première variante libre ; un objet garde son nom d'un essai à l'autre | — |
+| 5.10 | Fichiers d'un essai | Arborescence : `assets/<theme>/<id>/` pour les livrables | Chaque essai dans `lots/<lot>/<objet>/essai-<n>/` (glb, fbx, blend, meta.json, rapport.json, rendus) ; la copie vers `assets/` se fait quand l'asset est gardé (étapes 8 et 9) | — |
+| 5.11 | Défauts du scutum repris de l'archive | Motifs de rejet : « motif peint flou », « dos incohérent » | Motif des ailes en gros pixels, dôme de l'umbo visible au dos : laissés tels quels, à juger en revue | Les corriger avant la revue ? |
+

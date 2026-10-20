@@ -39,11 +39,14 @@ test.describe("Étape 1 · Socle", () => {
     await expect(page.getByText("Aucune collection épinglée")).toBeVisible();
   });
 
-  test("la cloche s'ouvre sur « Aucune notification »", async ({ page }) => {
+  test("la cloche s'ouvre sur ce que l'API contient (« Aucune notification » quand il n'y en a pas)", async ({ page, request }) => {
+    // D'autres scénarios ont pu écrire des notifications (une revue prête) : on compare avec l'API.
+    const { notifications } = (await (await request.get("/api/notifications")).json()) as { notifications: Array<{ titre: string }> };
     await page.goto("/");
-    await page.getByRole("button", { name: "Notifications : aucune nouvelle" }).click();
+    await page.getByRole("button", { name: /^Notifications/ }).click();
     const panneau = page.getByRole("region", { name: "Notifications" });
-    await expect(panneau.getByText("Aucune notification")).toBeVisible();
+    if (notifications.length === 0) await expect(panneau.getByText("Aucune notification")).toBeVisible();
+    else await expect(panneau.getByText(notifications[0]!.titre)).toBeVisible();
     await page.keyboard.press("Escape");
     await expect(panneau).toBeHidden();
   });

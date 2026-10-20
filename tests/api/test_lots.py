@@ -61,7 +61,7 @@ def test_etape_calculee_depuis_l_objet_le_moins_avance(client, conn):
     e = client.get(f"/api/lots/{lid}?etape=references").json()
     assert e["etape_courante"] == 2 and e["statut"] == "À toi" and e["detail"] == "1 référence à choisir" and e["ton"] == "warn"
     assert e["ligne_etat"] == "3 objets · 1 référence choisie · 1 sans référence (import, réutilisation)"
-    assert [x["atteinte"] for x in e["etapes"]] == [True, True, False, False] and e["etapes"][0]["faite"] is True
+    assert [x["atteinte"] for x in e["etapes"]] == [True, True, True, False]  # Génération ouverte dès le brief validé (A-TRANCHER 5.1) and e["etapes"][0]["faite"] is True
     assert client.get("/api/lots?groupe=en_cours").json()["compteurs"]["en_cours"] == 1
 
     conn.execute("UPDATE objets SET etape = 'rendus' WHERE id = ?", (a,))

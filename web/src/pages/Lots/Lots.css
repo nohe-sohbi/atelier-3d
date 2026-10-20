@@ -779,3 +779,31 @@ textarea.brief__saisie {
   border: 1px solid var(--bordure);
   border-radius: 10px;
 }
+.generation__lancer {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 14px;
+  font-size: 13px;
+}
+.generation__vignette {
+  flex: none;
+  width: 56px;
+  height: 56px;
+  border-radius: var(--rayon);
+  background: var(--neutre);
+  overflow: hidden;
+}
+.generation__vignette img {
+  display: block;
+  width: 56px;
+  height: 56px;
+  object-fit: cover;
+}
+.generation__liens {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px 12px;
+  font-size: 12.5px;
+}

@@ -2520,7 +2520,7 @@
         "libelle": "Génération",
         "numero": 3,
         "lien": "/lots/5/generation",
-        "atteinte": false,
+        "atteinte": true,
         "faite": false
       },
       {
@@ -2595,7 +2595,13 @@
         ],
         "statut": "Attend sa référence (écran Références, étape 6 du plan)",
         "ton": "idle",
-        "pct": 0
+        "pct": 0,
+        "essai": null,
+        "vignette": null,
+        "planche": null,
+        "asset_id": null,
+        "peut_fabriquer": false,
+        "motif": "voie IA, mixte ou import : la fabrication arrive à l'étape 7 du plan"
       },
       {
         "id": 2,
@@ -2626,7 +2632,13 @@
         ],
         "statut": "Attend sa référence (écran Références, étape 6 du plan)",
         "ton": "idle",
-        "pct": 0
+        "pct": 0,
+        "essai": null,
+        "vignette": null,
+        "planche": null,
+        "asset_id": null,
+        "peut_fabriquer": false,
+        "motif": "voie IA, mixte ou import : la fabrication arrive à l'étape 7 du plan"
       },
       {
         "id": 4,
@@ -2657,7 +2669,13 @@
         ],
         "statut": "Attend sa référence (écran Références, étape 6 du plan)",
         "ton": "idle",
-        "pct": 0
+        "pct": 0,
+        "essai": null,
+        "vignette": null,
+        "planche": null,
+        "asset_id": null,
+        "peut_fabriquer": false,
+        "motif": "voie IA, mixte ou import : la fabrication arrive à l'étape 7 du plan"
       }
     ],
     "reutilises": [],
@@ -2712,8 +2730,10 @@
       "en_attente": 0
     },
     "fabrication": {
-      "disponible": false,
-      "raison": "Génération, finition, tests et rendus arrivent avec la fabrication : étape 5 du plan pour la voie code, étape 7 pour la voie IA, le mixte et l'import CC0"
+      "a_lancer": 0,
+      "voie_code": 0,
+      "autres_voies": 3,
+      "raison_ia": "La voie IA, le mixte et l'import CC0 se fabriqueront ici à l'étape 7 du plan"
     },
     "limites_files": {
       "gpu": 1,
@@ -3154,7 +3174,7 @@
         "libelle": "Génération",
         "numero": 3,
         "lien": "/lots/5/generation",
-        "atteinte": false,
+        "atteinte": true,
         "faite": false
       },
       {

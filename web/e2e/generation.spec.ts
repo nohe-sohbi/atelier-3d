@@ -9,7 +9,7 @@ test.describe("Étape 4 · File de tâches et Génération", () => {
 
     await page.goto(`/lots/${lot.id}/generation`);
     await expect(page.getByText(/Worker actif/)).toBeVisible();
-    await expect(page.getByText(/arrivent avec la fabrication/)).toBeVisible();
+    await expect(page.getByRole("heading", { name: "File du lot" })).toBeVisible();
     await expect(page.getByText("Proposition de la liste par Claude")).toBeVisible();
     await expect(page.getByText("Terminée")).toBeVisible();
     await page.getByRole("button", { name: "Journal : Proposition de la liste par Claude" }).click();

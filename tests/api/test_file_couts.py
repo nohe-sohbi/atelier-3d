@@ -152,7 +152,9 @@ def _lot_valide(client, cfg):
 def test_generation_avant_la_fabrication(client, conn, cfg):
     lid = _lot_valide(client, cfg)
     g = client.get(f"/api/lots/{lid}/generation").json()
-    assert g["fabrication"]["disponible"] is False and "étape 5" in g["fabrication"]["raison"]
+    f = g["fabrication"]  # objets simulés passés en voie IA : rien à lancer avant l'étape 7
+    assert (f["a_lancer"], f["voie_code"], f["autres_voies"]) == (0, 0, len(g["objets"])) and "étape 7" in f["raison_ia"]
+    assert all(not o["peut_fabriquer"] and "étape 7" in o["motif"] for o in g["objets"])
     assert g["objets"] and all(o["statut"].startswith("Attend sa référence") for o in g["objets"])
     assert all([p["etat"] for p in o["etapes"]] == ["a_faire"] * 4 for o in g["objets"])
     assert [t["type"] for t in g["taches"]] == ["proposer_liste"]

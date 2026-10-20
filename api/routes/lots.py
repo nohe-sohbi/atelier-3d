@@ -7,7 +7,7 @@ from fastapi import APIRouter, HTTPException, Query
 from pydantic import BaseModel, ConfigDict, Field
 
 from api.dependances import Config, Db
-from api.services import brief, demandes
+from api.services import brief, demandes, fabrication
 from api.services import generation as generation_svc
 from api.services import lots as lots_svc
 
@@ -32,6 +32,10 @@ class LotModif(_Modele):
     theme: str | None = Field(None, max_length=80)
     besoin: str | None = Field(None, max_length=4000)
     style_id: int | None = None
+
+
+class FabricationIn(_Modele):
+    objet_id: int | None = None
 
 
 class ObjetModif(_Modele):
@@ -124,6 +128,15 @@ def ecrire_demande(lot_id: int, objet_id: int, conn: Db) -> dict:
 @router.post("/{lot_id}/valider-brief")
 def valider_brief(lot_id: int, conn: Db) -> dict:
     return _erreurs(lots_svc.valider_brief, conn, lot_id)
+
+
+@router.post("/{lot_id}/fabriquer", status_code=202)
+def fabriquer(lot_id: int, corps: FabricationIn, conn: Db, cfg: Config) -> dict:
+    """Lance la fabrication des objets en voie code du lot (ou d'un seul) : un essai et une tâche Blender chacun."""
+    try:
+        return {"taches": _erreurs(fabrication.lancer, conn, cfg, lot_id, corps.objet_id)}
+    except fabrication.FabricationImpossible as e:
+        raise HTTPException(409, str(e)) from e
 
 
 @router.get("/{lot_id}/generation")

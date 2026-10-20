@@ -52,7 +52,8 @@ describe("Génération", () => {
     expect(tuiles.getByText(`/ ${GENERATION.tuiles.fabriques}`)).toBeInTheDocument();
     expect(tuiles.getByText(new RegExp(`${GENERATION.tuiles.credits_prevus}.prévus`))).toBeInTheDocument();
     expect(screen.getByText(/Le worker ne tourne pas/)).toBeInTheDocument();
-    expect(screen.getByText(new RegExp(GENERATION.fabrication.raison.slice(0, 40)))).toBeInTheDocument();
+    expect(screen.getByText(new RegExp(GENERATION.fabrication.raison_ia.slice(0, 40)))).toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: /Fabriquer les objets code/ })).not.toBeInTheDocument(); // rien en voie code
     const objets = within(screen.getByRole("list", { name: "Objets du lot" }));
     expect(objets.getAllByRole("listitem", { name: "" }).length).toBeGreaterThan(0);
     for (const o of GENERATION.objets) {
@@ -101,6 +102,48 @@ describe("Génération", () => {
     const lectures = () => appels.filter((a) => a.chemin === `/api/lots/${LID}/generation`).length;
     const avant = lectures();
     await waitFor(() => expect(lectures()).toBeGreaterThan(avant), { timeout: 3500 });
+  });
+});
+
+describe("Génération · fabrication par code", () => {
+  it("un objet code prêt : Fabriquer ; un échec : son motif et Refaire ; un objet fini : vignette et planche", async () => {
+    const [a, b, c] = GENERATION.objets;
+    const essai = (id: number, etat: string, erreur: string | null = null) => ({ id, numero: 1, etat, erreur });
+    let g: Generation = {
+      ...GENERATION,
+      fabrication: { ...GENERATION.fabrication, a_lancer: 2, voie_code: 3 },
+      objets: [
+        { ...a!, voie: "code", peut_fabriquer: true, motif: null, essai: null, statut: "Prêt à fabriquer" },
+        {
+          ...b!, voie: "code", peut_fabriquer: true, motif: null, essai: essai(40, "echec", "Blender introuvable"), ton: "warn",
+          statut: "Échec à l'étape Génération : Blender introuvable", etapes: b!.etapes.map((p, i) => ({ ...p, etat: i === 0 ? "echec" : "a_faire" })),
+        },
+        {
+          ...c!, voie: "code", peut_fabriquer: false, motif: "déjà fabriqué : il attend la revue", essai: essai(41, "pret"),
+          vignette: "/api/fichiers/essais/41/vignette.png", planche: "/api/fichiers/essais/41/planche.png", asset_id: "TST_PROP_Objet_A",
+          statut: "Prêt pour la revue", ton: "good", pct: 100, etapes: c!.etapes.map((p) => ({ ...p, etat: "fait" })),
+        },
+      ],
+    };
+    const { appels } = mockApi({
+      ...BASE,
+      [`GET /api/lots/${LID}/generation`]: () => g,
+      [`POST /api/lots/${LID}/fabriquer`]: (init: RequestInit | undefined) => {
+        if (!("objet_id" in JSON.parse(String(init?.body)))) g = { ...g, fabrication: { ...g.fabrication, a_lancer: 0 } };
+        return { taches: [1, 2] };
+      },
+    });
+    const utilisateur = userEvent.setup();
+    rendreApp(`/lots/${LID}/generation`);
+    expect(await screen.findByRole("img", { name: `Vignette de ${c!.nom}` })).toHaveAttribute("src", "/api/fichiers/essais/41/vignette.png");
+    expect(screen.getByRole("link", { name: "Voir la planche" })).toHaveAttribute("href", "/api/fichiers/essais/41/planche.png");
+    expect(screen.getByText("TST_PROP_Objet_A")).toBeInTheDocument();
+    expect(screen.getByText(/: en échec/)).toBeInTheDocument();
+    await utilisateur.click(screen.getByRole("button", { name: "Refaire (essai 2)" }));
+    await utilisateur.click(screen.getByRole("button", { name: "Fabriquer les objets code · 2" }));
+    const corps = appels.filter((x) => x.methode === "POST").map((x) => x.corps);
+    expect(corps).toEqual([{ objet_id: b!.id }, {}]);
+    await waitFor(() => expect(screen.queryByRole("button", { name: /Fabriquer les objets code/ })).not.toBeInTheDocument());
   });
 });
 

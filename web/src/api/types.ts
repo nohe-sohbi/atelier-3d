@@ -562,6 +562,14 @@ export interface ObjetGeneration {
   statut: string;
   ton: TonLot;
   pct: number;
+  /** Le dernier essai de fabrication (étape 5), s'il y en a un. */
+  essai: { id: number; numero: number; etat: string; erreur: string | null } | null;
+  vignette: string | null;
+  planche: string | null;
+  asset_id: string | null;
+  peut_fabriquer: boolean;
+  /** Pourquoi l'objet ne peut pas être fabriqué maintenant. */
+  motif: string | null;
 }
 
 /** GET /api/lots/{id}/generation */
@@ -581,6 +589,6 @@ export interface Generation {
   taches: TacheVue[];
   generateurs: Array<{ nom: string; detail: string; etat: string; ton: TonLot }>;
   worker: EtatWorker;
-  fabrication: { disponible: boolean; raison: string };
+  fabrication: { a_lancer: number; voie_code: number; autres_voies: number; raison_ia: string };
   limites_files: Record<string, number>;
 }

@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { Link } from "react-router-dom";
 import { api, messageErreur } from "../../api/client";
+import { signalerChangement } from "../../api/rafraichissement";
 import type { Generation as GenerationApi } from "../../api/types";
 import { Chargement, Erreur } from "../../components/Etats";
 import { EtatDuWorker, ListeTaches } from "../../components/Taches";
@@ -20,6 +21,8 @@ interface Props {
 export function Generation({ lotId, onChangement }: Props) {
   const [g, setG] = useState<GenerationApi | null>(null);
   const [erreur, setErreur] = useState<string | null>(null);
+  const [alerte, setAlerte] = useState<string | null>(null);
+  const [occupe, setOccupe] = useState(false);
   const minuteur = useRef<number | null>(null);
 
   const charger = useCallback(async () => {
@@ -49,6 +52,21 @@ export function Generation({ lotId, onChangement }: Props) {
     charger();
     onChangement();
   }, [charger, onChangement]);
+
+  /** Lance la fabrication des objets en voie code (tous, ou un seul). */
+  const fabriquer = async (objetId?: number) => {
+    setAlerte(null);
+    setOccupe(true);
+    try {
+      await api(`/lots/${lotId}/fabriquer`, { method: "POST", body: JSON.stringify(objetId === undefined ? {} : { objet_id: objetId }) });
+      signalerChangement();
+      changement();
+    } catch (e) {
+      setAlerte(messageErreur(e));
+    } finally {
+      setOccupe(false);
+    }
+  };
 
   if (erreur && !g) return <Erreur message={erreur} onReessayer={charger} />;
   if (!g) return <Chargement />;
@@ -101,13 +119,29 @@ export function Generation({ lotId, onChangement }: Props) {
             graphique ({g.limites_files.gpu ?? "?"}). Les tâches sont enregistrées : si l'ordinateur s'éteint, elles reprennent au redémarrage.
             {g.reutilises.length > 0 ? ` Réutilisés depuis ta bibliothèque, rien à fabriquer : ${g.reutilises.join(", ")}.` : ""}
           </p>
-          {!g.fabrication.disponible ? <p className="generation__a-venir">{g.fabrication.raison}.</p> : null}
+          {g.fabrication.a_lancer > 0 ? (
+            <div className="generation__lancer">
+              <button type="button" className="bouton bouton--primaire" onClick={() => fabriquer()} disabled={occupe}>
+                Fabriquer les objets code · {g.fabrication.a_lancer}
+              </button>
+              <span className="secondaire">Script Blender, finition, tests et rendus : gratuit, sur ce serveur.</span>
+            </div>
+          ) : null}
+          {g.fabrication.autres_voies > 0 ? <p className="generation__a-venir">{g.fabrication.raison_ia}.</p> : null}
+          {alerte ? (
+            <div role="alert" className="brief__alerte">
+              {alerte}
+            </div>
+          ) : null}
           {g.objets.length === 0 ? (
             <p className="secondaire">Aucun objet à fabriquer dans ce lot : valide d'abord le brief.</p>
           ) : (
             <ul role="list" aria-label="Objets du lot" className="generation__objets">
               {g.objets.map((o) => (
                 <li key={o.id} className="generation__objet">
+                  <div className="generation__vignette">
+                    {o.vignette ? <img src={o.vignette} alt={`Vignette de ${o.nom}`} width={56} height={56} /> : null}
+                  </div>
                   <div className="generation__objet-texte">
                     <span className="generation__objet-nom">{o.nom}</span>
                     <span className="generation__fournisseur mono">{o.fournisseur}</span>
@@ -127,6 +161,20 @@ export function Generation({ lotId, onChangement }: Props) {
                     <span className={`generation__statut-texte generation__statut-texte--${o.ton}`}>{o.statut}</span>
                     <div className="generation__barre" aria-hidden="true">
                       <div className={`generation__barre-plein generation__barre-plein--${o.ton}`} style={{ width: `${o.pct}%` }} />
+                    </div>
+                    <div className="generation__liens">
+                      {o.planche ? (
+                        <a href={o.planche} target="_blank" rel="noreferrer">
+                          Voir la planche
+                        </a>
+                      ) : null}
+                      {o.asset_id ? <span className="mono secondaire">{o.asset_id}</span> : null}
+                      {o.peut_fabriquer && o.essai ? (
+                        <button type="button" className="bouton bouton--petit" onClick={() => fabriquer(o.id)} disabled={occupe}>
+                          Refaire (essai {o.essai.numero + 1})
+                        </button>
+                      ) : null}
+                      {!o.peut_fabriquer && o.voie === "code" && o.motif && !o.essai ? <span className="secondaire">{o.motif}</span> : null}
                     </div>
                   </div>
                 </li>

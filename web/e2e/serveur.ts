@@ -56,6 +56,8 @@ export async function demarrer(): Promise<void> {
   const dossier = mkdtempSync(join(tmpdir(), "atelier-e2e-"));
   mkdirSync(join(dossier, "lots"));
   mkdirSync(join(dossier, "generators"));
+  // Le générateur scutum du dépôt (il importe generators/_base.py du dépôt) : un objet du Brief passe en voie code.
+  copyFileSync(join(RACINE, "generators", "scutum.py"), join(dossier, "generators", "scutum.py"));
   // Les styles créés par les tests vont dans un dossier temporaire ; le style pilote du dépôt y est copié.
   cpSync(join(RACINE, "style", "rome-stylise-v0"), join(dossier, "style", "rome-stylise-v0"), { recursive: true });
   // Config écrite ici (copie de l'exemple, Blender vide) : les tests ne dépendent pas du Blender de la machine.

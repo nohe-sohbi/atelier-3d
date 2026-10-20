@@ -182,7 +182,8 @@ def en_tete(conn: sqlite3.Connection, lot_id: int, etape_courante: str = "brief"
     etapes = []
     for i, cle in enumerate(ETAPES, start=1):
         etapes.append({"cle": cle, "libelle": LIBELLES_ETAPES[cle], "numero": i, "lien": f"/lots/{lot_id}/{cle}",
-                       "atteinte": i <= max(sit["etape"], 1) if sit["etape"] < 5 else True,
+                       # Génération s'ouvre dès le brief validé : la fabrication s'y lance (A-TRANCHER 4.1, 5.x)
+                       "atteinte": True if sit["etape"] >= 5 else i <= max(sit["etape"], 1) or (cle == "generation" and sit["etape"] >= 2),
                        "faite": i < sit["etape"]})
     return {"id": lot_id, "nom": lot["nom"], "theme": lot["theme"], "besoin": lot["besoin"], "style": style,
             "style_plus_recent": version_plus_recente, "etat": lot["etat"], "cree_le": lot["cree_le"], "maj_le": lot["maj_le"],
