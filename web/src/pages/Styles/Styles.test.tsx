@@ -7,6 +7,7 @@ import {
   MENU_VIDE,
   NOTIFICATIONS_VIDES,
   PLANCHE_LANCEE,
+  PALETTE_DES_IMAGES,
   STYLES,
   STYLE_CREE,
   STYLE_DETAIL,
@@ -82,6 +83,48 @@ describe("Styles", () => {
     rendreApp("/styles");
     expect(await screen.findByRole("button", { name: "Modifier" })).toBeDisabled();
     expect(screen.getByText(/utilisé par 1 lot/)).toBeInTheDocument();
+  });
+
+  it("Nouveau style : tes images d'inspiration proposent la palette, tu la retouches, elle part telle quelle", async () => {
+    let envoye: StyleEnvoye | null = null;
+    const { appels } = mockApi({
+      ...BASE,
+      "POST /api/styles/palette": PALETTE_DES_IMAGES,
+      "POST /api/styles": (init: RequestInit | undefined) => {
+        envoye = JSON.parse(String(init?.body)) as StyleEnvoye;
+        return STYLE_CREE;
+      },
+      [`POST /api/styles/${STYLE_CREE.id}/inspirations`]: { inspirations: ["inspiration.png"] },
+      [`POST /api/styles/${STYLE_CREE.id}/planche`]: PLANCHE_LANCEE,
+      [`GET /api/taches/${PLANCHE_LANCEE.tache_id}`]: TACHE_TERMINEE,
+      [`GET /api/styles/${STYLE_CREE.id}`]: STYLE_PLANCHE,
+    });
+    const utilisateur = userEvent.setup();
+    rendreApp("/styles");
+    await screen.findByRole("button", { name: /Rome antique stylisée/ });
+    await utilisateur.click(screen.getByRole("button", { name: "Nouveau style" }));
+    const fenetre = screen.getByRole("dialog", { name: "Nouveau style" });
+    await utilisateur.type(within(fenetre).getByLabelText("Nom"), "Forêt");
+    // Les images viennent avant la palette : les déposer la remplit.
+    const image = new File(["png"], "inspiration.png", { type: "image/png" });
+    await utilisateur.upload(within(fenetre).getByLabelText("Choisir des images d'inspiration"), image);
+    expect(await within(fenetre).findByText(/Tirée de ton image : retouche une couleur/)).toBeInTheDocument();
+    const noms = within(fenetre).getAllByLabelText(/^Nom de la couleur/);
+    expect(noms.map((n) => (n as HTMLInputElement).value)).toEqual(PALETTE_DES_IMAGES.palette.map((c) => c.nom));
+    // Tu la retouches : un nom changé, une couleur retirée.
+    await utilisateur.clear(noms[0]!);
+    await utilisateur.type(noms[0]!, "fer forgé");
+    await utilisateur.click(within(fenetre).getByRole("button", { name: `Retirer ${PALETTE_DES_IMAGES.palette.at(-1)!.nom}` }));
+    // Changer les budgets de référence n'écrase plus ta palette.
+    await utilisateur.selectOptions(within(fenetre).getByLabelText("Budgets et échelle"), "vide");
+    await utilisateur.selectOptions(within(fenetre).getByLabelText("Budgets et échelle"), String(STYLE_DETAIL.id));
+    expect(within(fenetre).getAllByLabelText(/^Nom de la couleur/)).toHaveLength(PALETTE_DES_IMAGES.palette.length - 1);
+    expect(within(fenetre).getByLabelText("Nom de la couleur 1")).toHaveValue("fer forgé");
+    await utilisateur.click(within(fenetre).getByRole("button", { name: /Générer la première planche/ }));
+    await waitFor(() => expect(envoye).not.toBeNull());
+    const attendu = Object.fromEntries(PALETTE_DES_IMAGES.palette.slice(0, -1).map((c, i) => [i === 0 ? "fer forgé" : c.nom, c.hex]));
+    expect(envoye!.palette).toEqual(attendu);
+    await waitFor(() => expect(appels.some((a) => a.chemin === `/api/styles/${STYLE_CREE.id}/inspirations`)).toBe(true));
   });
 
   it("Nouveau style : code depuis le nom, palette reprise du style de référence, création, planche simulée, garder, valider", async () => {

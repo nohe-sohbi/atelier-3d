@@ -43,6 +43,9 @@ export function NouveauStyle({ ouverte, onFermer, styles, styleExistant, estimat
   const [texel, setTexel] = useState("");
   const [dimensions, setDimensions] = useState("");
   const [fichiers, setFichiers] = useState<File[]>([]);
+  /** La palette vient de tes images : combien, ou null (reprise d'un style). */
+  const [paletteDesImages, setPaletteDesImages] = useState<number | null>(null);
+  const [lecture, setLecture] = useState(false);
   const [cree, setCree] = useState<StyleDetail | null>(null);
   const [tache, setTache] = useState<Tache | null>(null);
   const [enAttenteMs, setEnAttenteMs] = useState(0);
@@ -83,6 +86,7 @@ export function NouveauStyle({ ouverte, onFermer, styles, styleExistant, estimat
     setTexel("");
     setDimensions("");
     setFichiers([]);
+    setPaletteDesImages(null);
   }, [ouverte, styleExistant, styles]);
 
   // Changer de style de référence recharge la palette tant qu'elle n'a pas été retouchée.
@@ -103,6 +107,26 @@ export function NouveauStyle({ ouverte, onFermer, styles, styleExistant, estimat
   const imagesPlanche = cree?.images_planche ?? imagesAvant;
   const gardees = cree?.planche.filter((i) => i.gardee).length ?? 0;
   const titre = styleExistant ? `Planche de style · ${styleExistant.nom}` : "Nouveau style";
+
+  /** Tes images d'inspiration proposent la palette : leurs couleurs dominantes, nommées, à retoucher. */
+  const choisirImages = async (choisies: File[]) => {
+    setFichiers(choisies);
+    if (choisies.length === 0) return;
+    setErreur(null);
+    setLecture(true);
+    try {
+      const fd = new FormData();
+      choisies.forEach((f) => fd.append("fichiers", f));
+      const r = await api<{ palette: Ligne[]; images: number }>("/styles/palette", { method: "POST", body: fd });
+      setPalette(r.palette);
+      setPaletteTouchee(true); // changer de style de référence ne l'écrase plus
+      setPaletteDesImages(r.images);
+    } catch (e) {
+      setErreur(`Palette non tirée des images : ${messageErreur(e)}`);
+    } finally {
+      setLecture(false);
+    }
+  };
 
   const soumettre = async () => {
     setErreur(null);
@@ -244,9 +268,38 @@ export function NouveauStyle({ ouverte, onFermer, styles, styleExistant, estimat
               <span className="fenetre-style__aide">Claude s'en sert pour écrire les consignes d'image de chaque objet.</span>
             </div>
             <div className="fenetre-style__champ">
+              <span className="fenetre-style__legende-champ">
+                Images d'inspiration <span className="secondaire">· facultatif</span>
+              </span>
+              <input
+                ref={refFichiers}
+                type="file"
+                accept="image/png,image/jpeg,image/webp"
+                multiple
+                className="visuellement-cache"
+                aria-label="Choisir des images d'inspiration"
+                onChange={(e) => choisirImages(Array.from(e.target.files ?? []))}
+              />
+              <button type="button" className="fenetre-style__depot" onClick={() => refFichiers.current?.click()}>
+                {fichiers.length === 0
+                  ? "Choisis des images sur ta machine · elles donnent la palette et guident la planche, elles ne sont pas publiées"
+                  : `${pluriel(fichiers.length, "image choisie", "images choisies")} : ${fichiers.map((f) => f.name).join(", ")}`}
+              </button>
+            </div>
+            <div className="fenetre-style__champ">
               <span className="fenetre-style__legende-champ" id="ns-palette">
                 Palette <span className="secondaire">· 8 à 12 couleurs nommées</span>
               </span>
+              {lecture ? (
+                <span role="status" className="fenetre-style__aide">
+                  Lecture des couleurs de tes images…
+                </span>
+              ) : paletteDesImages !== null ? (
+                <span role="status" className="fenetre-style__aide">
+                  Tirée de {paletteDesImages === 1 ? "ton image" : `tes ${paletteDesImages} images`} : retouche une couleur, renomme-la, ajoute-en ou
+                  retire-en.
+                </span>
+              ) : null}
               <ul role="list" aria-labelledby="ns-palette" className="fenetre-style__pastilles">
                 {palette.map((c, i) => (
                   <li key={i} className="fenetre-style__couleur">
@@ -295,25 +348,6 @@ export function NouveauStyle({ ouverte, onFermer, styles, styleExistant, estimat
                   </button>
                 </li>
               </ul>
-            </div>
-            <div className="fenetre-style__champ">
-              <span className="fenetre-style__legende-champ">
-                Images d'inspiration <span className="secondaire">· facultatif</span>
-              </span>
-              <input
-                ref={refFichiers}
-                type="file"
-                accept="image/png,image/jpeg,image/webp"
-                multiple
-                className="visuellement-cache"
-                aria-label="Choisir des images d'inspiration"
-                onChange={(e) => setFichiers(Array.from(e.target.files ?? []))}
-              />
-              <button type="button" className="fenetre-style__depot" onClick={() => refFichiers.current?.click()}>
-                {fichiers.length === 0
-                  ? "Choisis des images sur ta machine · elles guident la planche, elles ne sont pas publiées"
-                  : `${pluriel(fichiers.length, "image choisie", "images choisies")} : ${fichiers.map((f) => f.name).join(", ")}`}
-              </button>
             </div>
             <div className="fenetre-style__champ">
               <label htmlFor="ns-budget">Budgets et échelle</label>

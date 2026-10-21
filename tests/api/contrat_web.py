@@ -59,6 +59,20 @@ def _remplir(conn, client) -> None:
     conn.commit()
 
 
+def _image_inspiration() -> bytes:
+    """Une image d'inspiration : quatre couleurs sur un fond blanc (le fond n'entre pas dans la palette)."""
+    import io
+
+    from PIL import Image, ImageDraw
+
+    im = Image.new("RGB", (320, 200), (255, 255, 255))
+    for i, c in enumerate(((46, 90, 53), (138, 95, 58), (91, 94, 99), (201, 161, 59))):
+        ImageDraw.Draw(im).rectangle((20 + i * 75, 30, 80 + i * 75, 170), fill=c)
+    tampon = io.BytesIO()
+    im.save(tampon, "PNG")
+    return tampon.getvalue()
+
+
 def _png_minimal() -> bytes:
     import io
 
@@ -89,6 +103,8 @@ def _planche_et_taches(client, contrat: dict, pilote: int) -> None:
     from api.services import taches
 
     contrat["GET /api/styles/estimation-planche"] = client.get("/api/styles/estimation-planche").json()
+    contrat["POST /api/styles/palette"] = client.post(
+        "/api/styles/palette", files=[("fichiers", ("inspiration.png", _image_inspiration(), "image/png"))]).json()
     palette = {c["nom"]: c["hex"] for c in contrat["GET /api/styles/{id}"]["palette"]}
     cree = client.post("/api/styles", json={"nom": "Médiéval stylisé", "description": "Formes simples.",
                                              "palette": palette, "budgets_depuis": pilote}).json()

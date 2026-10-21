@@ -673,6 +673,43 @@
     "images_max": 6,
     "simule": true
   },
+  "POST /api/styles/palette": {
+    "palette": [
+      {
+        "nom": "fer",
+        "hex": "#5B5E63"
+      },
+      {
+        "nom": "bois",
+        "hex": "#8A5F3A"
+      },
+      {
+        "nom": "vert forêt",
+        "hex": "#2E5A35"
+      },
+      {
+        "nom": "or",
+        "hex": "#C9A13B"
+      },
+      {
+        "nom": "sable",
+        "hex": "#E4D09F"
+      },
+      {
+        "nom": "beige",
+        "hex": "#C5AF9D"
+      },
+      {
+        "nom": "sauge",
+        "hex": "#98AD9B"
+      },
+      {
+        "nom": "gris perle",
+        "hex": "#ADAFB1"
+      }
+    ],
+    "images": 1
+  },
   "POST /api/styles": {
     "id": 2,
     "code": "medieval-stylise-v0",

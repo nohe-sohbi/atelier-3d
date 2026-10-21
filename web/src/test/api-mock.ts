@@ -77,6 +77,8 @@ export const REGLAGES = depuis<Reglages>("GET /api/reglages#rempli");
 export const STYLES = depuis<Styles>("GET /api/styles");
 export const STYLE_DETAIL = depuis<StyleDetail>("GET /api/styles/{id}");
 export const ESTIMATION_PLANCHE = depuis<EstimationPlanche>("GET /api/styles/estimation-planche");
+/** La palette tirée d'une image d'inspiration (4 couleurs sur fond blanc), complétée à 8. */
+export const PALETTE_DES_IMAGES = depuis<{ palette: Array<{ nom: string; hex: string }>; images: number }>("POST /api/styles/palette");
 /** Un style créé (brouillon), puis le même avec sa planche simulée rangée par le worker. */
 export const STYLE_CREE = depuis<StyleDetail>("POST /api/styles");
 export const PLANCHE_LANCEE = depuis<TacheLancee>("POST /api/styles/{id}/planche");

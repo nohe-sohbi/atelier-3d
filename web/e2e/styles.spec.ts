@@ -1,5 +1,8 @@
 import { expect, test } from "./garde-fous";
 
+/** Une image d'inspiration : vert forêt, bois, fer et or sur un fond blanc. */
+const INSPIRATION = Buffer.from("iVBORw0KGgoAAAANSUhEUgAAAUAAAADICAIAAAAWZq/8AAACrElEQVR4nO3VsU2CURiGUSDuY0ejm2jUghWcghUslOAm2tA50XWFP+CVPMk59XeTt3ly12OMFdC0ufYA4HwChjABQ5iAIUzAECZgCBMwhAkYwgQMYQKGMAFDmIAhTMAQJmAIEzCECRjCBAxhAoYwAUOYgCFMwBAmYAgTMIQJGMIEDGEChjABQ5iAIUzAEHZzyePbh+1f7fhPP5+nhZf7l7upSyZ5ff9eePn4vJu6ZJLjx9vCy9PhfuqSSbZPXwsv/cAQJmAIEzCECRjCBAxhAoYwAUOYgCFMwBAmYAgTMIQJGMIEDGEChjABQ5iAIUzAECZgCBMwhAkYwgQMYQKGMAFDmIAhTMAQJmAIEzCECRjCBAxhAoYwAUOYgCFMwBAmYAgTMIQJGMIEDGEChjABQ5iAIUzAECZgCBMwhAkYwgQMYQKGMAFDmIAhTMAQJmAIEzCECRjCBAxhAoYwAUOYgCFMwBAmYAgTMIQJGMIEDGEChjABQ5iAIUzAECZgCBMwhAkYwgQMYQKGMAFDmIAhTMAQJmAIEzCECRjCBAxhAoYwAUOYgCFMwBAmYAgTMIQJGMIEDGEChjABQ5iAIUzAECZgCBMwhAkYwgQMYQKGMAFDmIAhTMAQJmAIEzCECRjCBAxhAoYwAUOYgCFMwBAmYAgTMIQJGMIEDGEChjABQ5iAIUzAECZgCBMwhAkYwgQMYQKGMAFDmIAhTMAQJmAIEzCECRjCBAxhAoYwAUOYgCFMwBAmYAgTMIQJGMIEDGEChjABQ5iAIUzAECZgCBMwhAkYwtZjjGtvAM7kB4YwAUOYgCFMwBAmYAgTMIQJGMIEDGEChjABQ5iAIUzAECZgCBMwhAkYwgQMYQKGMAFDmIAhTMAQJmAIEzCECRjCBAxhAoYwAUOYgCFMwBD2C1UIE4tFbd8cAAAAAElFTkSuQmCC", "base64");
+
 test.describe("Étape 2 · Styles", () => {
   test("le style du thème pilote est là ; un nouveau style se crée, reçoit sa planche simulée et se valide", async ({ page, request }) => {
     // La jauge part de ce que les autres scénarios ont déjà dépensé (crédits simulés) : on mesure la différence.
@@ -19,6 +22,12 @@ test.describe("Étape 2 · Styles", () => {
     await expect(fenetre.getByLabel("Code", { exact: true })).toHaveValue("style-de-bout-en-bout-v0");
     await fenetre.getByLabel("Description", { exact: true }).fill("Formes simples, couleurs franches.");
     await expect(fenetre.getByLabel(/^Nom de la couleur/)).toHaveCount(10); // palette reprise du style pilote
+    // Une image d'inspiration : la palette en est tirée (ses 4 couleurs, pas le fond blanc), complétée à 8.
+    await fenetre.getByLabel("Choisir des images d'inspiration").setInputFiles({ name: "inspiration.png", mimeType: "image/png", buffer: INSPIRATION });
+    await expect(fenetre.getByText(/Tirée de ton image/)).toBeVisible();
+    await expect(fenetre.getByLabel(/^Nom de la couleur/)).toHaveCount(8);
+    const noms = await fenetre.getByLabel(/^Nom de la couleur/).evaluateAll((champs) => champs.map((c) => (c as HTMLInputElement).value));
+    expect(noms).toEqual(expect.arrayContaining(["vert forêt", "bois", "fer", "or"]));
     await fenetre.getByRole("button", { name: /Générer la première planche/ }).click();
 
     // Le worker exécute la tâche Meshy simulée : 6 images, toutes marquées simulées.

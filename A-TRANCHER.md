@@ -70,6 +70,7 @@ audit > maquette.
 | 2.23 | Renommer une couleur dans « Modifier » | Non dessiné | Une couleur renommée à la même place : les matériaux qui la prennent pour base la suivent ; une couleur retirée et encore utilisée est refusée avec le nom du matériau | Ajouter ou retirer des couleurs dans « Modifier » ? |
 | 2.24 | État d'un style relu depuis ses fichiers | Le yaml est la seule source ; la base est locale (`atelier.db` non versionnée) | Clé `planche` dans le yaml = validé, avec pour chaque image gardée `{fichier, objet, simule}` ; une base neuve retrouve état et images gardées ; les crédits dépensés, eux, ne sont qu'en base | — |
 | 2.25 | Deux styles du même nom | La table refuse deux fois le même nom dans la même version | Refus clair (409) à la création, à la modification et à la copie ; au démarrage, un dossier en double est ignoré et journalisé | — |
+| 2.26 | Palette d'un nouveau style | Correction 10 : « tu décris le style, choisis la palette, ajoutes des images d'inspiration » ; ta demande du 21 oct. : la palette tirée des images, modifiable | Les images d'inspiration viennent avant la palette ; les déposer la remplit : couleurs dominantes de tes images, fond uni écarté, nommées d'après une liste de noms courants, complétées à 8 au besoin (nuances). Calcul local (Pillow), gratuit et instantané ; tout se retouche avant de créer le style | — |
 
 ## Étape 3 · Lots et Brief
 

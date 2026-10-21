@@ -8,7 +8,7 @@ from pydantic import BaseModel, ConfigDict, Field
 
 from api.adapters import get_meshy
 from api.dependances import Config, Db
-from api.services import style_yaml, styles
+from api.services import palette, style_yaml, styles
 
 router = APIRouter(prefix="/styles", tags=["styles"])
 
@@ -119,6 +119,21 @@ def garder(style_id: int, image_id: int, corps: ImageIn, conn: Db) -> dict:
 @router.post("/{style_id}/valider")
 def valider(style_id: int, conn: Db) -> dict:
     return _erreurs(styles.valider, conn, style_id)
+
+
+@router.post("/palette")
+async def palette_depuis_images(fichiers: Annotated[list[UploadFile], File()]) -> dict:
+    """Nouveau style : la palette tirée des images d'inspiration (rien n'est enregistré ; on la retouche ensuite)."""
+    contenus = []
+    for f in fichiers[: palette.MAX_IMAGES]:
+        contenu = await f.read()
+        if len(contenu) > 20 * 1024 * 1024:
+            raise HTTPException(413, f"{f.filename} dépasse 20 Mo")
+        contenus.append(contenu)
+    try:
+        return {"palette": palette.depuis_images(contenus), "images": len(contenus)}
+    except palette.ImagesIllisibles as e:
+        raise HTTPException(422, str(e)) from e
 
 
 @router.post("/{style_id}/inspirations", status_code=201)
