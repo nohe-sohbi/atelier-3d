@@ -37,7 +37,8 @@ TYPE_VARIANTES = "references_variantes"
 PAR_SERIE = IMAGES_REFERENCE_PAR_OBJET  # 4 propositions par série
 MAX_MODELES_STYLE = 4      # images de la planche envoyées à Meshy avec la consigne (limite de l'API : 5 en tout)
 MAX_CONSIGNE = 1000
-MAX_IMAGE_OCTETS = 20 * 1024 * 1024
+MAX_IMAGE_OCTETS = 20 * 1024 * 1024  # limite de Meshy pour une image
+MIN_IMAGE_PX = 32                     # Meshy refuse une image de référence sous 32 × 32 px
 TAILLE_APERCU_PX = 384
 # Deux aperçus sont « la même image » quand moins de 0,4 % de leurs pixels changent nettement (réglage invisible : la
 # profondeur des cannelures d'une colonne lisse). Mesuré : 0 à 0,33 % pour ces cas, 0,53 % pour un chapiteau en moins.
@@ -483,9 +484,12 @@ def ajouter_image(conn: sqlite3.Connection, lot_id: int, objet_id: int, nom_fich
         raise ValueError("image trop lourde (20 Mo au plus)")
     try:
         with Image.open(io.BytesIO(contenu)) as im:
+            largeur, hauteur = im.size
             im.verify()
     except (UnidentifiedImageError, OSError, SyntaxError) as e:
         raise ValueError("ce fichier n'est pas une image lisible") from e
+    if min(largeur, hauteur) < MIN_IMAGE_PX:  # Meshy refuse une image de référence plus petite
+        raise ValueError(f"image trop petite ({largeur} × {hauteur} px) : {MIN_IMAGE_PX} × {MIN_IMAGE_PX} px au moins")
     dossier = dossier_references(lot_id, objet_id)
     dossier.mkdir(parents=True, exist_ok=True)
     rang = int(db.une(conn, "SELECT COUNT(*) AS n FROM propositions WHERE objet_id = ? AND genre = 'perso'", (objet_id,))["n"])

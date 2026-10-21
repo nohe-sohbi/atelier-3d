@@ -6,9 +6,9 @@ interface Objet {
   retire: boolean;
 }
 
-/** Une petite image PNG valide (16 × 16, terre cuite), comme une photo qu'on déposerait. */
+/** Une petite image PNG valide (64 × 64, terre cuite), comme une photo qu'on déposerait. */
 const PNG = Buffer.from(
-  "iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAIAAACQkWg2AAAAGUlEQVR4nGPcGqHHQApgIkn1qIZRDUNKAwD2/gFbGUJzIQAAAABJRU5ErkJggg==",
+  "iVBORw0KGgoAAAANSUhEUgAAAEAAAABACAIAAAAlC+aJAAAAY0lEQVR4nO3PQQ3AIADAQEAQejCKv4ngcVnSU9DOe/b4s6UDXjWgNaA1oDWgNaA1oDWgNaA1oDWgNaA1oDWgNaA1oDWgNaA1oDWgNaA1oDWgNaA1oDWgNaA1oDWgNaA1oDWgfaE6AbvSMY39AAAAAElFTkSuQmCC",
   "base64",
 );
 

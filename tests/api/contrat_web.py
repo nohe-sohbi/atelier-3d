@@ -79,7 +79,7 @@ def _png_minimal() -> bytes:
     from PIL import Image
 
     tampon = io.BytesIO()
-    Image.new("RGB", (8, 8), (181, 88, 46)).save(tampon, "PNG")
+    Image.new("RGB", (64, 64), (181, 88, 46)).save(tampon, "PNG")
     return tampon.getvalue()
 
 

@@ -31,9 +31,9 @@ def _worker_tourne(cfg, timeout=60):
         w.arreter(delai_s=1)
 
 
-def _png() -> bytes:
+def _png(cote: int = 64) -> bytes:
     tampon = io.BytesIO()
-    Image.new("RGB", (16, 16), (181, 88, 46)).save(tampon, "PNG")
+    Image.new("RGB", (cote, cote), (181, 88, 46)).save(tampon, "PNG")
     return tampon.getvalue()
 
 
@@ -134,6 +134,8 @@ def test_ton_image_choisie_puis_modele_de_4_images(client, conn, cfg, atelier):
     url = f"/api/lots/{lid}/objets/{o['id']}/image"
     assert client.post(url, files={"fichier": ("notes.txt", b"pas une image", "text/plain")}).status_code == 422
     assert client.post(url, files={"fichier": ("faux.png", b"pas une image", "image/png")}).status_code == 422
+    r = client.post(url, files={"fichier": ("minuscule.png", _png(16), "image/png")})
+    assert r.status_code == 422 and "32 × 32 px au moins" in r.json()["erreur"]  # Meshy la refuserait
     r = client.post(url, files={"fichier": ("Mon croquis.PNG", _png(), "image/png")})
     assert r.status_code == 201
     perso = next(p for p in r.json()["propositions"] if p["genre"] == "perso")
