@@ -1,8 +1,8 @@
 """Écran Génération d'un lot (Generation.dc.html) : ce qui se fabrique, ce qui tourne, ce que ça coûte.
 
 Tout vient de la base : étapes des objets, tâches du lot, coûts, registre des générateurs, battement du worker.
-Les objets y arrivent depuis les Références (« Lancer la génération 3D ») ; la voie IA se fabriquera ici à l'étape 7
-du plan : en attendant, ses objets attendent avec leur référence choisie, et l'écran le dit.
+Les objets y arrivent depuis les Références (« Lancer la génération 3D ») : code par Blender, IA par Meshy puis
+Blender. Les objets mixtes et l'import CC0 attendent la suite de l'étape 7 avec leur référence, et l'écran le dit.
 """
 from __future__ import annotations
 
@@ -11,7 +11,7 @@ import sqlite3
 from api import config as cfgmod
 from api import db
 from api.adapters import get_meshy
-from api.services import couts, fabrication, generateurs_registre, taches, workers
+from api.services import couts, fabrication, fabrication_ia, generateurs_registre, taches, workers
 from api.services import lots as lots_svc
 from api.services.routage import VOIES_SANS_FABRICATION
 
@@ -21,16 +21,17 @@ FINIES = ("revue", "garde", "rejete", "archive")
 TYPES_TACHES = {"proposer_liste": "Proposition de la liste par Claude", "planche_style": "Planche de style (images Meshy)",
                 "fabriquer_code": "Fabrication par code (Blender)",
                 "references_images": "Images de référence (Meshy)", "references_variantes": "Variantes de référence (Blender)",
+                "generer_ia": "Objet 3D par IA (Meshy)", "finir_ia": "Finition d'un objet IA (Blender)",
                 "echec": "Tâche d'essai (échoue exprès)", "attendre": "Tâche d'essai (attend)"}
 FILES = {"gpu": "carte graphique", "meshy": "Meshy", "blender": "Blender", "api": "API Claude"}
-FABRICATION_IA = "La voie IA, le mixte et l'import CC0 se fabriqueront ici à l'étape 7 du plan"
+FABRICATION_IA = "Les objets mixtes et l'import CC0 se fabriqueront ici avec la suite de l'étape 7 du plan"
 
 
 def _puces(o: dict, essai: dict | None = None) -> list[dict]:
     if o["etape"] in FINIES:
         rang = len(ETAPES)
     elif o["etape"] == "generation" and essai is None and o["voie"] != "code":
-        rang = -1  # voie IA ou import en attente de l'étape 7 : rien ne tourne encore
+        rang = -1  # mixte ou import en attente de la suite de l'étape 7 : rien ne tourne encore
     elif o["etape"] in ETAPES:
         rang = ETAPES.index(o["etape"])
     else:
@@ -63,8 +64,8 @@ def _statut(o: dict, essai: dict | None = None) -> tuple[str, str, int]:
         return "Prêt pour la revue", "good", 100
     if o["etape"] == "generation" and essai is None and o["voie"] != "code":
         if o["voie"] == "cc0":
-            return "En attente : l'import CC0 arrive à l'étape 7 du plan", "idle", 0
-        return "Référence choisie · en attente : la fabrication par IA arrive à l'étape 7 du plan", "idle", 0
+            return "En attente : l'import CC0 arrive avec la suite de l'étape 7", "idle", 0
+        return "Référence choisie · en attente : l'assemblage mixte arrive avec la suite de l'étape 7", "idle", 0
     if o["etape"] in ETAPES:
         i = ETAPES.index(o["etape"])
         return f"{LIBELLES[o['etape']]} en cours", "run", round(100 * i / len(ETAPES))
@@ -119,7 +120,7 @@ def vue(conn: sqlite3.Connection, cfg: dict, lot_id: int) -> dict:
             vignette = f"/api/fichiers/references/{o['reference_id']}" if o.get("reference_id") else None
         else:
             vignette = f"/api/fichiers/essais/{essai['id']}/vignette.png"
-        motif = fabrication.motif_refus(conn, o, manifestes)
+        motif = fabrication_ia.motif_refus(conn, o) if o["voie"] == "ia" else fabrication.motif_refus(conn, o, manifestes)
         asset = db.une(conn, "SELECT id FROM assets WHERE objet_id = ?", (o["id"],))
         lignes.append({
             "id": o["id"], "nom": o["nom"], "voie": o["voie"], "fournisseur": _fournisseur(o, meshy_simule),
@@ -130,8 +131,9 @@ def vue(conn: sqlite3.Connection, cfg: dict, lot_id: int) -> dict:
             "planche": f"/api/fichiers/essais/{essai['id']}/planche.png" if rendus and (rendus / "planche.png").is_file() else None,
             "asset_id": asset["id"] if asset else None,
             "peut_fabriquer": motif is None, "motif": motif,
-            # Un objet code en échec peut repartir d'une autre variante, choisie aux Références.
-            "peut_rechoisir": o["voie"] == "code" and essai is not None and essai["etat"] == "echec" and motif is None})
+            # Un objet en échec peut repartir d'une autre référence (variante, image), choisie aux Références.
+            "peut_rechoisir": o["voie"] in ("code", "ia") and essai is not None and essai["etat"] == "echec"
+            and motif is None})
     liste = [taches._charger(r) for r in db.toutes(conn, "SELECT * FROM taches WHERE lot_id = ? ORDER BY id DESC", (lot_id,))]
     credits = couts.credits_meshy_lot(conn, lot_id)
     prets = sum(1 for o in fabriques if o["etape"] in FINIES)
@@ -139,9 +141,12 @@ def vue(conn: sqlite3.Connection, cfg: dict, lot_id: int) -> dict:
         "lot_id": lot_id,
         "tuiles": {
             "prets_revue": prets, "fabriques": len(fabriques),
-            # Un objet IA lancé attend l'étape 7 : il n'est pas « en cours » tant que rien ne tourne pour lui.
+            # Un objet mixte ou importé lancé attend la suite de l'étape 7 : rien ne tourne encore pour lui.
             "en_cours": sum(1 for o in fabriques if o["etape"] in ETAPES and not _en_attente_ia(conn, o)),
-            "relances": sum(max(0, t["tentatives"] - 1) for t in liste),
+            # Relances de la file (une tâche refaite) et relances automatiques (un nouvel essai IA après un contrôle).
+            "relances": sum(max(0, t["tentatives"] - 1) for t in liste) + int(db.une(
+                conn, "SELECT COUNT(*) AS n FROM essais e JOIN objets o ON o.id = e.objet_id WHERE o.lot_id = ? "
+                      "AND json_extract(e.source_json, '$.relance_de') IS NOT NULL", (lot_id,))["n"]),
             "credits_utilises": credits["credits"], "credits_simules": credits["simule"],
             "credits_prevus": int(lot["credits_prevus"] or 0),
         },
@@ -150,7 +155,7 @@ def vue(conn: sqlite3.Connection, cfg: dict, lot_id: int) -> dict:
         "taches": [tache_vue(t) for t in liste],
         "generateurs": generateurs_branches(cfg),
         "worker": workers.etat(conn),
-        "fabrication": {"autres_voies": sum(1 for o in fabriques if o["voie"] != "code"), "raison_ia": FABRICATION_IA},
+        "fabrication": {"autres_voies": sum(1 for o in fabriques if o["voie"] in ("mixte", "cc0")), "raison_ia": FABRICATION_IA},
         "limites_files": {f: int(v) for f, v in cfgmod.limites_files(cfg).items()},
     }
 

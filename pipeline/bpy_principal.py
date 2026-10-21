@@ -75,6 +75,33 @@ def generer(entree: dict, style) -> dict:
     }
 
 
+@commande("importer")
+def importer(entree: dict, style) -> dict:
+    """Voie IA et import : le GLB reçu (Meshy, ComfyUI, pack CC0) devient generation.blend, comme une génération.
+
+    entree : glb (le fichier reçu), id (nom de l'objet), dossier (de l'essai).
+    """
+    import bpy
+
+    from pipeline import _bpy as P
+    from pipeline import normalize
+
+    P.scene_vide()
+    obj = normalize.importer_glb(entree["glb"], nom=entree["id"])
+    dossier = Path(entree["dossier"])
+    dossier.mkdir(parents=True, exist_ok=True)
+    blend = dossier / "generation.blend"
+    bpy.ops.file.pack_all()  # les textures du GLB voyagent avec le .blend
+    bpy.ops.wm.save_as_mainfile(filepath=str(blend))
+    mini, maxi = P.boite(obj)
+    return {
+        "blend": str(blend), "objet": obj.name, "tris": P.compter_tris(obj),
+        "dimensions_m": [round(float(x), 4) for x in (maxi - mini)],
+        "materiaux": [mat.name for mat in obj.data.materials if mat is not None],
+        "images": sorted(i.name for i in bpy.data.images if i.size[0]),
+    }
+
+
 @commande("finir")
 def finir(entree: dict, style) -> dict:
     """Finition commune : entree = blend (de la génération), dossier (de l'asset), id, infos, voie."""

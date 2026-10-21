@@ -3667,10 +3667,14 @@
     }
   },
   "POST /api/lots/{id}/lancer": {
-    "taches": [],
+    "taches": [
+      8,
+      9
+    ],
     "lances": 2,
     "par_code": 0,
-    "en_attente_ia": 2,
+    "par_ia": 2,
+    "en_attente": 0,
     "mis_de_cote": [
       "Objet simulé 4 (mixte)"
     ]
@@ -3680,7 +3684,7 @@
     "tuiles": {
       "prets_revue": 0,
       "fabriques": 2,
-      "en_cours": 0,
+      "en_cours": 2,
       "relances": 0,
       "credits_utilises": 36,
       "credits_simules": true,
@@ -3696,7 +3700,7 @@
           {
             "cle": "generation",
             "libelle": "Génération",
-            "etat": "a_faire"
+            "etat": "en_cours"
           },
           {
             "cle": "finition",
@@ -3714,15 +3718,20 @@
             "etat": "a_faire"
           }
         ],
-        "statut": "Référence choisie · en attente : la fabrication par IA arrive à l'étape 7 du plan",
-        "ton": "idle",
+        "statut": "Génération en cours",
+        "ton": "run",
         "pct": 0,
-        "essai": null,
+        "essai": {
+          "id": 1,
+          "numero": 1,
+          "etat": "en_attente",
+          "erreur": null
+        },
         "vignette": "/api/fichiers/references/1",
         "planche": null,
         "asset_id": null,
         "peut_fabriquer": false,
-        "motif": "voie IA, mixte ou import : la fabrication arrive à l'étape 7 du plan",
+        "motif": "déjà en cours de fabrication",
         "peut_rechoisir": false
       },
       {
@@ -3734,7 +3743,7 @@
           {
             "cle": "generation",
             "libelle": "Génération",
-            "etat": "a_faire"
+            "etat": "en_cours"
           },
           {
             "cle": "finition",
@@ -3752,20 +3761,65 @@
             "etat": "a_faire"
           }
         ],
-        "statut": "Référence choisie · en attente : la fabrication par IA arrive à l'étape 7 du plan",
-        "ton": "idle",
+        "statut": "Génération en cours",
+        "ton": "run",
         "pct": 0,
-        "essai": null,
+        "essai": {
+          "id": 2,
+          "numero": 1,
+          "etat": "en_attente",
+          "erreur": null
+        },
         "vignette": "/api/fichiers/references/13",
         "planche": null,
         "asset_id": null,
         "peut_fabriquer": false,
-        "motif": "voie IA, mixte ou import : la fabrication arrive à l'étape 7 du plan",
+        "motif": "déjà en cours de fabrication",
         "peut_rechoisir": false
       }
     ],
     "reutilises": [],
     "taches": [
+      {
+        "id": 9,
+        "type": "generer_ia",
+        "libelle": "Objet 3D par IA (Meshy)",
+        "file": "meshy",
+        "libelle_file": "Meshy",
+        "etat": "en_attente",
+        "tentatives": 0,
+        "max_tentatives": 4,
+        "erreur": null,
+        "progression": null,
+        "cree_le": "2026-10-18T08:00:00Z",
+        "debute_le": null,
+        "fini_le": null,
+        "reprise_le": null,
+        "lot_id": 5,
+        "objet_id": 2,
+        "peut_relancer": false,
+        "peut_annuler": true
+      },
+      {
+        "id": 8,
+        "type": "generer_ia",
+        "libelle": "Objet 3D par IA (Meshy)",
+        "file": "meshy",
+        "libelle_file": "Meshy",
+        "etat": "en_attente",
+        "tentatives": 0,
+        "max_tentatives": 4,
+        "erreur": null,
+        "progression": null,
+        "cree_le": "2026-10-18T08:00:00Z",
+        "debute_le": null,
+        "fini_le": null,
+        "reprise_le": null,
+        "lot_id": 5,
+        "objet_id": 1,
+        "peut_relancer": false,
+        "peut_annuler": true
+      },
       {
         "id": 7,
         "type": "references_images",
@@ -3893,11 +3947,11 @@
       "demarre_le": "2026-10-18T08:00:00Z",
       "arrete_le": "2026-10-18T08:00:00Z",
       "en_cours": 0,
-      "en_attente": 0
+      "en_attente": 2
     },
     "fabrication": {
-      "autres_voies": 2,
-      "raison_ia": "La voie IA, le mixte et l'import CC0 se fabriqueront ici à l'étape 7 du plan"
+      "autres_voies": 0,
+      "raison_ia": "Les objets mixtes et l'import CC0 se fabriqueront ici avec la suite de l'étape 7 du plan"
     },
     "limites_files": {
       "gpu": 1,
@@ -3965,7 +4019,7 @@
     "demarre_le": "2026-10-18T08:00:00Z",
     "arrete_le": "2026-10-18T08:00:00Z",
     "en_cours": 0,
-    "en_attente": 0
+    "en_attente": 2
   },
   "GET /api/worker/taches": {
     "worker": {
@@ -3974,9 +4028,57 @@
       "demarre_le": "2026-10-18T08:00:00Z",
       "arrete_le": "2026-10-18T08:00:00Z",
       "en_cours": 0,
-      "en_attente": 0
+      "en_attente": 2
     },
     "taches": [
+      {
+        "id": 9,
+        "type": "generer_ia",
+        "libelle": "Objet 3D par IA (Meshy)",
+        "file": "meshy",
+        "libelle_file": "Meshy",
+        "etat": "en_attente",
+        "tentatives": 0,
+        "max_tentatives": 4,
+        "erreur": null,
+        "progression": null,
+        "cree_le": "2026-10-18T08:00:00Z",
+        "debute_le": null,
+        "fini_le": null,
+        "reprise_le": null,
+        "lot_id": 5,
+        "objet_id": 2,
+        "peut_relancer": false,
+        "peut_annuler": true,
+        "contexte": {
+          "libelle": "Lot simulé e1a6",
+          "lien": "/lots/5/generation"
+        }
+      },
+      {
+        "id": 8,
+        "type": "generer_ia",
+        "libelle": "Objet 3D par IA (Meshy)",
+        "file": "meshy",
+        "libelle_file": "Meshy",
+        "etat": "en_attente",
+        "tentatives": 0,
+        "max_tentatives": 4,
+        "erreur": null,
+        "progression": null,
+        "cree_le": "2026-10-18T08:00:00Z",
+        "debute_le": null,
+        "fini_le": null,
+        "reprise_le": null,
+        "lot_id": 5,
+        "objet_id": 1,
+        "peut_relancer": false,
+        "peut_annuler": true,
+        "contexte": {
+          "libelle": "Lot simulé e1a6",
+          "lien": "/lots/5/generation"
+        }
+      },
       {
         "id": 2,
         "type": "echec",

@@ -438,6 +438,9 @@ def valider(dossier_asset: str | Path, style: Style, infos: dict[str, Any] | Non
     symetrique = info("symetrique")
     pieces = info("pieces_declarees", 1)
     pieces = int(pieces) if pieces is not None else 1
+    # Voie IA et import : la forme vient d'une image ; la taille est contrôlée, les proportions et la symétrie sont
+    # mesurées pour la revue (une relance payante ne se décide pas sur des dimensions estimées).
+    importe = str(info("voie") or "") in ("ia", "A", "cc0", "import", "mixte", "A+B")
 
     rapport = Rapport(id=id_asset, style=f"{style.nom}@{style.version}", dossier=str(dossier))
     glb = dossier / f"{id_asset}.glb"
@@ -504,11 +507,17 @@ def valider(dossier_asset: str | Path, style: Style, infos: dict[str, Any] | Non
     else:
         ext = [float(x) for x in lod0.extents]
         ecarts = [_pct(m, a) for m, a in zip(ext, attendu)]
-        pire = max(ecarts)
-        rapport.controles.append(Controle(
-            "Dimensions", round(pire, 2), tol["dimensions_pct"], True, pire <= tol["dimensions_pct"],
-            f"mesuré [{ext[0]:.3f}, {ext[1]:.3f}, {ext[2]:.3f}] m, attendu {list(attendu)} m "
-            f"(écarts X/Y/Z : {ecarts[0]:.1f} / {ecarts[1]:.1f} / {ecarts[2]:.1f} %)"))
+        mesures = (f"mesuré [{ext[0]:.3f}, {ext[1]:.3f}, {ext[2]:.3f}] m, attendu {list(attendu)} m "
+                   f"(écarts X/Y/Z : {ecarts[0]:.1f} / {ecarts[1]:.1f} / {ecarts[2]:.1f} %)")
+        if importe:
+            taille = _pct(max(ext), max(float(a) for a in attendu))
+            rapport.controles.append(Controle(
+                "Dimensions", round(taille, 2), tol["dimensions_pct"], True, taille <= tol["dimensions_pct"],
+                f"taille (plus grande dimension) : écart {taille:.1f} % ; proportions à juger en revue : {mesures}"))
+        else:
+            pire = max(ecarts)
+            rapport.controles.append(Controle(
+                "Dimensions", round(pire, 2), tol["dimensions_pct"], True, pire <= tol["dimensions_pct"], mesures))
         rapport.extras["dimensions_m"] = [round(x, 4) for x in ext]
 
     # 5. Polycount (+ ratios LOD)
@@ -565,9 +574,10 @@ def valider(dossier_asset: str | Path, style: Style, infos: dict[str, Any] | Non
             d = distance_surface(topo, miroir)
             pire = float(d.max()) if len(d) else 0.0
             rapport.controles.append(Controle(
-                "Symétrie", round(pire, 5), tol["symetrie_m"], True, pire <= tol["symetrie_m"],
+                "Symétrie", round(pire, 5), tol["symetrie_m"], not importe, pire <= tol["symetrie_m"],
                 f"miroir sur l'axe {symetrique} : écart max {pire * 1000:.2f} mm, "
-                f"moyen {float(d.mean()) * 1000 if len(d) else 0:.2f} mm sur {len(pts)} sommets"))
+                f"moyen {float(d.mean()) * 1000 if len(d) else 0:.2f} mm sur {len(pts)} sommets"
+                + (" (objet venu d'une image : à juger en revue)" if importe else "")))
     else:
         rapport.controles.append(Controle("Symétrie", 0, tol["symetrie_m"], True, True,
                                           "objet non déclaré symétrique", etat="non demandée"))

@@ -26,14 +26,21 @@ export function Generation({ lotId, onChangement }: Props) {
   const minuteur = useRef<number | null>(null);
   const naviguer = useNavigate();
 
+  const avancement = useRef<string | null>(null);
+
   const charger = useCallback(async () => {
     try {
-      setG(await api<GenerationApi>(`/lots/${lotId}/generation`));
+      const lu = await api<GenerationApi>(`/lots/${lotId}/generation`);
+      setG(lu);
       setErreur(null);
+      // Le worker fait avancer le lot sans l'écran : l'en-tête (étapes, ligne d'état) se relit quand l'avancement change.
+      const signature = lu.objets.map((o) => `${o.id}:${o.statut}`).join("|");
+      if (avancement.current !== null && avancement.current !== signature) onChangement();
+      avancement.current = signature;
     } catch (e) {
       setErreur(messageErreur(e));
     }
-  }, [lotId]);
+  }, [lotId, onChangement]);
 
   useEffect(() => {
     charger();
@@ -74,7 +81,7 @@ export function Generation({ lotId, onChangement }: Props) {
       changement();
     });
 
-  /** « Choisir une autre version » : l'objet revient aux Références. */
+  /** « Choisir une autre version » (code) ou « une autre image » (IA) : l'objet revient aux Références. */
   const rechoisir = (objetId: number) =>
     agir(async () => {
       await api(`/lots/${lotId}/objets/${objetId}/rouvrir`, { method: "POST" });
@@ -178,7 +185,7 @@ export function Generation({ lotId, onChangement }: Props) {
                       {o.asset_id ? <span className="mono secondaire">{o.asset_id}</span> : null}
                       {o.peut_rechoisir ? (
                         <button type="button" className="bouton bouton--petit" onClick={() => rechoisir(o.id)} disabled={occupe}>
-                          Choisir une autre version
+                          {o.voie === "ia" ? "Choisir une autre image" : "Choisir une autre version"}
                         </button>
                       ) : null}
                       {o.peut_fabriquer && o.essai ? (

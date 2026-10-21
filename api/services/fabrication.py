@@ -90,7 +90,8 @@ def motif_refus(conn: sqlite3.Connection, o: dict, manifestes: dict) -> str | No
     if o["retire"] or o["voie"] in VOIES_SANS_FABRICATION:
         return "objet retiré, réutilisé ou hors périmètre : rien à fabriquer"
     if o["voie"] != "code":
-        return "voie IA, mixte ou import : la fabrication arrive à l'étape 7 du plan"
+        return "objet mixte ou import : leur fabrication arrive avec la suite de l'étape 7" if o["voie"] != "ia" \
+            else "objet fait par IA : il passe par Meshy, pas par un script"
     if o["etape"] == "brief":
         return "valide d'abord le brief"
     if o["etape"] == "references" and o.get("reference_id") is None:
@@ -111,6 +112,35 @@ def pieces_declarees(m: dict, params: dict, racine: Path | None = None) -> int:
     except KeyError:
         f = None
     return int(f(params)) if callable(f) else int(m["pieces_declarees"])
+
+
+GENERATEURS_IA = ("meshy",)
+
+
+def infos_objet(objet: dict) -> dict[str, Any]:
+    """Voie IA : ce que la finition et les contrôles savent de l'objet (le brief, pas un MANIFESTE)."""
+    dims = json.loads(objet["dimensions_json"] or "null") or {}
+    dimensions = [dims.get("largeur"), dims.get("profondeur"), dims.get("hauteur")]
+    return {"nom": objet["nom"], "categorie": objet["categorie"] or "prop_moyen", "famille": objet["famille"] or "props",
+            "dimensions_type": objet["type_objet"], "symetrique": objet["symetrique"] if objet["symetrique"] in ("X", "Y") else None,
+            "dimensions_m": [float(x) for x in dimensions] if all(isinstance(x, int | float) and x > 0 for x in dimensions)
+            else None, "voie": "ia"}
+
+
+def _echec_qualite(conn: sqlite3.Connection, cfg: dict, essai: dict, ia: bool, message: str, rapport: dict) -> dict:
+    """Un contrôle bloquant en échec. Voie code : échec tout de suite (un générateur rejouable redonne le même
+    objet). Voie IA : nouvel essai automatique tant qu'il en reste (cahier : « relance automatique, 3 au plus ») ;
+    la tâche se termine sans alerte, l'essai garde son rapport."""
+    erreur = _echec(conn, essai, message, rapport)
+    if not ia:
+        raise erreur
+    from api.services import fabrication_ia
+
+    suite = fabrication_ia.relancer_auto(conn, cfg, essai, message)
+    if suite is None:
+        n = int(db.une(conn, "SELECT COUNT(*) AS n FROM essais WHERE objet_id = ?", (essai["objet_id"],))["n"])
+        raise TacheDefinitive(f"{message} (après {n - 1} relance{'s' if n > 2 else ''} automatique{'s' if n > 2 else ''})")
+    return {"essai": essai["id"], "relance": suite, "motif": message}
 
 
 def params_choisis(conn: sqlite3.Connection, o: dict, m: dict) -> dict:
@@ -195,17 +225,23 @@ def executer(conn: sqlite3.Connection, cfg: dict, params: dict, tache_id: int | 
     lot = lots_svc._ligne(conn, objet["lot_id"])
     style_row = db.une(conn, "SELECT code FROM styles WHERE id = ?", (lot["style_id"],))
     style = styles_svc.charger_style(style_row["code"])
-    manifestes, _ = generateurs_registre.manifestes()
-    m = manifestes.get(essai["generateur"])
-    if m is None:
-        raise _echec(conn, essai, f"générateur « {essai['generateur']} » introuvable dans generators/")
+    ia = essai["generateur"] in GENERATEURS_IA
+    params_essai = json.loads(essai["params_json"] or "{}")
+    source = json.loads(essai["source_json"] or "{}")
+    if ia:
+        m = infos_objet(objet)
+    else:
+        manifestes, _ = generateurs_registre.manifestes()
+        m = manifestes.get(essai["generateur"])
+        if m is None:
+            raise _echec(conn, essai, f"générateur « {essai['generateur']} » introuvable dans generators/")
+        m = {**m, "pieces_declarees": pieces_declarees(m, params_essai)}  # selon les réglages (amphore sans anses)
+    voie = "ia" if ia else "code"
     reprise = taches.lire_reprise(conn, tache_id) if tache_id is not None else {}
     faites: list[str] = list(reprise.get("faites") or [])
     id_asset = reprise.get("id") or identifiant(conn, style.theme, m["categorie"], objet["type_objet"] or m["nom"], objet["id"])
     dossier = dossier_essai(essai)
     asset = dossier / "asset"
-    params_essai = json.loads(essai["params_json"] or "{}")
-    m = {**m, "pieces_declarees": pieces_declarees(m, params_essai)}  # selon les réglages choisis (amphore sans anses)
     infos = {**m, "id": id_asset}
 
     def noter(nom: str, donnees: dict | None = None) -> None:
@@ -222,28 +258,46 @@ def executer(conn: sqlite3.Connection, cfg: dict, params: dict, tache_id: int | 
     try:
         if "generation" not in faites:
             _etape(conn, essai, etape_courante := "generation")
-            avancer(5, f"génération : generators/{m['nom']}.py")
-            fichier = generateurs_registre.dossier() / f"{m['nom']}.py"
-            r = blender.lancer("generer", {"fichier": str(fichier), "params": params_essai, "seed": 0, "id": id_asset,
-                                           "dossier": str(dossier)}, cfg, dossier, style=style, arret=arret)
+            if ia:
+                avancer(5, "import : l'objet 3D reçu de Meshy")
+                glb = dossier / str(source.get("glb") or "")
+                if not source.get("glb") or not glb.is_file():
+                    raise _echec(conn, essai, "objet 3D de Meshy introuvable : relance sa génération")
+                r = blender.lancer("importer", {"glb": str(glb), "id": id_asset, "dossier": str(dossier)}, cfg, dossier,
+                                   style=style, arret=arret)
+            else:
+                avancer(5, f"génération : generators/{m['nom']}.py")
+                fichier = generateurs_registre.dossier() / f"{m['nom']}.py"
+                r = blender.lancer("generer", {"fichier": str(fichier), "params": params_essai, "seed": 0, "id": id_asset,
+                                               "dossier": str(dossier)}, cfg, dossier, style=style, arret=arret)
             noter("generation", {"blend": r["blend"], "tris": r["tris"]})
         if "finition" not in faites:
             _etape(conn, essai, etape_courante := "finition")
-            avancer(30, "finition : échelle, matériaux du style, LOD, collision, export")
+            avancer(30, "finition : échelle, débris, textures, LOD, collision, export" if ia
+                    else "finition : échelle, matériaux du style, LOD, collision, export")
             if asset.exists():
                 shutil.rmtree(asset)
             r = blender.lancer("finir", {"blend": reprise["generation"]["blend"], "dossier": str(asset), "id": id_asset,
-                                         "infos": m}, cfg, dossier, style=style, arret=arret)
+                                         "infos": m, "voie": voie}, cfg, dossier, style=style, arret=arret)
             noter("finition", {k: r.get(k) for k in ("tris_lod0", "tris_lod1", "tris_lod2", "tris_collision")})
             interne = json.loads((asset / "rapport_interne.json").read_text(encoding="utf-8"))
+            if ia:
+                provenance = {
+                    "generateur": f"meshy:{params_essai.get('ai_model', 'latest')}",
+                    "parametres": {**params_essai, "reference": source.get("reference")},
+                    "sources": [{"nom": "Meshy image-to-3d", "outil": "meshy", "licence": "Meshy-Pro",
+                                 "tache": source.get("meshy_id"), "simule": bool(source.get("simule"))}],
+                    "outils_ia": {"geometrie": "Meshy image-to-3d", "textures": "Meshy"},
+                    "pieces_declarees": interne.get("pieces_declarees"), "textures": interne.get("textures") or None}
+            else:
+                provenance = {"generateur": meta.reference_generateur(m["nom"]), "parametres": params_essai,
+                              "pieces_declarees": m["pieces_declarees"], "variante": params_essai.get("variante")}
             (asset / "meta.json").write_text(json.dumps(meta.construire_meta(
-                id=id_asset, categorie=m["categorie"], voie="code",
-                generateur=meta.reference_generateur(m["nom"]), parametres=params_essai,
+                id=id_asset, categorie=m["categorie"], voie=voie,
                 dimensions_m=interne["normalisation"]["dimensions_m"], tris_lod0=interne["tris_lod0"],
                 tris_lod1=interne["tris_lod1"], tris_lod2=interne["tris_lod2"], tris_collision=interne["tris_collision"],
                 style=style.nom, version_style=style.version, seed=0, symetrique=m["symetrique"],
-                pieces_declarees=m["pieces_declarees"], dimensions_type=m["dimensions_type"],
-                variante=params_essai.get("variante")), ensure_ascii=False, indent=2), encoding="utf-8")
+                dimensions_type=m["dimensions_type"], **provenance), ensure_ascii=False, indent=2), encoding="utf-8")
         if "tests" not in faites:
             _etape(conn, essai, etape_courante := "tests")
             avancer(55, "tests : les contrôles du cahier des charges")
@@ -251,7 +305,7 @@ def executer(conn: sqlite3.Connection, cfg: dict, params: dict, tache_id: int | 
             echecs = [f"{c.nom} ({c.detail})" for c in rapport.controles if c.bloquant and not c.ok and c.nom != "Rendus"]
             if echecs or not rapport.licence.get("ok", False):
                 motifs = echecs + ([] if rapport.licence.get("ok") else [rapport.licence.get("detail", "licence")])
-                raise _echec(conn, essai, "contrôles en échec : " + " ; ".join(motifs), rapport.to_dict())
+                return _echec_qualite(conn, cfg, essai, ia, "contrôles en échec : " + " ; ".join(motifs), rapport.to_dict())
             noter("tests")
         if "rendus" not in faites:
             _etape(conn, essai, etape_courante := "rendus")
@@ -262,7 +316,7 @@ def executer(conn: sqlite3.Connection, cfg: dict, params: dict, tache_id: int | 
         rapport = validate.valider(asset, style, infos, cfg)
         (asset / "rapport.json").write_text(rapport.to_json(), encoding="utf-8")
         if not rapport.bloquants_ok:
-            raise _echec(conn, essai, "contrôles en échec : " + " ; ".join(
+            return _echec_qualite(conn, cfg, essai, ia, "contrôles en échec : " + " ; ".join(
                 f"{c.nom} ({c.detail})" for c in rapport.controles if c.bloquant and not c.ok), rapport.to_dict())
     except blender.BlenderIntrouvable as e:
         raise _echec(conn, essai, str(e)) from e
@@ -270,20 +324,20 @@ def executer(conn: sqlite3.Connection, cfg: dict, params: dict, tache_id: int | 
         if "délai dépassé" in str(e):
             raise RuntimeError(str(e)) from e  # une machine occupée : une relance peut passer
         raise _echec(conn, essai, f"{LIBELLES[etape_courante]} : {e}") from e
-    _ranger(conn, essai, objet, lot, style, id_asset, m, asset, rapport)
+    _ranger(conn, essai, objet, lot, style, id_asset, m, asset, rapport, voie)
     avancer(100, "prêt pour la revue")
     return {"asset": id_asset, "essai": essai["id"], "rendus": reprise.get("rendus", {}).get("moteur")}
 
 
 def _ranger(conn: sqlite3.Connection, essai: dict, objet: dict, lot: dict, style, id_asset: str, m: dict,
-            asset: Path, rapport) -> None:
+            asset: Path, rapport, voie: str = "code") -> None:
     """L'objet passe en revue ; l'asset et sa nouvelle version entrent en base ; « revue prête » si le lot l'est."""
     maintenant = db.maintenant()
     meta_json = (asset / "meta.json").read_text(encoding="utf-8")
     with db.transaction(conn):
         if db.une(conn, "SELECT 1 FROM assets WHERE id = ?", (id_asset,)) is None:
             db.inserer(conn, "assets", {"id": id_asset, "lot_id": lot["id"], "objet_id": objet["id"], "nom": objet["nom"],
-                                        "theme": style.theme, "categorie": m["categorie"], "voie": "code", "statut": "revue",
+                                        "theme": style.theme, "categorie": m["categorie"], "voie": voie, "statut": "revue",
                                         "cree_le": maintenant, "maj_le": maintenant})
         numero = 1 + int(db.une(conn, "SELECT COALESCE(MAX(numero), 0) AS n FROM versions WHERE asset_id = ?",
                                 (id_asset,))["n"])

@@ -120,7 +120,7 @@ function LigneTache({ tache: t, onChangement }: { tache: TacheVue; onChangement:
             </button>
           ) : null}
           {t.peut_annuler ? (
-            <button type="button" className="bouton bouton--petit" onClick={() => agir("annuler")} disabled={occupe}>
+            <button type="button" className="bouton bouton--petit" aria-label={`Annuler : ${t.libelle}`} onClick={() => agir("annuler")} disabled={occupe}>
               Annuler
             </button>
           ) : null}

@@ -170,7 +170,7 @@ def test_lancer_la_generation(client, conn, cfg, avec_scutum):
     r = client.post(f"/api/lots/{lid}/lancer")
     assert r.status_code == 202, r.text
     res = r.json()
-    assert res["par_code"] == 1 and res["en_attente_ia"] == 1 and len(res["taches"]) == 1
+    assert res["par_code"] == 1 and res["par_ia"] == 1 and len(res["taches"]) == 2  # Blender pour l'un, Meshy pour l'autre
     choisis = {code["id"], ia[0]["id"]}
     assert sorted(res["mis_de_cote"]) == sorted(o["nom"] for o in objets.values() if o["id"] not in choisis)
     essai = db.une(conn, "SELECT * FROM essais WHERE objet_id = ?", (code["id"],))
@@ -181,9 +181,9 @@ def test_lancer_la_generation(client, conn, cfg, avec_scutum):
     assert all(lignes[i]["retire"] for i in objets if i not in choisis)
     g = client.get(f"/api/lots/{lid}/generation").json()
     attente = next(x for x in g["objets"] if x["id"] == ia[0]["id"])
-    assert attente["statut"].startswith("Référence choisie · en attente") and all(p["etat"] == "a_faire" for p in attente["etapes"])
+    assert attente["statut"] == "Génération en cours" and attente["etapes"][0]["etat"] == "en_cours"
     assert attente["vignette"] == f"/api/fichiers/references/{ia[0]['propositions'][2]['id']}"  # l'image choisie
-    assert g["tuiles"]["en_cours"] == 1  # le scutum en fabrication ; l'objet IA attend, rien ne tourne pour lui
+    assert g["tuiles"]["en_cours"] == 2  # le scutum par Blender, l'objet IA par Meshy
     etapes = {e["cle"]: e["atteinte"] for e in client.get(f"/api/lots/{lid}").json()["etapes"]}
     assert etapes["generation"] is True
     # Lancé : le choix ne change plus, et une préparation relancée ne dépense rien.

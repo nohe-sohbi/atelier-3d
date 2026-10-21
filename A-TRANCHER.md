@@ -162,3 +162,17 @@ audit > maquette.
 | 6.10 | Pièces d'un objet selon ses réglages | `CONTRAT.md` | Un générateur peut exposer `pieces(params)` (l'amphore : 3 avec anses, 1 sans) ; la fabrication et les contrôles l'utilisent | — |
 | 6.11 | Crédits des images | Cahier : 3 crédits l'image | « 12 crédits » la série, tarif lu dans l'adaptateur Meshy ; chaque image note ce que Meshy a vraiment pris, dans le coût du lot | — |
 | 6.12 | Assistant « Nouveau style » | La ligne de l'étape 6 du plan le cite | Déjà livré à l'étape 2 (2.1) | — |
+
+## Étape 7 · Fabrication IA
+
+| # | Sujet | Ce que disent les sources | Choix provisoire dans le code | Question |
+|---|---|---|---|---|
+| 7.1 | Deux files pour un objet IA | Cahier : files Meshy, Blender, carte graphique en parallèle | Deux tâches par essai : `generer_ia` (file Meshy : l'image part, le GLB revient) puis `finir_ia` (file Blender : la même chaîne que la voie code). Attendre Meshy n'occupe pas Blender | — |
+| 7.2 | Ce qu'on demande à Meshy | Doc Meshy du 21 oct. 2026 (image vers 3D) ; tarifs : 30 crédits l'objet texturé 2K | Modèle `latest`, texture PBR 2K (le moins cher qui soit texturé), remaillage en triangles au budget de triangles du style pour la catégorie. L'image part en data URI (jamais d'URL publique) | — |
+| 7.3 | Ce que la finition corrige seule | Audit : « échelle, petits morceaux, triangles en trop » ne relancent rien | Débris (morceau sous 2 % de la surface) retirés, fissures (trous jusqu'à 16 côtés) bouchées, taille, triangles (LOD), textures ramenées à la taille du style (2K de Meshy → 1024 pour un prop) | — |
+| 7.4 | Dimensions et symétrie d'un objet IA | Cahier : dimensions ± 5 %, symétrie 5 mm, bloquants ; audit : relance « pour des proportions fausses » | La plus grande dimension est amenée à celle prévue et contrôlée (bloquant) ; les proportions et la symétrie sont mesurées et affichées pour la revue, sans bloquer : les dimensions d'un objet hors du style sont une estimation de Claude, et chaque relance coûte 30 crédits | Garder ce choix après l'essai réel ? |
+| 7.5 | Relance automatique | Audit : « relance automatique, 3 au plus » | Un contrôle bloquant en échec (maillage ouvert, UV qui se chevauchent…) relance un nouvel essai Meshy, autant que « Relances automatiques » dans Réglages (3) ; la tâche se termine sans alerte, l'alerte vient à la fin si tout a échoué. Un essai que Meshy rate lui-même est remboursé par Meshy et redemandé par la file | — |
+| 7.6 | Provenance d'un objet IA | Cahier : « chaque asset sait d'où il vient » ; liste blanche des licences | Source : Meshy image vers 3D, licence Meshy-Pro ; l'image de référence est notée dans les paramètres (image Meshy, ou ton image : ses droits se vérifient à la publication, étape 10) | — |
+| 7.7 | Un objet IA en échec | — | Génération propose « Refaire » (même image, nouvel essai) et « Choisir une autre image » (retour aux Références) | — |
+| 7.8 | Meshy simulé | Règle : le simulé répond comme le vrai | Le simulateur rend un objet comme Meshy : Y en haut, quelques milliers de triangles, texture 2K, un petit débris à retirer | — |
+| 7.9 | Planches de contact | — | Le titre et les vues sont écrits avec une police qui a les accents (la police intégrée à Pillow ne les a pas) | — |

@@ -45,7 +45,7 @@ function avancee(): Generation {
 }
 
 describe("Génération", () => {
-  it("objets IA lancés, en attente de l'étape 7 : tuiles réelles, worker arrêté, rien en cours, tâches du lot et leur journal", async () => {
+  it("objets IA lancés vers Meshy : tuiles réelles, worker arrêté, 1re étape en cours, tâches du lot et leur journal", async () => {
     const g: Generation = { ...GENERATION, taches: [PROPOSITION] };
     mockApi({ ...BASE, [`GET /api/lots/${LID}/generation`]: g, [`GET /api/taches/${PROPOSITION.id}/journal`]: JOURNAL });
     const utilisateur = userEvent.setup();
@@ -54,12 +54,16 @@ describe("Génération", () => {
     expect(tuiles.getByText(`/ ${GENERATION.tuiles.fabriques}`)).toBeInTheDocument();
     expect(tuiles.getByText(new RegExp(`${GENERATION.tuiles.credits_prevus}.prévus`))).toBeInTheDocument();
     expect(screen.getByText(/Le worker ne tourne pas/)).toBeInTheDocument();
-    expect(screen.getByText(new RegExp(GENERATION.fabrication.raison_ia.slice(0, 40)))).toBeInTheDocument();
-    expect(screen.getAllByText(/Référence choisie · en attente/)).toHaveLength(GENERATION.objets.length);
+    expect(screen.queryByText(new RegExp(GENERATION.fabrication.raison_ia.slice(0, 40)))).not.toBeInTheDocument(); // ni mixte ni import
+    expect(screen.getAllByText("Génération en cours")).toHaveLength(GENERATION.objets.length);
     const objets = within(screen.getByRole("list", { name: "Objets du lot" }));
     expect(objets.getAllByRole("listitem", { name: "" }).length).toBeGreaterThan(0);
     for (const o of GENERATION.objets) {
-      expect(within(screen.getByRole("list", { name: `Étapes de ${o.nom}` })).getAllByText(/: à faire/)).toHaveLength(4);
+      const puces = within(screen.getByRole("list", { name: `Étapes de ${o.nom}` }));
+      expect(puces.getAllByRole("listitem")[0]).toHaveTextContent("Génération : en cours");
+      expect(puces.getAllByText(/: à faire/)).toHaveLength(3);
+      // L'image choisie aux Références sert de vignette tant que l'objet n'est pas rendu.
+      expect(screen.getByRole("img", { name: `Vignette de ${o.nom}` }).getAttribute("src")).toMatch(/^\/api\/fichiers\/references\/\d+$/);
     }
     expect(screen.getByRole("button", { name: "Ouvrir la revue · 0 prêt" })).toBeDisabled();
 
@@ -93,7 +97,7 @@ describe("Génération", () => {
     expect(screen.getByText("RuntimeError: Meshy injoignable")).toBeInTheDocument();
     await utilisateur.click(screen.getByRole("button", { name: "Relancer" }));
     await waitFor(() => expect(appels.some((a) => a.methode === "POST" && a.chemin === "/api/taches/99/relancer")).toBe(true));
-    expect(await screen.findByRole("button", { name: "Annuler" })).toBeInTheDocument();
+    expect(await screen.findByRole("button", { name: /^Annuler : / })).toBeInTheDocument();
   });
 
   it("une tâche qui tourne : l'écran se relit toutes les 2 s", async () => {
@@ -104,6 +108,26 @@ describe("Génération", () => {
     const lectures = () => appels.filter((a) => a.chemin === `/api/lots/${LID}/generation`).length;
     const avant = lectures();
     await waitFor(() => expect(lectures()).toBeGreaterThan(avant), { timeout: 3500 });
+  });
+});
+
+describe("Génération · en-tête du lot", () => {
+  it("le worker fait avancer un objet : l'en-tête du lot se relit (étapes et ligne d'état à jour)", async () => {
+    const tourne: Generation = { ...GENERATION, taches: [{ ...PROPOSITION, etat: "en_cours", progression: { pct: 40, texte: "Meshy simulé : objet 3D · 40 %" } }] };
+    let lectures = 0;
+    const { appels } = mockApi({
+      ...BASE,
+      [`GET /api/lots/${LID}/generation`]: () => {
+        lectures += 1;
+        const o = GENERATION.objets[0]!;
+        return lectures < 2 ? tourne : { ...tourne, objets: [{ ...o, statut: "Prêt pour la revue", ton: "good", pct: 100 }, ...GENERATION.objets.slice(1)] };
+      },
+    });
+    rendreApp(`/lots/${LID}/generation`);
+    await screen.findByText("Meshy simulé : objet 3D · 40 %");
+    const entetes = () => appels.filter((x) => x.chemin.startsWith(`/api/lots/${LID}?`) || x.chemin === `/api/lots/${LID}`).length;
+    const avant = entetes();
+    await waitFor(() => expect(entetes()).toBeGreaterThan(avant), { timeout: 3500 });
   });
 });
 

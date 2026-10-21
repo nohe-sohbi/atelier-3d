@@ -152,9 +152,9 @@ def _lot_valide(client, cfg):
 def test_generation_avant_la_fabrication(client, conn, cfg):
     lid = _lot_valide(client, cfg)
     g = client.get(f"/api/lots/{lid}/generation").json()
-    f = g["fabrication"]  # objets simulés passés en voie IA : rien à lancer avant l'étape 7
-    assert f["autres_voies"] == len(g["objets"]) and "étape 7" in f["raison_ia"]
-    assert all(not o["peut_fabriquer"] and "étape 7" in o["motif"] for o in g["objets"])
+    f = g["fabrication"]  # objets simulés passés en voie IA : ni mixte ni import à attendre
+    assert f["autres_voies"] == 0 and "étape 7" in f["raison_ia"]
+    assert all(not o["peut_fabriquer"] and "choisis d'abord sa référence" in o["motif"] for o in g["objets"])
     assert g["objets"] and all(o["statut"].startswith("Attend sa référence") for o in g["objets"])
     assert all([p["etat"] for p in o["etapes"]] == ["a_faire"] * 4 for o in g["objets"])
     # « Générer les références » : une tâche d'images de référence par objet, après la proposition de la liste.

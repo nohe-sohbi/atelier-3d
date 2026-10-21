@@ -61,11 +61,11 @@ test.describe("Étape 6 · Références", () => {
     await expect(deux.getByRole("button", { name: /^Ton image pour / })).toHaveAttribute("aria-pressed", "true");
     await expect(deux.getByRole("button", { name: /4 images d'après ton image/ })).toBeVisible();
 
-    // Lancer : les autres objets sont annoncés mis de côté, puis Génération montre les objets en attente de l'étape 7.
+    // Lancer : les autres objets sont annoncés mis de côté, puis Génération montre tes 2 objets partis vers Meshy.
     if (n > 2) await expect(page.getByText(/mis de côté/)).toBeVisible();
     await page.getByRole("button", { name: "Lancer la génération 3D" }).click();
     await expect(page).toHaveURL(new RegExp(`/lots/${lot.id}/generation$`));
-    await expect(page.getByText(/Référence choisie · en attente/)).toHaveCount(2);
+    await expect(page.getByText("Objet 3D par IA (Meshy)").first()).toBeVisible(); // ton image part à Meshy
     await expect(page.getByRole("link", { name: /Génération/ }).first()).toBeVisible();
   });
 });

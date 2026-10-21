@@ -54,16 +54,64 @@ class EtatSimule:
             self.enregistrer(etat)
 
 
-def ecrire_glb_simule(chemin: Path, graine: str) -> Path:
-    """Un petit GLB valide (boîte dont les dimensions dépendent de la graine), via trimesh."""
-    import trimesh
+def _boite_uv(dims, centre, case: int, cases: int = 4, n: int = 1):
+    """Une boîte à faces séparées, chaque face découpée en n × n carrés, chacune dans sa propre case d'une grille UV
+    cases × cases (aucun chevauchement)."""
+    import numpy as np
 
-    h = int(hashlib.sha1(graine.encode()).hexdigest(), 16)
-    dims = [0.3 + (h >> (8 * i) & 0xFF) / 255 * 0.7 for i in range(3)]
-    boite = trimesh.creation.box(extents=dims)
-    boite.apply_translation([0, 0, dims[2] / 2])  # pivot au sol, +Z en haut
+    dx, dy, dz = (d / 2 for d in dims)
+    cx, cy, cz = centre
+    # Chaque face : un coin et deux côtés (sens trigonométrique vu de l'extérieur).
+    repere = {
+        "+x": ((1, -1, -1), (0, 2, 0), (0, 0, 2)), "-x": ((-1, 1, -1), (0, -2, 0), (0, 0, 2)),
+        "+y": ((1, 1, -1), (-2, 0, 0), (0, 0, 2)), "-y": ((-1, -1, -1), (2, 0, 0), (0, 0, 2)),
+        "+z": ((-1, -1, 1), (2, 0, 0), (0, 2, 0)), "-z": ((-1, 1, -1), (2, 0, 0), (0, -2, 0)),
+    }
+    sommets, faces, uv = [], [], []
+    m = 0.08 / cases
+    for k, (o, a, b) in enumerate(repere.values()):
+        u0, v0 = ((case + k) % cases) / cases, ((case + k) // cases) / cases
+        base = len(sommets)
+        for j in range(n + 1):
+            for i in range(n + 1):
+                s_, t_ = i / n, j / n
+                x, y, z = (o[c] + a[c] * s_ + b[c] * t_ for c in range(3))
+                sommets.append((cx + x * dx, cy + y * dy, cz + z * dz))
+                uv.append((u0 + m + s_ * (1 / cases - 2 * m), v0 + m + t_ * (1 / cases - 2 * m)))
+        for j in range(n):
+            for i in range(n):
+                q = base + j * (n + 1) + i
+                faces += [(q, q + 1, q + n + 2), (q, q + n + 2, q + n + 1)]
+    return np.array(sommets), np.array(faces), np.array(uv)
+
+
+def ecrire_glb_simule(chemin: Path, graine: str) -> Path:
+    """Un GLB comme en rend Meshy : Y en haut (glTF), taille arbitraire, quelques milliers de triangles, texture couleur
+    2K, et un petit débris flottant (que la finition doit retirer seule). La forme est une boîte dont les dimensions
+    dépendent de la graine."""
+    import numpy as np
+    import trimesh
+    from PIL import Image, ImageDraw
+
+    h = hashlib.sha1(graine.encode()).digest()
+    dims = [0.4 + h[i] / 255 * 0.6 for i in range(3)]
+    corps = _boite_uv(dims, (0, 0, dims[2] / 2), case=0, n=14)  # ≈ 2 400 triangles, comme un objet remaillé
+    debris = _boite_uv([0.03, 0.03, 0.03], (dims[0] / 2 + 0.2, 0, 0.1), case=6)
+    sommets = np.vstack([corps[0], debris[0]])
+    faces = np.vstack([corps[1], debris[1] + len(corps[0])])
+    uv = np.vstack([corps[2], debris[2]])
+    sommets = sommets @ np.array([[1, 0, 0], [0, 0, -1], [0, 1, 0]], dtype=float)  # Z en haut -> Y en haut (glTF)
+    texture = Image.new("RGB", (2048, 2048), (h[3], h[4], h[5]))
+    d = ImageDraw.Draw(texture)
+    for i in range(16):
+        x, y = (i % 4) * 512, (i // 4) * 512
+        d.rectangle((x + 40, y + 40, x + 472, y + 472), fill=(h[(6 + i) % 20], h[(7 + i) % 20], h[(8 + i) % 20]))
+    maillage = trimesh.Trimesh(vertices=sommets, faces=faces, process=False)
+    maillage.visual = trimesh.visual.TextureVisuals(
+        uv=uv, material=trimesh.visual.material.PBRMaterial(baseColorTexture=texture, metallicFactor=0.0,
+                                                             roughnessFactor=0.8, name="simule"))
     chemin.parent.mkdir(parents=True, exist_ok=True)
-    chemin.write_bytes(boite.export(file_type="glb"))
+    chemin.write_bytes(maillage.export(file_type="glb"))
     return chemin
 
 

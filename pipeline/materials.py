@@ -115,12 +115,14 @@ def plus_proche_du_style(style: Style, rgb: tuple[float, float, float], metallic
 # Application à un objet
 # ---------------------------------------------------------------------------
 def appliquer_style(obj: bpy.types.Object, style: Style, voie: str = "code", id_asset: str | None = None,
-                    dossier_textures: str | Path | None = None, strict: bool = False) -> dict[str, Any]:
+                    dossier_textures: str | Path | None = None, strict: bool = False,
+                    taille_max: int | None = None) -> dict[str, Any]:
     """Voie code : remplace tout matériau hors style par le plus proche de la palette (ou lève si strict).
-    Voie ia / cc0 : garde les textures, renomme matériaux et images, range les images."""
+    Voie ia / cc0 : garde les textures, renomme matériaux et images, les ramène à la taille du style
+    (`taille_max`, en pixels), range les images."""
     if voie in ("code", "B"):
         return _appliquer_voie_code(obj, style, strict)
-    return _ranger_textures(obj, id_asset or obj.name, dossier_textures)
+    return _ranger_textures(obj, id_asset or obj.name, dossier_textures, taille_max)
 
 
 def _appliquer_voie_code(obj: bpy.types.Object, style: Style, strict: bool) -> dict[str, Any]:
@@ -146,8 +148,10 @@ def _appliquer_voie_code(obj: bpy.types.Object, style: Style, strict: bool) -> d
             "gardes": gardes, "remplaces": remplaces}
 
 
-def _ranger_textures(obj: bpy.types.Object, id_asset: str, dossier: str | Path | None) -> dict[str, Any]:
+def _ranger_textures(obj: bpy.types.Object, id_asset: str, dossier: str | Path | None,
+                     taille_max: int | None = None) -> dict[str, Any]:
     images: list[dict[str, Any]] = []
+    reduites: set[str] = set()
     dossier = Path(dossier) if dossier else None
     if dossier:
         dossier.mkdir(parents=True, exist_ok=True)
@@ -164,6 +168,11 @@ def _ranger_textures(obj: bpy.types.Object, id_asset: str, dossier: str | Path |
                 continue
             role = _role_image(n, bsdf, mat)
             img = n.image
+            if taille_max and img.size[0] > taille_max and img.name not in reduites:
+                # Meshy livre du 2K ; le style fixe la taille par catégorie (cahier : « Taille des textures »).
+                hauteur = max(1, round(img.size[1] * taille_max / img.size[0]))
+                img.scale(taille_max, hauteur)
+                reduites.add(img.name)
             nouveau_nom = f"{id_asset}_{role}"
             if img.name != nouveau_nom:
                 img.name = nouveau_nom

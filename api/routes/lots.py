@@ -7,7 +7,7 @@ from fastapi import APIRouter, HTTPException, Query
 from pydantic import BaseModel, ConfigDict, Field
 
 from api.dependances import Config, Db
-from api.services import brief, demandes, fabrication, references
+from api.services import brief, demandes, fabrication, fabrication_ia, references
 from api.services import generation as generation_svc
 from api.services import lots as lots_svc
 
@@ -138,6 +138,9 @@ def fabriquer(lot_id: int, corps: FabricationIn, conn: Db, cfg: Config) -> dict:
     """« Refaire » un objet code de Génération : un nouvel essai avec sa référence choisie (le lancement du lot se fait
     depuis les Références)."""
     try:
+        o = next((x for x in _erreurs(lots_svc.objets_du_lot, conn, lot_id) if x["id"] == corps.objet_id), None)
+        if o is not None and o["voie"] == "ia":
+            return {"taches": [_erreurs(fabrication_ia.lancer, conn, cfg, lot_id, corps.objet_id)]}
         return {"taches": _erreurs(fabrication.lancer, conn, cfg, lot_id, corps.objet_id)}
     except fabrication.FabricationImpossible as e:
         raise HTTPException(409, str(e)) from e

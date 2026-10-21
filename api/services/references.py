@@ -8,7 +8,7 @@
 
 Les propositions arrivent au « Générer les références » du Brief ; « 4 autres » en redemande une série. Le choix sert
 d'entrée à la fabrication : « Lancer la génération 3D » fabrique les objets code avec la variante choisie et met les
-objets IA en attente de la voie IA (étape 7 du plan). Un objet sans référence au lancement est mis de côté.
+envoie l'image des objets IA à Meshy, puis la même chaîne. Un objet sans référence au lancement est mis de côté.
 """
 from __future__ import annotations
 
@@ -517,13 +517,16 @@ def fichier_public(proposition_id: int) -> Path:
 
 
 def rouvrir(conn: sqlite3.Connection, lot_id: int, objet_id: int) -> dict:
-    """« Choisir une autre version » depuis Génération : un objet code dont la fabrication a échoué revient aux
-    Références (un générateur refait toujours le même objet : relancer la même variante redonnerait le même échec)."""
+    """« Choisir une autre référence » depuis Génération : un objet dont la fabrication a échoué revient aux Références
+    (un générateur refait toujours le même objet ; pour l'IA, une autre image change tout)."""
+    from api.services import fabrication_ia
+
     o = _objet(conn, lot_id, objet_id)
-    if o["voie"] != "code" or o["etape"] not in fabrication.ETAPES:
-        raise ReferenceImpossible("seul un objet code en échec de fabrication revient aux Références")
+    if o["voie"] not in ("code", "ia") or o["etape"] not in fabrication.ETAPES:
+        raise ReferenceImpossible("seul un objet en échec de fabrication revient aux Références")
     essai = db.une(conn, "SELECT etat FROM essais WHERE objet_id = ? ORDER BY numero DESC LIMIT 1", (objet_id,))
-    if essai is None or essai["etat"] != "echec" or fabrication._tache_active(conn, objet_id):
+    actif = fabrication._tache_active(conn, objet_id) or fabrication_ia._tache_active(conn, objet_id)
+    if essai is None or essai["etat"] != "echec" or actif:
         raise ReferenceImpossible("sa fabrication n'a pas échoué : rien à rechoisir")
     with db.transaction(conn):
         conn.execute("UPDATE objets SET etape = 'references' WHERE id = ?", (objet_id,))
@@ -538,24 +541,28 @@ def rouvrir(conn: sqlite3.Connection, lot_id: int, objet_id: int) -> dict:
 def lancer(conn: sqlite3.Connection, cfg: dict, lot_id: int) -> dict:
     """« Lancer la génération 3D » : chaque objet aux Références part avec sa référence choisie.
 
-    Code : fabrication par Blender avec la variante choisie. IA et mixte : en attente de la voie IA (étape 7 du plan),
-    avec leur image. Import CC0 : en attente de l'import (étape 7). Sans référence choisie : mis de côté (retiré)."""
+    Code : fabrication par Blender avec la variante choisie. IA : l'image choisie part à Meshy, puis la même chaîne.
+    Mixte et import CC0 : en attente de leur fabrication (suite de l'étape 7). Sans référence choisie : mis de côté."""
     objets = [o for o in lots_svc.objets_du_lot(conn, lot_id)
               if o["etape"] == "references" and not o["retire"] and o["voie"] not in VOIES_SANS_FABRICATION]
     a_lancer = [o for o in objets if genre_de(o) is None or o["reference_id"] is not None]
     if not a_lancer:
         raise ReferenceImpossible("choisis d'abord une référence pour au moins un objet")
     mis_de_cote = [o for o in objets if o not in a_lancer]
+    from api.services import fabrication_ia
+
     code = [o for o in a_lancer if o["voie"] == "code"]
+    ia = [o for o in a_lancer if o["voie"] == "ia"]
     manifestes, _ = generateurs_registre.manifestes()
     refus = [f"{o['nom']} ({motif})" for o in code if (motif := fabrication.motif_refus(conn, o, manifestes))]
+    refus += [f"{o['nom']} ({motif})" for o in ia if (motif := fabrication_ia.motif_refus(conn, o))]
     if refus:
         raise ReferenceImpossible("rien n'est lancé, ces objets ne peuvent pas partir : " + " ; ".join(refus))
     with db.transaction(conn):
         for o in mis_de_cote:
             conn.execute("UPDATE objets SET retire = 1 WHERE id = ?", (o["id"],))
         for o in a_lancer:
-            if o["voie"] != "code":
+            if o["voie"] not in ("code", "ia"):
                 conn.execute("UPDATE objets SET etape = 'generation' WHERE id = ?", (o["id"],))
                 conn.execute("UPDATE pieces SET etape = 'generation' WHERE objet_id = ?", (o["id"],))
         if mis_de_cote:
@@ -568,10 +575,12 @@ def lancer(conn: sqlite3.Connection, cfg: dict, lot_id: int) -> dict:
     taches_ids = []
     for o in code:
         taches_ids += fabrication.lancer(conn, cfg, lot_id, o["id"])
+    for o in ia:
+        taches_ids.append(fabrication_ia.lancer(conn, cfg, lot_id, o["id"]))
     lots_svc.synchroniser_etat(conn, lot_id)
     conn.commit()
-    return {"taches": taches_ids, "lances": len(a_lancer), "par_code": len(code),
-            "en_attente_ia": len(a_lancer) - len(code), "mis_de_cote": [o["nom"] for o in mis_de_cote]}
+    return {"taches": taches_ids, "lances": len(a_lancer), "par_code": len(code), "par_ia": len(ia),
+            "en_attente": len(a_lancer) - len(code) - len(ia), "mis_de_cote": [o["nom"] for o in mis_de_cote]}
 
 
 # --- vue de l'écran ----------------------------------------------------------------------------------------

@@ -47,8 +47,11 @@ def finir(blend_entree: str | Path, dossier_asset: str | Path, id_asset: str, st
                                "dimensions_type": infos.get("dimensions_type"), "symetrique": infos.get("symetrique"),
                                "pieces_declarees": int(infos.get("pieces_declarees") or 1),
                                "tris_generation": compter_tris(obj)}
-    rapport["normalisation"] = normalize.normaliser(obj, style, infos, id_asset)
-    rapport["materiaux"] = materials.appliquer_style(obj, style, voie, id_asset)
+    rapport["normalisation"] = normalize.normaliser(obj, style, infos, id_asset, voie)
+    if "reparation" in rapport["normalisation"]:  # voie IA, import : les pièces sont celles gardées par la finition
+        rapport["pieces_declarees"] = int(rapport["normalisation"]["reparation"]["pieces"])
+    rapport["materiaux"] = materials.appliquer_style(obj, style, voie, id_asset,
+                                                     taille_max=style.texture_px(infos["categorie"]))
     lods = lod.generer_lods(obj, style, infos["categorie"], id_asset)
     col = lod.collision(lods[0], id_asset)
     rapport.update(lod.rapport_lods(lods, col))
@@ -59,6 +62,8 @@ def finir(blend_entree: str | Path, dossier_asset: str | Path, id_asset: str, st
     exporter([*lods, col], glb, fbx)
     bpy.ops.wm.save_as_mainfile(filepath=str(blend))
     rapport["fichiers"] = {"glb": glb.name, "fbx": fbx.name, "blend": blend.name}
-    rapport["textures"] = []  # voie code : couleurs du style, sans texture cuite (A-TRANCHER)
+    # Voie code : couleurs du style, sans texture cuite (A-TRANCHER 5.4) ; voie IA, import : les textures reçues.
+    rapport["textures"] = [{"role": i["role"], "px": i.get("px")} for i in rapport["materiaux"].get("images", [])
+                           if i.get("px")]
     ecrire_json(dossier / "rapport_interne.json", rapport)
     return rapport

@@ -661,6 +661,8 @@ export interface Lancement {
   taches: number[];
   lances: number;
   par_code: number;
-  en_attente_ia: number;
+  par_ia: number;
+  /** Objets mixtes et imports : en attente de la suite de l'étape 7. */
+  en_attente: number;
   mis_de_cote: string[];
 }

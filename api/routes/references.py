@@ -70,7 +70,7 @@ async def image(lot_id: int, objet_id: int, conn: Db, fichier: Annotated[UploadF
 
 @router.post("/{lot_id}/objets/{objet_id}/rouvrir")
 def rouvrir(lot_id: int, objet_id: int, conn: Db) -> dict:
-    """« Choisir une autre version » : un objet code en échec revient aux Références."""
+    """« Choisir une autre version » (code) ou « une autre image » (IA) : un objet en échec revient aux Références."""
     return _erreurs(references.rouvrir, conn, lot_id, objet_id)
 
 

@@ -8,7 +8,7 @@ interface Objet {
   retire: boolean;
 }
 
-test.describe("Étape 5 · Fabrication par code", () => {
+test.describe("Étapes 5 et 7 · Fabrication (code et IA)", () => {
   test("Références puis Génération : 4 versions rendues par le vrai Blender, on en choisit une, on lance ; l'objet est prêt pour la revue", async ({ page, request }) => {
     // Blender de la machine (proposé par Réglages) ; sans Blender, ce scénario n'a pas lieu d'être.
     const reglages = (await (await request.get("/api/reglages")).json()) as { etat: { outils: { blender: { suggestion: string | null } } } } & Record<string, unknown>;
@@ -58,6 +58,49 @@ test.describe("Étape 5 · Fabrication par code", () => {
       expect(notifications.filter((n) => n.type === "revue_prete" && n.lien === `/lots/${lot.id}/revue`)).toHaveLength(1);
     } finally {
       await remettre();
+    }
+  });
+
+  test("Voie IA : l'image choisie part à Meshy (simulé), le vrai Blender finit, contrôle et rend ; l'objet est prêt pour la revue", async ({ page, request }) => {
+    const reglages = (await (await request.get("/api/reglages")).json()) as { etat: { outils: { blender: { suggestion: string | null } } } } & Record<string, unknown>;
+    const blender = reglages.etat.outils.blender.suggestion;
+    test.skip(!blender, "Blender introuvable sur cette machine");
+    const corps: Record<string, unknown> = { ...reglages };
+    delete corps.etat;
+    const outils = corps.outils as { blender: { chemin: string } };
+    const cheminAvant = outils.blender.chemin;
+    outils.blender.chemin = blender!;
+    expect((await request.put("/api/reglages", { data: corps })).ok()).toBe(true);
+    try {
+      // Un lot dont seul un objet IA est gardé, brief validé.
+      const lot = (await (await request.post("/api/lots", { data: { theme: "Thème IA", besoin: "Des contenants et du décor." } })).json()) as { id: number };
+      const { tache_id } = (await (await request.post(`/api/lots/${lot.id}/proposition`)).json()) as { tache_id: number };
+      await expect.poll(async () => ((await (await request.get(`/api/taches/${tache_id}`)).json()) as { etat: string }).etat, { timeout: 30_000 }).toBe("terminee");
+      const objets = ((await (await request.get(`/api/lots/${lot.id}/objets`)).json()) as { objets: Objet[] }).objets;
+      const cible = objets.find((o) => !o.retire && (o.voie === "ia" || o.voie === "a_creer"))!;
+      for (const o of objets) {
+        if (o.id !== cible.id && !o.retire) await request.patch(`/api/lots/${lot.id}/objets/${o.id}`, { data: { retenu: false } });
+      }
+      if (cible.voie === "a_creer") await request.patch(`/api/lots/${lot.id}/objets/${cible.id}`, { data: { voie: "ia" } });
+      expect((await request.post(`/api/lots/${lot.id}/valider-brief`)).ok()).toBe(true);
+
+      // Références : 4 images ; on choisit la 2e, puis on lance.
+      await page.goto(`/lots/${lot.id}/references`);
+      const carte = page.getByRole("region", { name: cible.nom });
+      const images = carte.getByRole("button", { name: /^Image \d sur 4 pour/ });
+      await expect(images).toHaveCount(4, { timeout: 30_000 });
+      await images.nth(1).click();
+      await expect(images.nth(1)).toHaveAttribute("aria-pressed", "true");
+      await page.getByRole("button", { name: "Lancer la génération 3D" }).click();
+      await expect(page).toHaveURL(new RegExp(`/lots/${lot.id}/generation$`));
+      // Meshy (simulé) rend l'objet 3D, Blender le finit : prêt pour la revue, avec sa vignette et sa planche.
+      await expect(page.getByText("Prêt pour la revue")).toBeVisible({ timeout: 180_000 });
+      await expect(page.getByRole("img", { name: `Vignette de ${cible.nom}` })).toHaveAttribute("src", /\/api\/fichiers\/essais\/\d+\/vignette\.png$/);
+      await expect(page.getByRole("link", { name: "Voir la planche" })).toBeVisible();
+      await expect(page.getByText("Finition d'un objet IA (Blender)")).toBeVisible();
+    } finally {
+      outils.blender.chemin = cheminAvant;
+      await request.put("/api/reglages", { data: corps });
     }
   });
 });

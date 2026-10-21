@@ -73,7 +73,7 @@ def test_refus_clairs(client, conn, cfg, avec_scutum):
     assert r.status_code == 409 and "choisis d'abord sa référence" in r.json()["erreur"]
     ia = next(o for o in client.get(f"/api/lots/{lid}/objets").json()["objets"] if o["voie"] == "ia" and not o["retire"])
     r = client.post(f"/api/lots/{lid}/fabriquer", json={"objet_id": ia["id"]})
-    assert r.status_code == 409 and "étape 7" in r.json()["erreur"]
+    assert r.status_code == 409 and "choisis d'abord sa référence" in r.json()["erreur"]
     assert client.post(f"/api/lots/{lid}/fabriquer", json={"objet_id": 999}).status_code == 404
     # La fabrication se lance depuis les Références : l'onglet Génération s'ouvre au lancement.
     etapes = {e["cle"]: e for e in client.get(f"/api/lots/{lid}").json()["etapes"]}
