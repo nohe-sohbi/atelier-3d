@@ -1,7 +1,7 @@
 import { screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { MENU_VIDE, NOTIFICATIONS, NOTIFICATIONS_VIDES, RECHERCHE_VIDE, mockApi } from "../test/api-mock";
+import { LOT_ENTETE_VALIDATION, MENU_VIDE, NOTIFICATIONS, NOTIFICATIONS_VIDES, RECHERCHE_VIDE, VALIDATION, mockApi } from "../test/api-mock";
 
 const NON_LUE = NOTIFICATIONS.notifications.find((n) => !n.lu)!;
 import { rendreApp } from "../test/rendre";
@@ -54,6 +54,9 @@ describe("Notifications", () => {
         marquee = true;
         return { ok: true, id: NON_LUE.id };
       },
+      // La notification mène à l'écran Validation du projet 1 : rien n'y est encore fabriqué.
+      "GET /api/lots/1": { ...LOT_ENTETE_VALIDATION, id: 1 },
+      "GET /api/lots/1/validation": { ...VALIDATION, lot_id: 1, objets: [], resume: { total: 0, a_valider: 0, gardes: 0, jetes: 0, pas_prets: 0 } },
     });
     const utilisateur = userEvent.setup();
     rendreApp("/");
@@ -67,7 +70,7 @@ describe("Notifications", () => {
     await utilisateur.click(within(panneau).getByRole("button", { name: /À valider · Lot test/ }));
     await waitFor(() => expect(appels.some((a) => a.methode === "POST" && a.chemin === `/api/notifications/${NON_LUE.id}/lu`)).toBe(true));
     // Le lien de la notification est suivi
-    expect(await screen.findByText("La validation arrive à l'étape 8 du plan")).toBeInTheDocument(); // l'écran Revue du lot
+    expect(await screen.findByText("Rien à valider pour l'instant")).toBeInTheDocument(); // l'écran Validation du projet
     expect(screen.getByRole("button", { name: "Notifications : aucune nouvelle" })).toBeInTheDocument();
   });
 

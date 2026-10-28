@@ -204,8 +204,11 @@ def en_tete(conn: sqlite3.Connection, lot_id: int, etape_courante: str = "brief"
         version_plus_recente = dict(r) if r else None
     etapes = []
     for i, cle in enumerate(ETAPES, start=1):
+        c = sit["compteurs"]
+        # La Validation s'ouvre dès qu'un objet est prêt à être regardé, même si d'autres sont encore en fabrication.
+        un_objet_pret = cle == "revue" and (c["prets_revue"] + c["gardes"] + c["rejetes"]) > 0
         etapes.append({"cle": cle, "libelle": LIBELLES_ETAPES[cle], "numero": i, "lien": f"/lots/{lot_id}/{cle}",
-                       "atteinte": True if sit["etape"] >= TERMINE else i <= max(sit["etape"], 1),
+                       "atteinte": True if sit["etape"] >= TERMINE else i <= max(sit["etape"], 1) or un_objet_pret,
                        "faite": i < sit["etape"]})
     return {"id": lot_id, "nom": lot["nom"], "theme": lot["theme"], "besoin": lot["besoin"], "style": style,
             "style_plus_recent": version_plus_recente, "etat": lot["etat"], "cree_le": lot["cree_le"], "maj_le": lot["maj_le"],

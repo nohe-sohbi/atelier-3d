@@ -22,6 +22,8 @@ import type {
   Tache,
   TacheLancee,
   TachesRecentes,
+  ObjetValidation,
+  ValidationVue,
 } from "../api/types";
 import contrat from "./contrat.json";
 
@@ -123,3 +125,10 @@ export const GENERATION = depuis<Generation>("GET /api/lots/{id}/generation");
 export const JOURNAL = depuis<JournalTache>("GET /api/taches/{id}/journal");
 export const WORKER_ARRETE = depuis<EtatWorker>("GET /api/worker");
 export const TACHES_RECENTES = depuis<TachesRecentes>("GET /api/worker/taches");
+
+/** La Validation d'un projet : un objet net et un objet « à regarder », mesurés sur un vrai fichier 3D. */
+export const VALIDATION = depuis<ValidationVue>("GET /api/lots/{id}/validation");
+export const VALIDATION_TERMINEE = depuis<ValidationVue>("GET /api/lots/{id}/validation#termine");
+export const OBJET_GARDE = depuis<ObjetValidation>("POST /api/lots/{id}/objets/{oid}/decision#garder");
+export const OBJET_JETE = depuis<ObjetValidation>("POST /api/lots/{id}/objets/{oid}/decision#jeter");
+export const LOT_ENTETE_VALIDATION = depuis<EnTeteLot>("GET /api/lots/{id}#validation");

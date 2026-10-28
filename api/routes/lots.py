@@ -7,7 +7,7 @@ from fastapi import APIRouter, HTTPException, Query
 from pydantic import BaseModel, ConfigDict, Field
 
 from api.dependances import Config, Db
-from api.services import brief, demandes, fabrication, fabrication_ia, references
+from api.services import brief, demandes, fabrication, fabrication_ia, references, validation
 from api.services import generation as generation_svc
 from api.services import lots as lots_svc
 
@@ -38,6 +38,13 @@ class FabricationIn(_Modele):
     objet_id: int
 
 
+class DecisionIn(_Modele):
+    decision: Literal["garder", "jeter", "refaire", "corriger", "annuler"]
+    motif: str | None = Field(None, max_length=40)
+    notes: list[str] = Field(default_factory=list, max_length=20)
+    texte: str | None = Field(None, max_length=600)
+
+
 class ObjetModif(_Modele):
     retenu: bool | None = None
     voie: Literal["ia", "code", "a_creer"] | None = None
@@ -48,7 +55,7 @@ def _erreurs(fn, *args, **kwargs):
         return fn(*args, **kwargs)
     except lots_svc.LotIntrouvable as e:
         raise HTTPException(404, str(e)) from e
-    except lots_svc.BriefIncomplet as e:
+    except (lots_svc.BriefIncomplet, validation.DecisionImpossible, references.ReferenceImpossible) as e:
         raise HTTPException(409, str(e)) from e
     except ValueError as e:
         raise HTTPException(422, str(e)) from e
@@ -154,3 +161,16 @@ def generation(lot_id: int, conn: Db, cfg: Config) -> dict:
 @router.get("/{lot_id}/appliquer-style")
 def appliquer_style(lot_id: int, conn: Db, style_id: int = Query(...)) -> dict:
     return _erreurs(lots_svc.estimation_appliquer_style, conn, lot_id, style_id)
+
+
+@router.get("/{lot_id}/validation")
+def valider(lot_id: int, conn: Db) -> dict:
+    """Validation : les objets fabriqués, leur verdict, leurs fichiers, et ce qui reste à décider."""
+    return _erreurs(validation.vue, conn, lot_id)
+
+
+@router.post("/{lot_id}/objets/{objet_id}/decision")
+def decision(lot_id: int, objet_id: int, corps: DecisionIn, conn: Db, cfg: Config) -> dict:
+    """Garder, jeter, refaire, corriger (ou annuler la dernière décision). Renvoie l'objet relu."""
+    return _erreurs(validation.decider, conn, cfg, lot_id, objet_id, corps.decision, motif=corps.motif, notes=corps.notes,
+                    texte=corps.texte)

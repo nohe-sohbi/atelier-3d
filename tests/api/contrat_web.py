@@ -249,7 +249,54 @@ def generer() -> dict:
                 # En dernier : la planche dépense des crédits et l'échec écrit une notification.
                 _planche_et_taches(client, contrat, pilote)
                 _lots(client, contrat, pilote)
+                _validation(client, contrat, racine)
     return normaliser(contrat)
+
+
+def _validation(client, contrat: dict, racine: Path) -> None:
+    """Un projet avec deux objets fabriqués (un net, un à regarder) : la Validation, puis les décisions."""
+    from api import chemins, db
+    from pipeline import validate
+
+    amphore = chemins.racine() / "docs" / "maquette" / "modeles" / "amphore-lod0.glb"
+    lot = client.post("/api/lots", json={"nom": "Projet validé", "besoin": "Des amphores."}).json()
+    lid = lot["id"]
+    conn = db.connexion()
+    try:
+        for nom, controles in (
+            ("Amphore nette", [validate.Controle(n, None, None, True, True) for n in validate.NOMS_CONTROLES[:8]]),
+            ("Amphore à regarder", [validate.Controle("Maillage fermé", None, None, True, True),
+                                    validate.Controle("Normales", None, None, False, False, "12 faces inversées")]),
+        ):
+            conn.execute("INSERT INTO objets(lot_id, nom, type_objet, etape, voie, generateur) VALUES (?, ?, 'amphore', 'revue', 'ia', 'meshy')",
+                         (lid, nom))
+            oid = conn.execute("SELECT last_insert_rowid() AS id").fetchone()["id"]
+            dossier = f"{lid}/{oid}/essai-1"
+            asset = racine / "lots" / dossier / "asset"
+            (asset / "rendus").mkdir(parents=True)
+            shutil.copy(amphore, asset / f"ASSET_{oid}.glb")
+            for vue in ("face", "dos", "planche"):
+                (asset / "rendus" / f"{vue}.png").write_bytes(b"png")
+            validate.Rapport(id=f"ASSET_{oid}", controles=controles, licence={"ok": True}).ecrire(asset / "rapport.json")
+            (asset / "meta.json").write_text(json.dumps({"dimensions_m": [0.35, 0.35, 0.9], "tris_lod0": 3816, "tris_lod1": 1908,
+                                                          "tris_lod2": 954}), encoding="utf-8")
+            conn.execute("INSERT INTO essais(objet_id, numero, generateur, etat, dossier, cout_credits) VALUES (?, 1, 'meshy', 'pret', ?, 42)",
+                         (oid, dossier))
+            conn.execute("INSERT INTO assets(id, lot_id, objet_id, nom, theme, voie, statut, cree_le, maj_le) VALUES (?, ?, ?, ?, 'ROM', 'ia', 'revue', ?, ?)",
+                         (f"ASSET_{oid}", lid, oid, nom, DATE_FIGEE, DATE_FIGEE))
+        conn.commit()
+    finally:
+        conn.close()
+    contrat["GET /api/lots/{id}/validation"] = client.get(f"/api/lots/{lid}/validation").json()
+    nette, a_regarder = (o["id"] for o in contrat["GET /api/lots/{id}/validation"]["objets"])
+    contrat["POST /api/lots/{id}/objets/{oid}/decision#garder"] = client.post(
+        f"/api/lots/{lid}/objets/{nette}/decision", json={"decision": "garder"}).json()
+    contrat["POST /api/lots/{id}/objets/{oid}/decision#409"] = client.post(
+        f"/api/lots/{lid}/objets/{nette}/decision", json={"decision": "garder"}).json()
+    contrat["POST /api/lots/{id}/objets/{oid}/decision#jeter"] = client.post(
+        f"/api/lots/{lid}/objets/{a_regarder}/decision", json={"decision": "jeter", "motif": "proportions"}).json()
+    contrat["GET /api/lots/{id}/validation#termine"] = client.get(f"/api/lots/{lid}/validation").json()
+    contrat["GET /api/lots/{id}#validation"] = client.get(f"/api/lots/{lid}", params={"etape": "revue"}).json()
 
 
 def normaliser(contrat: dict) -> dict:

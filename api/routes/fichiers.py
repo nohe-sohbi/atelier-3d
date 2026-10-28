@@ -4,7 +4,7 @@ from __future__ import annotations
 from fastapi import APIRouter, HTTPException
 from fastapi.responses import FileResponse
 
-from api.services import fabrication, references, styles
+from api.services import fabrication, references, styles, validation
 
 router = APIRouter(prefix="/fichiers", tags=["fichiers"])
 
@@ -14,6 +14,15 @@ def fichier_style(code: str, dossier: str, fichier: str) -> FileResponse:
     try:
         return FileResponse(styles.fichier_public(code, dossier, fichier))
     except (FileNotFoundError, ValueError) as e:
+        raise HTTPException(404, "fichier introuvable") from e
+
+
+@router.get("/essais/{essai_id}/modele.glb")
+def modele_essai(essai_id: int) -> FileResponse:
+    """Le fichier 3D d'un essai fini (LOD0, LOD1, LOD2 et collision dans un seul .glb), pour l'afficheur de la Validation."""
+    try:
+        return FileResponse(validation.modele_public(essai_id), media_type="model/gltf-binary")
+    except FileNotFoundError as e:
         raise HTTPException(404, "fichier introuvable") from e
 
 

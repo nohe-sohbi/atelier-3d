@@ -666,3 +666,58 @@ export interface Lancement {
   en_attente: number;
   mis_de_cote: string[];
 }
+
+/** GET /api/lots/{id}/validation : les objets fabriqués d'un projet, leur verdict et ce qui reste à décider. */
+export type EtatObjetValidation = "a_valider" | "garde" | "jete" | "en_fabrication" | "look";
+export type DecisionObjet = "garder" | "jeter" | "refaire" | "corriger" | "annuler";
+export type MotifJet = "proportions" | "details_flous" | "ne_ressemble_pas" | "hors_style" | "inutile";
+
+export interface RaisonVerdict {
+  ok: boolean;
+  texte: string;
+}
+export interface VerdictObjet {
+  etat: "ok" | "attention";
+  raisons: RaisonVerdict[];
+  /** Réussites non listées : leur détail est dans l'onglet Vérifications. */
+  autres_ok: number;
+}
+export interface ControleObjet {
+  nom: string;
+  ok: boolean;
+  etat: string;
+  detail: string;
+  bloquant: boolean;
+}
+export interface FaitsObjet {
+  dimensions_m: [number, number, number] | null;
+  tris: { lod0: number | null; lod1: number | null; lod2: number | null };
+  credits: number;
+  nombre_essais: number;
+}
+export interface ObjetValidation {
+  id: number;
+  nom: string;
+  voie: Voie;
+  etat: EtatObjetValidation;
+  peut_annuler: boolean;
+  peut_corriger: boolean;
+  credits_correction: number;
+  essai_id: number | null;
+  modele: string | null;
+  reference: string | null;
+  vues: Array<{ nom: string; url: string }>;
+  planche: string | null;
+  source: string | null;
+  verdict: VerdictObjet | null;
+  controles: ControleObjet[];
+  faits: FaitsObjet | null;
+  avis_ia: string | null;
+}
+export interface ValidationVue {
+  lot_id: number;
+  objets: ObjetValidation[];
+  resume: { total: number; a_valider: number; gardes: number; jetes: number; pas_prets: number };
+  termine: boolean;
+  collection: string;
+}

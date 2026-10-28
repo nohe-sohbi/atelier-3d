@@ -4721,5 +4721,736 @@
     "credits": 60,
     "lancement_possible": false,
     "raison": "Refaire les objets arrive avec la fabrication (étapes 5 et 7 du plan)"
+  },
+  "GET /api/lots/{id}/validation": {
+    "lot_id": 7,
+    "objets": [
+      {
+        "id": 11,
+        "nom": "Amphore nette",
+        "voie": "ia",
+        "etat": "a_valider",
+        "peut_annuler": false,
+        "peut_corriger": true,
+        "credits_correction": 12,
+        "modele": "/api/fichiers/essais/3/modele.glb",
+        "reference": null,
+        "vues": [
+          {
+            "nom": "face",
+            "url": "/api/fichiers/essais/3/face.png"
+          },
+          {
+            "nom": "dos",
+            "url": "/api/fichiers/essais/3/dos.png"
+          }
+        ],
+        "planche": "/api/fichiers/essais/3/planche.png",
+        "verdict": {
+          "etat": "ok",
+          "raisons": [
+            {
+              "ok": true,
+              "texte": "Taille : 0,35 × 0,35 × 0,90 m"
+            },
+            {
+              "ok": true,
+              "texte": "Posé au sol"
+            },
+            {
+              "ok": true,
+              "texte": "Bien centré sur son point d'ancrage"
+            },
+            {
+              "ok": true,
+              "texte": "Forme fermée, sans trou"
+            }
+          ],
+          "autres_ok": 7
+        },
+        "controles": [
+          {
+            "nom": "Maillage fermé",
+            "ok": true,
+            "etat": "ok",
+            "detail": "",
+            "bloquant": true
+          },
+          {
+            "nom": "Pièces flottantes",
+            "ok": true,
+            "etat": "ok",
+            "detail": "",
+            "bloquant": true
+          },
+          {
+            "nom": "Normales",
+            "ok": true,
+            "etat": "ok",
+            "detail": "",
+            "bloquant": true
+          },
+          {
+            "nom": "Dimensions",
+            "ok": true,
+            "etat": "ok",
+            "detail": "",
+            "bloquant": true
+          },
+          {
+            "nom": "Polycount",
+            "ok": true,
+            "etat": "ok",
+            "detail": "",
+            "bloquant": true
+          },
+          {
+            "nom": "Symétrie",
+            "ok": true,
+            "etat": "ok",
+            "detail": "",
+            "bloquant": true
+          },
+          {
+            "nom": "UV",
+            "ok": true,
+            "etat": "ok",
+            "detail": "",
+            "bloquant": true
+          },
+          {
+            "nom": "Densité de texels",
+            "ok": true,
+            "etat": "ok",
+            "detail": "",
+            "bloquant": true
+          }
+        ],
+        "faits": {
+          "dimensions_m": [
+            0.35,
+            0.35,
+            0.9
+          ],
+          "tris": {
+            "lod0": 3816,
+            "lod1": 1908,
+            "lod2": 954
+          },
+          "credits": 42,
+          "nombre_essais": 1
+        },
+        "source": "Faite par Meshy d'après ton look · essai 1",
+        "avis_ia": null,
+        "essai_id": 3
+      },
+      {
+        "id": 12,
+        "nom": "Amphore à regarder",
+        "voie": "ia",
+        "etat": "a_valider",
+        "peut_annuler": false,
+        "peut_corriger": true,
+        "credits_correction": 12,
+        "modele": "/api/fichiers/essais/4/modele.glb",
+        "reference": null,
+        "vues": [
+          {
+            "nom": "face",
+            "url": "/api/fichiers/essais/4/face.png"
+          },
+          {
+            "nom": "dos",
+            "url": "/api/fichiers/essais/4/dos.png"
+          }
+        ],
+        "planche": "/api/fichiers/essais/4/planche.png",
+        "verdict": {
+          "etat": "attention",
+          "raisons": [
+            {
+              "ok": false,
+              "texte": "Des surfaces sont à l'envers (12 faces inversées)"
+            },
+            {
+              "ok": true,
+              "texte": "Taille : 0,35 × 0,35 × 0,90 m"
+            },
+            {
+              "ok": true,
+              "texte": "Posé au sol"
+            },
+            {
+              "ok": true,
+              "texte": "Bien centré sur son point d'ancrage"
+            },
+            {
+              "ok": true,
+              "texte": "Forme fermée, sans trou"
+            }
+          ],
+          "autres_ok": 0
+        },
+        "controles": [
+          {
+            "nom": "Maillage fermé",
+            "ok": true,
+            "etat": "ok",
+            "detail": "",
+            "bloquant": true
+          },
+          {
+            "nom": "Normales",
+            "ok": false,
+            "etat": "alerte",
+            "detail": "12 faces inversées",
+            "bloquant": false
+          }
+        ],
+        "faits": {
+          "dimensions_m": [
+            0.35,
+            0.35,
+            0.9
+          ],
+          "tris": {
+            "lod0": 3816,
+            "lod1": 1908,
+            "lod2": 954
+          },
+          "credits": 42,
+          "nombre_essais": 1
+        },
+        "source": "Faite par Meshy d'après ton look · essai 1",
+        "avis_ia": null,
+        "essai_id": 4
+      }
+    ],
+    "resume": {
+      "total": 2,
+      "a_valider": 2,
+      "gardes": 0,
+      "jetes": 0,
+      "pas_prets": 0
+    },
+    "termine": false,
+    "collection": "Projet validé"
+  },
+  "POST /api/lots/{id}/objets/{oid}/decision#garder": {
+    "id": 11,
+    "nom": "Amphore nette",
+    "voie": "ia",
+    "etat": "garde",
+    "peut_annuler": true,
+    "peut_corriger": true,
+    "credits_correction": 12,
+    "modele": "/api/fichiers/essais/3/modele.glb",
+    "reference": null,
+    "vues": [
+      {
+        "nom": "face",
+        "url": "/api/fichiers/essais/3/face.png"
+      },
+      {
+        "nom": "dos",
+        "url": "/api/fichiers/essais/3/dos.png"
+      }
+    ],
+    "planche": "/api/fichiers/essais/3/planche.png",
+    "verdict": {
+      "etat": "ok",
+      "raisons": [
+        {
+          "ok": true,
+          "texte": "Taille : 0,35 × 0,35 × 0,90 m"
+        },
+        {
+          "ok": true,
+          "texte": "Posé au sol"
+        },
+        {
+          "ok": true,
+          "texte": "Bien centré sur son point d'ancrage"
+        },
+        {
+          "ok": true,
+          "texte": "Forme fermée, sans trou"
+        }
+      ],
+      "autres_ok": 7
+    },
+    "controles": [
+      {
+        "nom": "Maillage fermé",
+        "ok": true,
+        "etat": "ok",
+        "detail": "",
+        "bloquant": true
+      },
+      {
+        "nom": "Pièces flottantes",
+        "ok": true,
+        "etat": "ok",
+        "detail": "",
+        "bloquant": true
+      },
+      {
+        "nom": "Normales",
+        "ok": true,
+        "etat": "ok",
+        "detail": "",
+        "bloquant": true
+      },
+      {
+        "nom": "Dimensions",
+        "ok": true,
+        "etat": "ok",
+        "detail": "",
+        "bloquant": true
+      },
+      {
+        "nom": "Polycount",
+        "ok": true,
+        "etat": "ok",
+        "detail": "",
+        "bloquant": true
+      },
+      {
+        "nom": "Symétrie",
+        "ok": true,
+        "etat": "ok",
+        "detail": "",
+        "bloquant": true
+      },
+      {
+        "nom": "UV",
+        "ok": true,
+        "etat": "ok",
+        "detail": "",
+        "bloquant": true
+      },
+      {
+        "nom": "Densité de texels",
+        "ok": true,
+        "etat": "ok",
+        "detail": "",
+        "bloquant": true
+      }
+    ],
+    "faits": {
+      "dimensions_m": [
+        0.35,
+        0.35,
+        0.9
+      ],
+      "tris": {
+        "lod0": 3816,
+        "lod1": 1908,
+        "lod2": 954
+      },
+      "credits": 42,
+      "nombre_essais": 1
+    },
+    "source": "Faite par Meshy d'après ton look · essai 1",
+    "avis_ia": null,
+    "essai_id": 3
+  },
+  "POST /api/lots/{id}/objets/{oid}/decision#409": {
+    "erreur": "Garder : cet objet n'est pas à valider",
+    "detail": null
+  },
+  "POST /api/lots/{id}/objets/{oid}/decision#jeter": {
+    "id": 12,
+    "nom": "Amphore à regarder",
+    "voie": "ia",
+    "etat": "jete",
+    "peut_annuler": true,
+    "peut_corriger": true,
+    "credits_correction": 12,
+    "modele": "/api/fichiers/essais/4/modele.glb",
+    "reference": null,
+    "vues": [
+      {
+        "nom": "face",
+        "url": "/api/fichiers/essais/4/face.png"
+      },
+      {
+        "nom": "dos",
+        "url": "/api/fichiers/essais/4/dos.png"
+      }
+    ],
+    "planche": "/api/fichiers/essais/4/planche.png",
+    "verdict": {
+      "etat": "attention",
+      "raisons": [
+        {
+          "ok": false,
+          "texte": "Des surfaces sont à l'envers (12 faces inversées)"
+        },
+        {
+          "ok": true,
+          "texte": "Taille : 0,35 × 0,35 × 0,90 m"
+        },
+        {
+          "ok": true,
+          "texte": "Posé au sol"
+        },
+        {
+          "ok": true,
+          "texte": "Bien centré sur son point d'ancrage"
+        },
+        {
+          "ok": true,
+          "texte": "Forme fermée, sans trou"
+        }
+      ],
+      "autres_ok": 0
+    },
+    "controles": [
+      {
+        "nom": "Maillage fermé",
+        "ok": true,
+        "etat": "ok",
+        "detail": "",
+        "bloquant": true
+      },
+      {
+        "nom": "Normales",
+        "ok": false,
+        "etat": "alerte",
+        "detail": "12 faces inversées",
+        "bloquant": false
+      }
+    ],
+    "faits": {
+      "dimensions_m": [
+        0.35,
+        0.35,
+        0.9
+      ],
+      "tris": {
+        "lod0": 3816,
+        "lod1": 1908,
+        "lod2": 954
+      },
+      "credits": 42,
+      "nombre_essais": 1
+    },
+    "source": "Faite par Meshy d'après ton look · essai 1",
+    "avis_ia": null,
+    "essai_id": 4
+  },
+  "GET /api/lots/{id}/validation#termine": {
+    "lot_id": 7,
+    "objets": [
+      {
+        "id": 11,
+        "nom": "Amphore nette",
+        "voie": "ia",
+        "etat": "garde",
+        "peut_annuler": true,
+        "peut_corriger": true,
+        "credits_correction": 12,
+        "modele": "/api/fichiers/essais/3/modele.glb",
+        "reference": null,
+        "vues": [
+          {
+            "nom": "face",
+            "url": "/api/fichiers/essais/3/face.png"
+          },
+          {
+            "nom": "dos",
+            "url": "/api/fichiers/essais/3/dos.png"
+          }
+        ],
+        "planche": "/api/fichiers/essais/3/planche.png",
+        "verdict": {
+          "etat": "ok",
+          "raisons": [
+            {
+              "ok": true,
+              "texte": "Taille : 0,35 × 0,35 × 0,90 m"
+            },
+            {
+              "ok": true,
+              "texte": "Posé au sol"
+            },
+            {
+              "ok": true,
+              "texte": "Bien centré sur son point d'ancrage"
+            },
+            {
+              "ok": true,
+              "texte": "Forme fermée, sans trou"
+            }
+          ],
+          "autres_ok": 7
+        },
+        "controles": [
+          {
+            "nom": "Maillage fermé",
+            "ok": true,
+            "etat": "ok",
+            "detail": "",
+            "bloquant": true
+          },
+          {
+            "nom": "Pièces flottantes",
+            "ok": true,
+            "etat": "ok",
+            "detail": "",
+            "bloquant": true
+          },
+          {
+            "nom": "Normales",
+            "ok": true,
+            "etat": "ok",
+            "detail": "",
+            "bloquant": true
+          },
+          {
+            "nom": "Dimensions",
+            "ok": true,
+            "etat": "ok",
+            "detail": "",
+            "bloquant": true
+          },
+          {
+            "nom": "Polycount",
+            "ok": true,
+            "etat": "ok",
+            "detail": "",
+            "bloquant": true
+          },
+          {
+            "nom": "Symétrie",
+            "ok": true,
+            "etat": "ok",
+            "detail": "",
+            "bloquant": true
+          },
+          {
+            "nom": "UV",
+            "ok": true,
+            "etat": "ok",
+            "detail": "",
+            "bloquant": true
+          },
+          {
+            "nom": "Densité de texels",
+            "ok": true,
+            "etat": "ok",
+            "detail": "",
+            "bloquant": true
+          }
+        ],
+        "faits": {
+          "dimensions_m": [
+            0.35,
+            0.35,
+            0.9
+          ],
+          "tris": {
+            "lod0": 3816,
+            "lod1": 1908,
+            "lod2": 954
+          },
+          "credits": 42,
+          "nombre_essais": 1
+        },
+        "source": "Faite par Meshy d'après ton look · essai 1",
+        "avis_ia": null,
+        "essai_id": 3
+      },
+      {
+        "id": 12,
+        "nom": "Amphore à regarder",
+        "voie": "ia",
+        "etat": "jete",
+        "peut_annuler": true,
+        "peut_corriger": true,
+        "credits_correction": 12,
+        "modele": "/api/fichiers/essais/4/modele.glb",
+        "reference": null,
+        "vues": [
+          {
+            "nom": "face",
+            "url": "/api/fichiers/essais/4/face.png"
+          },
+          {
+            "nom": "dos",
+            "url": "/api/fichiers/essais/4/dos.png"
+          }
+        ],
+        "planche": "/api/fichiers/essais/4/planche.png",
+        "verdict": {
+          "etat": "attention",
+          "raisons": [
+            {
+              "ok": false,
+              "texte": "Des surfaces sont à l'envers (12 faces inversées)"
+            },
+            {
+              "ok": true,
+              "texte": "Taille : 0,35 × 0,35 × 0,90 m"
+            },
+            {
+              "ok": true,
+              "texte": "Posé au sol"
+            },
+            {
+              "ok": true,
+              "texte": "Bien centré sur son point d'ancrage"
+            },
+            {
+              "ok": true,
+              "texte": "Forme fermée, sans trou"
+            }
+          ],
+          "autres_ok": 0
+        },
+        "controles": [
+          {
+            "nom": "Maillage fermé",
+            "ok": true,
+            "etat": "ok",
+            "detail": "",
+            "bloquant": true
+          },
+          {
+            "nom": "Normales",
+            "ok": false,
+            "etat": "alerte",
+            "detail": "12 faces inversées",
+            "bloquant": false
+          }
+        ],
+        "faits": {
+          "dimensions_m": [
+            0.35,
+            0.35,
+            0.9
+          ],
+          "tris": {
+            "lod0": 3816,
+            "lod1": 1908,
+            "lod2": 954
+          },
+          "credits": 42,
+          "nombre_essais": 1
+        },
+        "source": "Faite par Meshy d'après ton look · essai 1",
+        "avis_ia": null,
+        "essai_id": 4
+      }
+    ],
+    "resume": {
+      "total": 2,
+      "a_valider": 0,
+      "gardes": 1,
+      "jetes": 1,
+      "pas_prets": 0
+    },
+    "termine": true,
+    "collection": "Projet validé"
+  },
+  "GET /api/lots/{id}#validation": {
+    "id": 7,
+    "nom": "Projet validé",
+    "theme": "",
+    "besoin": "Des amphores.",
+    "style": {
+      "id": 1,
+      "code": "rome-stylise-v0",
+      "nom": "Rome antique stylisée",
+      "version": 0,
+      "racine_id": 1
+    },
+    "style_plus_recent": {
+      "id": 3,
+      "code": "rome-stylise-v1",
+      "version": 1
+    },
+    "etat": "en_cours",
+    "cree_le": "2026-10-18T08:00:00Z",
+    "maj_le": "2026-10-18T08:00:00Z",
+    "duplique_de_id": null,
+    "credits_prevus": 0,
+    "proposition_tache_id": null,
+    "nom_propose": "",
+    "etape_courante": 5,
+    "etapes": [
+      {
+        "cle": "brief",
+        "libelle": "Objets",
+        "numero": 1,
+        "lien": "/lots/7/brief",
+        "atteinte": true,
+        "faite": true
+      },
+      {
+        "cle": "references",
+        "libelle": "Look",
+        "numero": 2,
+        "lien": "/lots/7/references",
+        "atteinte": true,
+        "faite": true
+      },
+      {
+        "cle": "generation",
+        "libelle": "Fabrication",
+        "numero": 3,
+        "lien": "/lots/7/generation",
+        "atteinte": true,
+        "faite": true
+      },
+      {
+        "cle": "revue",
+        "libelle": "Validation",
+        "numero": 4,
+        "lien": "/lots/7/revue",
+        "atteinte": true,
+        "faite": true
+      },
+      {
+        "cle": "essai",
+        "libelle": "Essai",
+        "numero": 5,
+        "lien": "/lots/7/essai",
+        "atteinte": true,
+        "faite": false
+      },
+      {
+        "cle": "jeu",
+        "libelle": "Jeu",
+        "numero": 6,
+        "lien": "/lots/7/jeu",
+        "atteinte": false,
+        "faite": false
+      }
+    ],
+    "ligne_etat": "2 objets · 1 gardé · 0 à décider · 0 réutilisé",
+    "etape": 5,
+    "libelle_etape": "Étape 5 sur 6 · Essai",
+    "statut": "Essai",
+    "ton": "accent",
+    "detail": "regarde tes objets ensemble avant de les récupérer",
+    "lien": "/lots/7/essai",
+    "action": "Essayer",
+    "compteurs": {
+      "total": 2,
+      "fabriques": 2,
+      "reutilises": 0,
+      "hors_perimetre": 0,
+      "a_creer": 0,
+      "references_a_choisir": 0,
+      "references_choisies": 2,
+      "cc0": 0,
+      "en_generation": 0,
+      "prets_revue": 0,
+      "gardes": 1,
+      "rejetes": 1,
+      "finis": 2
+    }
   }
 }

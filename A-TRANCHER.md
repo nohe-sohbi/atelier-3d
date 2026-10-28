@@ -28,6 +28,23 @@ Conséquences à traiter écran par écran (rien n'est encore changé dans les �
   les règles d'asset. Seul le contenu des écrans suit la nouvelle maquette ;
 - les écarts entre le cahier des charges et la nouvelle maquette seront notés ici au fur et à mesure.
 
+### Validation (28 octobre) · choix provisoires
+
+L'écran Validation lit de vrais fichiers : le .glb de l'objet (niveaux de détail et collision dans un seul fichier),
+ses 5 vues, ses 12 contrôles (`rapport.json`) et des mesures prises sur le fichier (taille, pose au sol, point
+d'ancrage). Quatre décisions réelles : garder, jeter, refaire, corriger.
+
+| N° | Sujet | Maquette | Choix provisoire dans le code |
+|---|---|---|---|
+| V.1 | « Corriger » | cinq façons : repeindre, retoucher les zones pointées, alléger, changer la taille, séparer en pièces | aucune de ces opérations n'existe dans la chaîne de fabrication. « Corriger » redessine 4 nouveaux looks en tenant compte des remarques (pastilles et texte), puis l'objet revient au Look. Objets faits par IA seulement (12 crédits) ; un objet fait par script se règle avec « Refaire » |
+| V.2 | « Refaire » | quatre façons (même look avec consigne, autre look, retoucher le look, ta carte graphique) | un seul geste : retour au Look de l'objet, gratuit |
+| V.3 | Avis de l'IA | un avis écrit par Claude | pas d'avis tant qu'aucune IA n'en écrit un : l'onglet le dit |
+| V.4 | Choisir la collection | liste de collections et étiquettes | l'objet gardé entre dans la collection du projet (créée au besoin) ; le choix arrive avec la Bibliothèque (étape 9) |
+| V.5 | Coût d'un objet | crédits et minutes | crédits seulement : la durée n'est pas enregistrée |
+| V.6 | Pastilles de défaut | gardées avec l'objet | servent à écrire les remarques envoyées avec « Corriger » ; leur position n'est pas enregistrée |
+| V.7 | Essai et Jeu | écrans suivants | le bouton « Essayer les objets ensemble » mène à une page « arrive à l'étape 8 du plan » |
+| V.8 | Étape Validation du projet | verrouillée tant que tout n'est pas fabriqué | s'ouvre dès qu'un objet est prêt, même si d'autres sont encore en fabrication |
+
 ### Créer, Objets, Look, Fabrication (28 octobre) · choix provisoires
 
 Le projet compte désormais six étapes dans l'API (migration 060 : `essai_fait`, `jeu_fait`) et dans l'interface.

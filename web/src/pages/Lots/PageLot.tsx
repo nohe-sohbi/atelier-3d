@@ -6,6 +6,7 @@ import { EtatVide } from "../../components/Etats";
 import { Brief } from "./Brief";
 import { EnTeteLot } from "./EnTeteLot";
 import { Generation } from "./Generation";
+import { Validation } from "./Validation";
 import { References } from "./References";
 import { ETAPE_DU_PLAN } from "./commun";
 import "./Lots.css";
@@ -27,12 +28,11 @@ const AIDES: Partial<Record<CleEtapeLot, { titre: string; texte: string }>> = {
 };
 
 const A_VENIR: Partial<Record<CleEtapeLot, string>> = {
-  revue: "La validation arrive",
   essai: "L'essai en scène arrive",
   jeu: "La récupération du pack arrive",
 };
 
-/** Un écran de projet : l'en-tête commun, l'aide de l'étape, puis l'écran (Objets, Look, Fabrication) ou « arrive à l'étape N » pour la suite. */
+/** Un écran de projet : l'en-tête commun, l'aide de l'étape, puis l'écran (Objets, Look, Fabrication, Validation) ou « arrive à l'étape N » pour la suite. */
 export function PageLot({ etape }: { etape: CleEtapeLot }) {
   const { id } = useParams();
   const lotId = Number(id);
@@ -54,6 +54,8 @@ export function PageLot({ etape }: { etape: CleEtapeLot }) {
         <References lotId={lotId} onChangement={changement} />
       ) : etape === "generation" ? (
         <Generation lotId={lotId} onChangement={changement} />
+      ) : etape === "revue" ? (
+        <Validation lotId={lotId} onChangement={changement} />
       ) : (
         <EtatVide titre={`${A_VENIR[etape]} à l'étape ${ETAPE_DU_PLAN[etape]} du plan`} />
       )}

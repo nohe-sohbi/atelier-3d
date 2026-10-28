@@ -3,6 +3,8 @@ import userEvent from "@testing-library/user-event";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import {
   LOTS_VIDES,
+  LOT_ENTETE_VALIDATION,
+  VALIDATION,
   LOT_ENTETE_PROPOSE,
   MENU_VIDE,
   NOTIFICATIONS,
@@ -80,8 +82,15 @@ describe("Navigation", () => {
     expect(await screen.findByRole("heading", { name: "Choisis un look par objet" })).toBeInTheDocument();
   });
 
+  it("/lots/:id/revue : l'en-tête du projet, puis la Validation de ses objets", async () => {
+    mockApi({ ...API, [`GET /api/lots/${LOT_ENTETE_VALIDATION.id}`]: LOT_ENTETE_VALIDATION, [`GET /api/lots/${LOT_ENTETE_VALIDATION.id}/validation`]: VALIDATION });
+    rendreApp(`/lots/${LOT_ENTETE_VALIDATION.id}/revue`);
+    expect(await screen.findByRole("heading", { level: 1, name: LOT_ENTETE_VALIDATION.nom })).toBeInTheDocument();
+    expect(await screen.findByRole("heading", { level: 2, name: VALIDATION.objets[0]!.nom })).toBeInTheDocument();
+    expect(screen.getByRole("list", { name: "Étapes du projet" })).toBeInTheDocument();
+  });
+
   it.each([
-    ["revue", "La validation arrive à l'étape 8 du plan"],
     ["essai", "L'essai en scène arrive à l'étape 8 du plan"],
     ["jeu", "La récupération du pack arrive à l'étape 10 du plan"],
   ])("/lots/:id/%s : l'en-tête du projet, puis « %s »", async (etape, texte) => {

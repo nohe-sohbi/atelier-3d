@@ -71,6 +71,12 @@ def test_etape_calculee_depuis_l_objet_le_moins_avance(client, conn):
     e = client.get(f"/api/lots/{lid}").json()
     assert e["etape_courante"] == 3 and e["statut"] == "En fabrication" and e["detail"] == "0 sur 2 fabriqués"
 
+    # Un seul objet est prêt : la Validation s'ouvre, l'étape du projet reste celle de l'objet le moins avancé.
+    conn.execute("UPDATE objets SET etape = 'revue' WHERE id = ?", (a,))
+    conn.commit()
+    e = client.get(f"/api/lots/{lid}").json()
+    assert e["etape_courante"] == 3 and [x["atteinte"] for x in e["etapes"]] == [True, True, True, True, False, False]
+
     conn.execute("UPDATE objets SET etape = 'revue' WHERE lot_id = ? AND voie != 'reutilise' AND retire = 0", (lid,))
     conn.commit()
     e = client.get(f"/api/lots/{lid}?etape=revue").json()
