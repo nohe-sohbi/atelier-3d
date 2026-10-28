@@ -281,7 +281,7 @@ function CarteObjet({ lotId, o, credits, onObjet, onRecharger }: CarteProps) {
           </button>
         </div>
       ) : null}
-      {!o.peut_changer ? <p className="secondaire">Lancé : sa référence ne change plus. Suis-le dans Génération.</p> : null}
+      {!o.peut_changer ? <p className="secondaire">Lancé : son look ne change plus. Suis-le dans Fabrication.</p> : null}
       {alerte ? (
         <div role="alert" className="brief__alerte">
           {alerte}
@@ -291,7 +291,7 @@ function CarteObjet({ lotId, o, credits, onObjet, onRecharger }: CarteProps) {
   );
 }
 
-/** Lot · 2 Références (Refs.dc.html) : une référence par objet, puis « Lancer la génération 3D ». */
+/** Projet · 2 Look : un look par objet, puis « Lancer la fabrication 3D ». */
 export function References({ lotId, onChangement }: Props) {
   const [r, setR] = useState<ReferencesApi | null>(null);
   const [erreur, setErreur] = useState<string | null>(null);
@@ -353,7 +353,7 @@ export function References({ lotId, onChangement }: Props) {
       <div className="references__principal">
         <div className="references__titre-ligne">
           <div className="references__intro">
-            <h2 className="brief__titre">Choisis une référence par objet</h2>
+            <h2 className="brief__titre">Choisis un look par objet</h2>
             <p className="brief__texte">
               Objets faits par IA : 4 images dans ton style ({pluriel(r.credits_serie, "crédit", "crédits")} la série), ta consigne si tu la réécris, ou ta
               propre image. Objets faits par code : 4 versions rendues par Blender, gratuites. Ton choix sert d'entrée à la fabrication.
@@ -379,7 +379,7 @@ export function References({ lotId, onChangement }: Props) {
         ) : null}
 
         {r.objets.length === 0 ? (
-          <p className="secondaire">Aucun objet n'attend de référence : valide d'abord le brief.</p>
+          <p className="secondaire">Aucun objet n'attend de look : valide d'abord la liste d'objets.</p>
         ) : (
           <div className="references__grille">
             {r.objets.map((o) => (
@@ -401,13 +401,13 @@ export function References({ lotId, onChangement }: Props) {
           <div className="references__lancer">
             {r.sans_choix.length > 0 ? (
               <span className="references__manque">
-                {pluriel(r.sans_choix.length, "objet", "objets")} sans référence : {r.sans_choix.join(", ")}
+                {pluriel(r.sans_choix.length, "objet", "objets")} sans look : {r.sans_choix.join(", ")}
                 {r.sans_choix.length > 1 ? " seront mis de côté" : " sera mis de côté"}
               </span>
             ) : null}
-            {r.sans_reference.length > 0 ? <span className="secondaire">Sans référence à choisir : {r.sans_reference.join(", ")}</span> : null}
+            {r.sans_reference.length > 0 ? <span className="secondaire">Sans look à choisir : {r.sans_reference.join(", ")}</span> : null}
             <button type="button" className="bouton bouton--primaire" onClick={lancer} disabled={occupe || !r.peut_lancer}>
-              Lancer la génération 3D
+              Lancer la fabrication 3D
               <svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true">
                 <path d="M3 8 H13 M9 4 L13 8 L9 12" className="references__trait" />
               </svg>
@@ -419,10 +419,10 @@ export function References({ lotId, onChangement }: Props) {
       <aside aria-labelledby="style-lot-h" className="generation__carte references__style">
         <div>
           <h2 id="style-lot-h" className="generation__h">
-            Style du lot
+            Style du projet
           </h2>
           <p className="mono secondaire references__code">{s.code}</p>
-          <p className="generation__texte">Ton moodboard, sous forme de règles : palette et budgets pour tout le lot, matériaux partagés pour la voie code.</p>
+          <p className="generation__texte">Ton moodboard, sous forme de règles : palette et budgets pour tout le projet, matériaux partagés pour la voie code.</p>
         </div>
         <div>
           <h3 className="references__h3">Palette</h3>

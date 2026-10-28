@@ -218,7 +218,7 @@ export function NouveauStyle({ ouverte, onFermer, styles, styleExistant, estimat
     <Fenetre ouverte={ouverte} titre={titre} onFermer={onFermer}>
       <p className="fenetre-style__sous-titre">
         {etape === 1
-          ? "Un style fixe la palette, les matériaux et les budgets de tous les lots qui l'utilisent."
+          ? "Un style fixe la palette, les matériaux et les budgets de tous les projets qui l'utilisent."
           : `${cree?.nom ?? nom} · ${pluriel(credits, "crédit dépensé", "crédits dépensés")} sur cette planche`}
       </p>
       <ol role="list" aria-label="Étapes" className="fenetre-style__etapes">

@@ -46,14 +46,14 @@ test.describe("Étapes 5 et 7 · Fabrication (code et IA)", () => {
       await versions.nth(1).click();
       await expect(versions.nth(1)).toHaveAttribute("aria-pressed", "true");
       await expect(page.getByText("1 sur 1 choisie")).toBeVisible();
-      await page.getByRole("button", { name: "Lancer la génération 3D" }).click();
+      await page.getByRole("button", { name: "Lancer la fabrication 3D" }).click();
       await expect(page).toHaveURL(new RegExp(`/lots/${lot.id}/generation$`));
-      await expect(page.getByText("Prêt pour la revue")).toBeVisible({ timeout: 180_000 });
+      await expect(page.getByText("Prêt à valider")).toBeVisible({ timeout: 180_000 });
       await expect(page.getByRole("img", { name: /^Vignette de / })).toBeVisible();
       await expect(page.getByRole("link", { name: "Voir la planche" })).toHaveAttribute("href", /\/api\/fichiers\/essais\/\d+\/planche\.png$/);
       await expect(page.getByText(/ROM_PROP_Scutum_A/)).toBeVisible();
       await expect(page.getByRole("list", { name: "Où en est la fabrication" }).getByText("/ 1")).toBeVisible();
-      // Une seule notification « Revue prête » pour ce lot.
+      // Une seule notification « À valider » pour ce lot.
       const notifications = ((await (await request.get("/api/notifications")).json()) as { notifications: Array<{ type: string; lien: string }> }).notifications;
       expect(notifications.filter((n) => n.type === "revue_prete" && n.lien === `/lots/${lot.id}/revue`)).toHaveLength(1);
     } finally {
@@ -91,10 +91,10 @@ test.describe("Étapes 5 et 7 · Fabrication (code et IA)", () => {
       await expect(images).toHaveCount(4, { timeout: 30_000 });
       await images.nth(1).click();
       await expect(images.nth(1)).toHaveAttribute("aria-pressed", "true");
-      await page.getByRole("button", { name: "Lancer la génération 3D" }).click();
+      await page.getByRole("button", { name: "Lancer la fabrication 3D" }).click();
       await expect(page).toHaveURL(new RegExp(`/lots/${lot.id}/generation$`));
       // Meshy (simulé) rend l'objet 3D, Blender le finit : prêt pour la revue, avec sa vignette et sa planche.
-      await expect(page.getByText("Prêt pour la revue")).toBeVisible({ timeout: 180_000 });
+      await expect(page.getByText("Prêt à valider")).toBeVisible({ timeout: 180_000 });
       await expect(page.getByRole("img", { name: `Vignette de ${cible.nom}` })).toHaveAttribute("src", /\/api\/fichiers\/essais\/\d+\/vignette\.png$/);
       await expect(page.getByRole("link", { name: "Voir la planche" })).toBeVisible();
       await expect(page.getByText("Finition d'un objet IA (Blender)")).toBeVisible();

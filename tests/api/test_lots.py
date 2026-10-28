@@ -27,9 +27,11 @@ def test_nouveau_lot_vide_au_brief(client, atelier):
     assert lot["nom"] == "" and lot["etape_courante"] == 1 and lot["etat"] == "brouillon"
     assert lot["style"]["code"] == "rome-stylise-v0"  # le seul style validé : pris par défaut
     assert lot["statut"] == "Brouillon" and lot["detail"] == "aucun objet pour l'instant" and lot["lien"] == f"/lots/{lot['id']}/brief"
-    assert lot["libelle_etape"] == "Étape 1 sur 4 · Brief"
-    assert [e["atteinte"] for e in lot["etapes"]] == [True, False, False, False]
-    assert [e["faite"] for e in lot["etapes"]] == [False, False, False, False]
+    assert lot["libelle_etape"] == "Étape 1 sur 6 · Objets"
+    assert [e["libelle"] for e in lot["etapes"]] == ["Objets", "Look", "Fabrication", "Validation", "Essai", "Jeu"]
+    assert [e["cle"] for e in lot["etapes"]] == ["brief", "references", "generation", "revue", "essai", "jeu"]
+    assert [e["atteinte"] for e in lot["etapes"]] == [True, False, False, False, False, False]
+    assert [e["faite"] for e in lot["etapes"]] == [False] * 6
     assert lot["ligne_etat"].startswith("0 objet · créé le ")
     assert (atelier.lots / str(lot["id"])).is_dir()
     liste = client.get("/api/lots").json()
@@ -59,29 +61,47 @@ def test_etape_calculee_depuis_l_objet_le_moins_avance(client, conn):
     _objet(conn, lid, "Oublié", etape="brief", voie="ia", retire=1)  # retiré : ne compte pas
     lots_svc.synchroniser_etat(conn, lid)
     e = client.get(f"/api/lots/{lid}?etape=references").json()
-    assert e["etape_courante"] == 2 and e["statut"] == "À toi" and e["detail"] == "1 référence à choisir" and e["ton"] == "warn"
-    assert e["ligne_etat"] == "3 objets · 1 référence choisie · 1 sans référence (import, réutilisation)"
-    assert [x["atteinte"] for x in e["etapes"]] == [True, True, False, False] and e["etapes"][0]["faite"] is True
+    assert e["etape_courante"] == 2 and e["statut"] == "À toi" and e["detail"] == "1 look à choisir" and e["ton"] == "warn"
+    assert e["ligne_etat"] == "3 objets · 1 look choisi · 1 sans look à choisir (import, réutilisation)"
+    assert [x["atteinte"] for x in e["etapes"]] == [True, True, False, False, False, False] and e["etapes"][0]["faite"] is True
     assert client.get("/api/lots?groupe=en_cours").json()["compteurs"]["en_cours"] == 1
 
     conn.execute("UPDATE objets SET etape = 'rendus' WHERE id = ?", (a,))
     conn.commit()
     e = client.get(f"/api/lots/{lid}").json()
-    assert e["etape_courante"] == 3 and e["statut"] == "En génération" and e["detail"] == "0 sur 2 générés"
+    assert e["etape_courante"] == 3 and e["statut"] == "En fabrication" and e["detail"] == "0 sur 2 fabriqués"
 
     conn.execute("UPDATE objets SET etape = 'revue' WHERE lot_id = ? AND voie != 'reutilise' AND retire = 0", (lid,))
     conn.commit()
     e = client.get(f"/api/lots/{lid}?etape=revue").json()
-    assert e["etape_courante"] == 4 and e["statut"] == "Revue prête" and e["detail"] == "2 objets à juger"
+    assert e["etape_courante"] == 4 and e["statut"] == "À valider" and e["detail"] == "2 objets à regarder"
     assert e["ligne_etat"] == "3 objets · 0 gardé · 2 à décider · 1 réutilisé"
 
     conn.execute("UPDATE objets SET etape = 'garde' WHERE id = ?", (a,))
     conn.execute("UPDATE objets SET etape = 'rejete' WHERE lot_id = ? AND etape = 'revue'", (lid,))
     conn.commit()
     lots_svc.synchroniser_etat(conn, lid)
+    # Tous les objets sont décidés : le projet passe à l'Essai, il n'est pas encore terminé.
     e = client.get(f"/api/lots/{lid}").json()
-    assert e["etape_courante"] == 5 and e["statut"] == "Terminé" and e["detail"] == "1 gardé, 1 jeté"
-    assert e["libelle_etape"] == "Terminé" and e["lien"] == f"/bibliotheque?lot={lid}" and e["action"] == "Voir les assets"
+    assert e["etape_courante"] == 5 and e["statut"] == "Essai" and e["lien"] == f"/lots/{lid}/essai" and e["action"] == "Essayer"
+    assert e["libelle_etape"] == "Étape 5 sur 6 · Essai" and e["etat"] == "en_cours"
+    assert [x["faite"] for x in e["etapes"]] == [True, True, True, True, False, False]
+    assert [x["atteinte"] for x in e["etapes"]] == [True, True, True, True, True, False]
+    assert client.get("/api/lots?groupe=termines").json()["compteurs"]["termines"] == 0
+
+    # L'essai accepté : le Jeu. Le pack récupéré : Terminé.
+    conn.execute("UPDATE lots SET essai_fait = 1 WHERE id = ?", (lid,))
+    conn.commit()
+    e = client.get(f"/api/lots/{lid}?etape=jeu").json()
+    assert e["etape_courante"] == 6 and e["statut"] == "Jeu" and e["lien"] == f"/lots/{lid}/jeu" and e["action"] == "Récupérer"
+    assert e["ligne_etat"] == "3 objets · 1 gardé · 1 jeté"
+
+    conn.execute("UPDATE lots SET jeu_fait = 1 WHERE id = ?", (lid,))
+    conn.commit()
+    lots_svc.synchroniser_etat(conn, lid)
+    e = client.get(f"/api/lots/{lid}").json()
+    assert e["etape_courante"] == 7 and e["statut"] == "Terminé" and e["detail"] == "1 gardé, 1 jeté" and e["etat"] == "termine"
+    assert e["libelle_etape"] == "Terminé" and e["lien"] == f"/bibliotheque?lot={lid}" and e["action"] == "Voir les objets"
     assert all(x["atteinte"] and x["faite"] for x in e["etapes"])
     assert client.get("/api/lots?groupe=termines").json()["compteurs"] == {"tous": 1, "en_cours": 0, "termines": 1, "brouillons": 0}
 

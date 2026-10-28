@@ -181,4 +181,4 @@ def test_l_image_devient_un_objet_pret_pour_la_revue(client, conn, cfg_blender):
     assert dims["ok"] and "proportions à juger en revue" in dims["detail"]
     g = client.get(f"/api/lots/{lid}/generation").json()
     o = next(x for x in g["objets"] if x["id"] == oid)
-    assert o["statut"] == "Prêt pour la revue" and o["vignette"].endswith("vignette.png")
+    assert o["statut"] == "Prêt à valider" and o["vignette"].endswith("vignette.png")

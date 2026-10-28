@@ -62,12 +62,12 @@ describe("Notifications", () => {
     await utilisateur.click(cloche);
     const panneau = screen.getByRole("region", { name: "Notifications" });
     expect(within(panneau).getByText("1 nouvelle")).toBeInTheDocument();
-    expect(within(panneau).getByText("Revue prête · Lot test")).toBeInTheDocument();
+    expect(within(panneau).getByText("À valider · Lot test")).toBeInTheDocument();
 
-    await utilisateur.click(within(panneau).getByRole("button", { name: /Revue prête · Lot test/ }));
+    await utilisateur.click(within(panneau).getByRole("button", { name: /À valider · Lot test/ }));
     await waitFor(() => expect(appels.some((a) => a.methode === "POST" && a.chemin === `/api/notifications/${NON_LUE.id}/lu`)).toBe(true));
     // Le lien de la notification est suivi
-    expect(await screen.findByText("Arrive à l'étape 8 du plan")).toBeInTheDocument(); // l'écran Revue du lot
+    expect(await screen.findByText("La validation arrive à l'étape 8 du plan")).toBeInTheDocument(); // l'écran Revue du lot
     expect(screen.getByRole("button", { name: "Notifications : aucune nouvelle" })).toBeInTheDocument();
   });
 

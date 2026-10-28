@@ -78,11 +78,11 @@ describe("Styles", () => {
     expect(screen.getByRole("button", { name: "Réessayer" })).toBeInTheDocument();
   });
 
-  it("Modifier est désactivé quand un lot utilise la version", async () => {
+  it("Modifier est désactivé quand un projet utilise la version", async () => {
     mockApi({ ...BASE, [`GET /api/styles/${STYLE_DETAIL.id}`]: { ...STYLE_DETAIL, peut_modifier: false, lots: [{ id: 1, nom: "Lot A" }] } });
     rendreApp("/styles");
     expect(await screen.findByRole("button", { name: "Modifier" })).toBeDisabled();
-    expect(screen.getByText(/utilisé par 1 lot/)).toBeInTheDocument();
+    expect(screen.getByText(/utilisé par 1 projet/)).toBeInTheDocument();
   });
 
   it("Nouveau style : tes images d'inspiration proposent la palette, tu la retouches, elle part telle quelle", async () => {

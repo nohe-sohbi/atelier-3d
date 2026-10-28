@@ -6,13 +6,17 @@ export interface EtapeAffichee {
   libelle: string;
   /** Petit texte à droite du libellé (« 2 à valider »). */
   detail?: string;
-  /** Si l'étape est atteignable, un lien vers son écran. */
+  /** Un lien vers l'écran de l'étape. */
   lien?: string;
+  /** Faite, quand l'avancement du projet le dit ; sinon : toute étape avant la courante. */
+  faite?: boolean;
+  /** L'étape peut être ouverte, même si elle est à venir (le projet y est déjà arrivé). */
+  atteinte?: boolean;
 }
 
 interface Props {
   etapes: EtapeAffichee[];
-  /** Position de l'étape en cours, de 0 à n−1. Avant elle : faites. Après : à venir. */
+  /** Position de l'étape affichée, de 0 à n−1. Sans autre indication, avant elle : faites ; après : à venir. */
   courante: number;
 }
 
@@ -24,7 +28,7 @@ export function Etapes({ etapes, courante }: Props) {
   return (
     <ol className="etapes" aria-label="Étapes du projet">
       {etapes.map((e, i) => {
-        const etat = i < courante ? "faite" : i === courante ? "courante" : "a-venir";
+        const etat = i === courante ? "courante" : (e.faite ?? i < courante) ? "faite" : "a-venir";
         const contenu = (
           <>
             <span className="etapes__rond" aria-hidden="true">
@@ -37,10 +41,14 @@ export function Etapes({ etapes, courante }: Props) {
         );
         return (
           <li key={e.cle} className={`etapes__etape etapes__etape--${etat}`} aria-current={etat === "courante" ? "step" : undefined}>
-            {e.lien && etat !== "a-venir" ? (
+            {e.lien && (etat !== "a-venir" || e.atteinte) ? (
               <Link to={e.lien} className="etapes__contenu">
                 {contenu}
               </Link>
+            ) : e.lien ? (
+              <span role="link" aria-disabled="true" className="etapes__contenu" title="Étape pas encore atteinte">
+                {contenu}
+              </span>
             ) : (
               <span className="etapes__contenu">{contenu}</span>
             )}

@@ -1,22 +1,24 @@
 import { expect, test } from "./garde-fous";
 
-test.describe("Étape 3 · Lots et Brief", () => {
-  test("Nouveau lot → Brief → liste proposée (simulée) → décocher → « À créer » passés en IA → références ; Lots montre l'étape 2", async ({ page }) => {
-    // D'autres scénarios ont pu créer des lots avant : celui-ci ne suppose pas une liste vide.
+test.describe("Étape 3 · Projets et Objets", () => {
+  test("Créer → Objets → liste proposée (simulée) → décocher → « À créer » passés en IA → Look ; Projets montre l'étape 2", async ({ page }) => {
+    // D'autres scénarios ont pu créer des projets avant : celui-ci ne suppose pas une liste vide.
     await page.goto("/lots");
-    await expect(page.getByRole("heading", { level: 1, name: "Lots" })).toBeVisible();
-    await page.getByRole("main").getByRole("link", { name: "Nouveau lot" }).first().click();
+    await expect(page.getByRole("heading", { level: 1, name: "Projets" })).toBeVisible();
+    await page.getByRole("main").getByRole("link", { name: "Nouveau projet" }).first().click();
 
-    // Le lot est créé vide et s'ouvre sur son Brief ; les étapes suivantes sont verrouillées.
+    // Créer : une phrase, le style prêt est déjà choisi ; la liste d'objets est demandée et l'écran Objets s'ouvre.
+    await expect(page.getByRole("heading", { level: 1, name: "Que veux-tu créer ?" })).toBeVisible();
+    await page.getByLabel("Ta demande").fill("Des contenants, du mobilier et un peu de décor.");
+    await page.getByRole("button", { name: /Proposer les objets/ }).click();
+
+    // Le projet est créé et s'ouvre sur Objets ; les étapes suivantes sont verrouillées.
     await expect(page).toHaveURL(/\/lots\/\d+\/brief$/);
-    const etapes = page.getByRole("navigation", { name: "Étapes du lot" });
-    await expect(etapes.getByRole("link", { name: /Brief/ })).toHaveAttribute("aria-current", "step");
-    await expect(etapes.getByRole("link", { name: /Références/ })).toHaveAttribute("aria-disabled", "true");
-    await expect(page.getByText("Aucune liste pour l'instant")).toBeVisible();
-
-    await page.getByLabel("Thème").fill("Thème de bout en bout");
-    await page.getByLabel("Ce que tu veux").fill("Des contenants, du mobilier et un peu de décor.");
-    await page.getByRole("button", { name: "Proposer la liste" }).click();
+    const etapes = page.getByRole("list", { name: "Étapes du projet" });
+    await expect(etapes.getByRole("listitem").filter({ hasText: "Objets" })).toHaveAttribute("aria-current", "step");
+    await expect(etapes.getByRole("link", { name: /Look/ })).toHaveAttribute("aria-disabled", "true");
+    await expect(etapes.getByRole("link", { name: /Jeu/ })).toHaveAttribute("aria-disabled", "true");
+    await expect(page.getByRole("complementary", { name: "Aide de cet écran" })).toContainText("Ici, tu choisis ce qui sera fabriqué.");
 
     // Le worker exécute la proposition avec Claude simulé : la liste le dit.
     const liste = page.getByRole("list", { name: "Objets proposés" });
@@ -25,8 +27,11 @@ test.describe("Étape 3 · Lots et Brief", () => {
     const objets = liste.getByRole("listitem");
     const total = await objets.count();
     expect(total).toBeGreaterThan(2);
-    await expect(page.getByRole("heading", { level: 1 })).not.toHaveText("Lot sans nom"); // le nom proposé par Claude
-    await expect(page.getByText("Thème de bout en bout", { exact: true })).toBeVisible(); // la puce du thème dans l'en-tête
+    await expect(page.getByRole("heading", { level: 1 })).not.toHaveText("Projet sans nom"); // le nom proposé par Claude
+    // Le thème se précise à l'écran Objets : il apparaît en puce dans l'en-tête.
+    await page.getByLabel("Thème").fill("Thème de bout en bout");
+    await page.getByLabel("Ce que tu veux").click();
+    await expect(page.getByText("Thème de bout en bout", { exact: true })).toBeVisible();
 
     // Décocher un objet fabriqué : le compteur suit.
     const retenus = async () => Number((await page.getByText(/objets? retenus?$/).textContent())!.split(" ")[0]);
@@ -53,15 +58,15 @@ test.describe("Étape 3 · Lots et Brief", () => {
     }
     await expect(page.getByText(/générateurs? à écrire avant de lancer/)).toBeHidden();
 
-    await page.getByRole("button", { name: "Générer les références" }).click();
+    await page.getByRole("button", { name: "Choisir les looks →" }).click();
     await expect(page).toHaveURL(/\/lots\/\d+\/references$/);
-    await expect(page.getByRole("heading", { name: "Choisis une référence par objet" })).toBeVisible();
-    await expect(etapes.getByRole("link", { name: /Références/ })).toHaveAttribute("aria-current", "step");
+    await expect(page.getByRole("heading", { name: "Choisis un look par objet" })).toBeVisible();
+    await expect(etapes.getByRole("listitem").filter({ hasText: "Look" })).toHaveAttribute("aria-current", "step");
 
     const nom = (await page.getByRole("heading", { level: 1 }).textContent())!;
-    await page.getByRole("navigation", { name: "Fil d'Ariane" }).getByRole("link", { name: "Lots" }).click();
+    await page.getByRole("navigation", { name: "Fil d'Ariane" }).getByRole("link", { name: "Projets" }).click();
     const ligne = page.getByRole("row", { name: new RegExp(nom.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")) });
-    await expect(ligne.getByText("Étape 2 sur 4 · Références")).toBeVisible();
+    await expect(ligne.getByText("Étape 2 sur 6 · Look")).toBeVisible();
     await expect(ligne.getByText("À toi")).toBeVisible();
   });
 });

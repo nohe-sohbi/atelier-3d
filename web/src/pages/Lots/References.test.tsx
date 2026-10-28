@@ -41,18 +41,18 @@ describe("Références", () => {
   it("pendant la préparation : 4 cases en attente par objet, « 4 autres » et le lancement attendent", async () => {
     mockApi({ ...BASE, [`GET /api/lots/${LID}/references`]: REFERENCES_EN_PREPARATION });
     rendreApp(`/lots/${LID}/references`);
-    expect(await screen.findByRole("heading", { name: "Choisis une référence par objet" })).toBeInTheDocument();
+    expect(await screen.findByRole("heading", { name: "Choisis un look par objet" })).toBeInTheDocument();
     for (const o of REFERENCES_EN_PREPARATION.objets) {
       const carte = within(screen.getByRole("region", { name: o.nom }));
       expect(carte.getByText(/En attente/)).toBeInTheDocument();
       expect(carte.getByRole("button", { name: /4 autres · 12 crédits/ })).toBeDisabled();
     }
     expect(screen.getByText(/Images simulées : Meshy est en mode simulé/)).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: "Lancer la génération 3D" })).toBeDisabled();
+    expect(screen.getByRole("button", { name: "Lancer la fabrication 3D" })).toBeDisabled();
     expect(screen.getByRole("link", { name: "Modifier le style" })).toHaveAttribute("href", `/styles?style=${REFERENCES.style.code}`);
   });
 
-  it("choisir une image par objet, puis lancer : les objets sans référence sont annoncés mis de côté, on arrive sur Génération", async () => {
+  it("choisir une image par objet, puis lancer : les objets sans look sont annoncés mis de côté, on arrive sur Génération", async () => {
     let r = REFERENCES;
     const { appels } = mockApi({
       ...BASE,
@@ -70,16 +70,16 @@ describe("Références", () => {
     const tuiles = carte.getAllByRole("button", { name: new RegExp(`^Image \\d sur 4 pour`) });
     expect(tuiles).toHaveLength(4);
     expect(tuiles.every((t) => t.getAttribute("aria-pressed") === "false")).toBe(true);
-    expect(screen.getByRole("button", { name: "Lancer la génération 3D" })).toBeDisabled();
+    expect(screen.getByRole("button", { name: "Lancer la fabrication 3D" })).toBeDisabled();
 
     await utilisateur.click(tuiles[0]!);
     await waitFor(() => expect(carte.getAllByRole("button", { name: /^Image 1 sur 4/ })[0]).toHaveAttribute("aria-pressed", "true"));
     const choix = appels.find((a) => a.methode === "PUT")!;
     expect(choix.corps).toEqual({ proposition_id: PREMIER!.propositions[0]!.id });
     expect(await screen.findByText(`1 sur ${REFERENCES.a_choisir} choisies`)).toBeInTheDocument();
-    expect(screen.getByText(/sans référence : .* seront mis de côté/)).toBeInTheDocument();
+    expect(screen.getByText(/sans look : .* seront mis de côté/)).toBeInTheDocument();
 
-    await utilisateur.click(screen.getByRole("button", { name: "Lancer la génération 3D" }));
+    await utilisateur.click(screen.getByRole("button", { name: "Lancer la fabrication 3D" }));
     expect(await screen.findByRole("list", { name: "Où en est la fabrication" })).toBeInTheDocument();
     expect(appels.some((a) => a.methode === "POST" && a.chemin === `/api/lots/${LID}/lancer`)).toBe(true);
   });

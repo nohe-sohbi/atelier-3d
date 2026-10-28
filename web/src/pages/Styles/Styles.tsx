@@ -97,7 +97,7 @@ export function Styles() {
     if (!detail) return;
     try {
       const v = await api<StyleDetail>(`/styles/${detail.id}/versions`, { method: "POST", body: JSON.stringify({ note: "" }) });
-      setMessage(`Version ${v.code} créée : l'ancienne reste telle quelle pour les lots qui l'utilisent.`);
+      setMessage(`Version ${v.code} créée : l'ancienne reste telle quelle pour les projets qui l'utilisent.`);
       await rafraichir(v.id);
     } catch (e) {
       setMessage(messageErreur(e));
@@ -141,7 +141,7 @@ export function Styles() {
       {liste.length === 0 ? (
         <EtatVide
           titre="Aucun style pour l'instant"
-          texte="Un style fixe la palette, les matériaux et les budgets de tous les lots qui l'utilisent."
+          texte="Un style fixe la palette, les matériaux et les budgets de tous les projets qui l'utilisent."
           enfants={
             <button type="button" className="bouton bouton--primaire" onClick={() => setFenetre("nouveau")}>
               Nouveau style
@@ -180,7 +180,7 @@ export function Styles() {
                     <h2 id="sd-h">{detail.nom}</h2>
                     <div className="styles__detail-sous">
                       <span className="mono">{detail.code}</span> · {detail.etat === "valide" ? "créé" : "brouillon créé"} le {dateCourte(detail.cree_le)}
-                      {detail.lots.length > 0 ? ` · utilisé par ${detail.lots.length > 1 ? `${detail.lots.length} lots` : "1 lot"}` : ""}
+                      {detail.lots.length > 0 ? ` · utilisé par ${detail.lots.length > 1 ? `${detail.lots.length} projets` : "1 projet"}` : ""}
                     </div>
                   </div>
                   <div className="styles__actions">
@@ -192,14 +192,14 @@ export function Styles() {
                       className="bouton bouton--petit bouton--primaire"
                       onClick={() => setFenetre("modifier")}
                       disabled={!detail.peut_modifier}
-                      title={detail.peut_modifier ? undefined : "Un lot utilise cette version : duplique-la pour la modifier"}
+                      title={detail.peut_modifier ? undefined : "Un projet utilise cette version : duplique-la pour la modifier"}
                     >
                       Modifier
                     </button>
                   </div>
                 </div>
                 {!detail.peut_modifier ? (
-                  <p className="styles__legende">Un lot utilise cette version : elle ne change plus. « Dupliquer en v{prochaineVersion} » crée une version modifiable.</p>
+                  <p className="styles__legende">Un projet utilise cette version : elle ne change plus. « Dupliquer en v{prochaineVersion} » crée une version modifiable.</p>
                 ) : null}
 
                 <div>
@@ -354,7 +354,7 @@ function Entete({ onNouveau }: { onNouveau: () => void }) {
       <div className="styles__entete-texte">
         <h1 className="page-titre">Styles</h1>
         <p className="page-sous-titre">
-          Tes moodboards exécutables. Chaque lot en applique un. Un matériau partagé modifié se répercute sur les assets de la voie code ; les assets IA,
+          Tes moodboards exécutables. Chaque projet en applique un. Un matériau partagé modifié se répercute sur les assets de la voie code ; les assets IA,
           eux, se régénèrent à partir de la planche.
         </p>
       </div>

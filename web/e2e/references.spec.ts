@@ -25,11 +25,11 @@ test.describe("Étape 6 · Références", () => {
       if (!o.retire && (o.voie === "code" || o.voie === "a_creer")) await request.patch(`/api/lots/${lot.id}/objets/${o.id}`, { data: { voie: "ia" } });
     }
 
-    // Brief → « Générer les références » : l'onglet Références s'ouvre, les images arrivent seules.
+    // Brief → « Choisir les looks » : l'onglet Références s'ouvre, les images arrivent seules.
     await page.goto(`/lots/${lot.id}/brief`);
-    await page.getByRole("button", { name: "Générer les références" }).click();
+    await page.getByRole("button", { name: "Choisir les looks →" }).click();
     await expect(page).toHaveURL(new RegExp(`/lots/${lot.id}/references$`));
-    await expect(page.getByRole("heading", { name: "Choisis une référence par objet" })).toBeVisible();
+    await expect(page.getByRole("heading", { name: "Choisis un look par objet" })).toBeVisible();
     const cartes = page.locator(".references__carte");
     const n = await cartes.count();
     expect(n).toBeGreaterThanOrEqual(2);
@@ -40,7 +40,7 @@ test.describe("Étape 6 · Références", () => {
     const premiere = cartes.nth(0).getByRole("button", { name: /^Image 1 sur 4 pour/ }).locator("img");
     await expect.poll(async () => premiere.evaluate((img: HTMLImageElement) => img.naturalWidth)).toBeGreaterThan(0);
     await expect(cartes.nth(0).getByText("simulé").first()).toBeVisible();
-    // La cloche annonce « Références prêtes ».
+    // La cloche annonce « Looks prêts ».
     await expect(page.getByRole("button", { name: /Notifications : \d+ nouvelles?/ })).toBeVisible();
 
     // Objet 1 : ta consigne, puis 4 nouvelles images qui la suivent ; on en choisit une.
@@ -63,9 +63,9 @@ test.describe("Étape 6 · Références", () => {
 
     // Lancer : les autres objets sont annoncés mis de côté, puis Génération montre tes 2 objets partis vers Meshy.
     if (n > 2) await expect(page.getByText(/mis de côté/)).toBeVisible();
-    await page.getByRole("button", { name: "Lancer la génération 3D" }).click();
+    await page.getByRole("button", { name: "Lancer la fabrication 3D" }).click();
     await expect(page).toHaveURL(new RegExp(`/lots/${lot.id}/generation$`));
     await expect(page.getByText("Objet 3D par IA (Meshy)").first()).toBeVisible(); // ton image part à Meshy
-    await expect(page.getByRole("link", { name: /Génération/ }).first()).toBeVisible();
+    await expect(page.getByRole("link", { name: /Fabrication/ }).first()).toBeVisible();
   });
 });

@@ -18,7 +18,7 @@ function texteEtat(d: Demande): string {
   if (d.etat === "ecrite") {
     return (
       `En attente de ${d.script_attendu}. L'app regarde le dossier des générateurs toutes les 30 s : dès que le script apparaît, ` +
-      `l'objet rejoint le lot en voie code. ${d.tests.raison}.`
+      `l'objet rejoint le projet en voie code. ${d.tests.raison}.`
     );
   }
   return `Une fois la demande écrite, l'app attend ${d.script_attendu} et reprend l'objet toute seule.`;

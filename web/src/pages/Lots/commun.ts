@@ -13,13 +13,14 @@ export const LIBELLES_VOIES: Record<Voie, string> = {
   hors_perimetre: "Hors périmètre",
 };
 
-/** Étape du plan qui construit chaque écran de lot (les écrans 2 à 4 ne sont pas encore construits). */
-export const ETAPE_DU_PLAN: Record<CleEtapeLot, number> = { brief: 3, references: 6, generation: 4, revue: 8 };
+/** Étape du plan qui construit chaque écran de projet (la Validation, l'Essai et le Jeu ne sont pas encore construits). */
+export const ETAPE_DU_PLAN: Record<CleEtapeLot, number> = { brief: 3, references: 6, generation: 4, revue: 8, essai: 8, jeu: 10 };
 
-export const CLES_ETAPES: CleEtapeLot[] = ["brief", "references", "generation", "revue"];
+/** Les six étapes d'un projet, dans l'ordre. Les clés sont techniques : « brief » s'affiche « Objets », « revue » « Validation ». */
+export const CLES_ETAPES: CleEtapeLot[] = ["brief", "references", "generation", "revue", "essai", "jeu"];
 
 export function nomDuLot(nom: string): string {
-  return nom.trim() || "Lot sans nom";
+  return nom.trim() || "Projet sans nom";
 }
 
 const decimales = new Intl.NumberFormat("fr-FR", { minimumFractionDigits: 2, maximumFractionDigits: 2 });

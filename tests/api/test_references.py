@@ -81,7 +81,7 @@ def test_valider_le_brief_prepare_4_propositions_par_objet(client, conn, cfg, av
     # Les crédits : 3 par image, rattachés au lot, marqués simulés.
     lignes = db.toutes(conn, "SELECT * FROM couts WHERE type = 'reference'")
     assert len(lignes) == 4 * len(ia) and all(c["credits"] == 3 and c["simule"] and c["lot_id"] == lid for c in lignes)
-    # Pas de « Références prêtes » tant qu'un objet n'a pas ses propositions.
+    # Pas de « Looks prêts » tant qu'un objet n'a pas ses propositions.
     assert not db.une(conn, "SELECT 1 FROM evenements WHERE type = ?", (evenements.REFERENCES_PRETES,))
 
 

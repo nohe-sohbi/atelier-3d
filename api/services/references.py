@@ -449,7 +449,7 @@ def _signaler_si_pret(conn: sqlite3.Connection, lot: dict, tache_finie: int | No
     if db.une(conn, "SELECT 1 FROM evenements WHERE type = ? AND lot_id = ?", (evenements.REFERENCES_PRETES, lot["id"])):
         return  # une fois par lot : « 4 autres » se demande depuis l'écran, inutile de re-prévenir
     n = len(a_choisir)
-    evenements.ecrire(conn, evenements.REFERENCES_PRETES, f"Références prêtes · {lot['nom'] or 'lot ' + str(lot['id'])}",
+    evenements.ecrire(conn, evenements.REFERENCES_PRETES, f"Looks prêts · {lot['nom'] or 'projet ' + str(lot['id'])}",
                       f"{n} objet{'s' if n > 1 else ''} : choisis une référence pour chacun", niveau="succes",
                       lien=f"/lots/{lot['id']}/references", lot_id=lot["id"])
     conn.commit()

@@ -141,7 +141,7 @@ def test_scutum_fabrique_par_le_worker_jusqu_a_la_revue(client, conn, cfg_blende
     assert v["numero"] == 1 and meta["licence"] is None and meta["generateur"].startswith("generators/scutum.py@")
     g = client.get(f"/api/lots/{lid}/generation").json()
     o = next(x for x in g["objets"] if x["id"] == scutum)
-    assert [p["etat"] for p in o["etapes"]] == ["fait"] * 4 and o["statut"] == "Prêt pour la revue"
+    assert [p["etat"] for p in o["etapes"]] == ["fait"] * 4 and o["statut"] == "Prêt à valider"
     assert o["asset_id"] == "ROM_PROP_Scutum_A" and g["tuiles"]["prets_revue"] == 1
     for url in (o["vignette"], o["planche"]):
         r = client.get(url)
@@ -152,7 +152,7 @@ def test_scutum_fabrique_par_le_worker_jusqu_a_la_revue(client, conn, cfg_blende
     # Le seul objet fabriqué du lot est prêt : le lot passe à la revue, une seule notification.
     assert client.get(f"/api/lots/{lid}").json()["etape_courante"] == 4
     notifs = client.get("/api/notifications").json()["notifications"]
-    assert [n["titre"] for n in notifs if n["type"] == "revue_prete"] == [f"Revue prête · {client.get(f'/api/lots/{lid}').json()['nom']}"]
+    assert [n["titre"] for n in notifs if n["type"] == "revue_prete"] == [f"À valider · {client.get(f'/api/lots/{lid}').json()['nom']}"]
 
 
 @pytest.mark.blender

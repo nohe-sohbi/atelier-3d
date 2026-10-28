@@ -61,7 +61,7 @@ def _statut(o: dict, essai: dict | None = None) -> tuple[str, str, int]:
         i = ETAPES.index(o["etape"])
         return f"Échec à l'étape {LIBELLES[o['etape']]} : {essai['erreur'] or 'motif inconnu'}", "warn", round(100 * i / len(ETAPES))
     if o["etape"] in FINIES:
-        return "Prêt pour la revue", "good", 100
+        return "Prêt à valider", "good", 100
     if o["etape"] == "generation" and essai is None and o["voie"] != "code":
         if o["voie"] == "cc0":
             return "En attente : l'import CC0 arrive avec la suite de l'étape 7", "idle", 0

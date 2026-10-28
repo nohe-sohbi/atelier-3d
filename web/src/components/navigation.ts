@@ -10,9 +10,9 @@ export interface EntreeMenu {
   badge?: CleBadge;
 }
 
-/* Les quatre entrées de la maquette (docs/maquette). « Créer » ouvre le formulaire de création d'un projet. */
+/* Les quatre entrées de la maquette (docs/maquette). « Créer » est la page d'accueil. */
 export const ENTREES: EntreeMenu[] = [
-  { libelle: "Créer", chemin: "/lots/nouveau", icone: "M12 5v14M5 12h14" },
+  { libelle: "Créer", chemin: "/", icone: "M12 5v14M5 12h14" },
   {
     libelle: "Projets",
     chemin: "/lots",
@@ -33,8 +33,9 @@ export function valeurBadge(menu: Menu | null, cle?: CleBadge): number {
   return cle && menu ? menu.badges[cle] : 0;
 }
 
-/** « Créer » (/lots/nouveau) et « Projets » (/lots et ses sous-pages) ne doivent jamais être actifs ensemble. */
+/** « Créer » (la racine) n'est actif que sur la racine ; « Projets » (/lots et ses sous-pages) sur toutes ses pages. */
 export function estActif(chemin: string, pathname: string): boolean {
+  if (chemin === "/") return pathname === "/";
   if (chemin === "/lots") return pathname === "/lots" || (pathname.startsWith("/lots/") && !pathname.startsWith("/lots/nouveau"));
   return pathname === chemin || pathname.startsWith(`${chemin}/`);
 }

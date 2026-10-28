@@ -17,7 +17,7 @@ interface Props {
   onChangement: () => void;
 }
 
-/** Lot · 3 Génération (Generation.dc.html) : ce qui se fabrique, ce qui tourne, ce que ça coûte. */
+/** Projet · 3 Fabrication : ce qui se fabrique, ce qui tourne, ce que ça coûte. */
 export function Generation({ lotId, onChangement }: Props) {
   const [g, setG] = useState<GenerationApi | null>(null);
   const [erreur, setErreur] = useState<string | null>(null);
@@ -98,7 +98,7 @@ export function Generation({ lotId, onChangement }: Props) {
     <div className="generation">
       <div className="generation__principal">
         <div>
-          <h2 className="brief__titre">Génération</h2>
+          <h2 className="brief__titre">Fabrication</h2>
           <p className="brief__texte">
             Rien à faire ici : finition, tests et relances sont automatiques. Une notification arrive quand la revue est prête.
           </p>
@@ -106,7 +106,7 @@ export function Generation({ lotId, onChangement }: Props) {
 
         <ul role="list" aria-label="Où en est la fabrication" className="generation__tuiles">
           <li className="generation__tuile">
-            <span className="generation__tuile-titre">Prêts pour la revue</span>
+            <span className="generation__tuile-titre">Prêts à valider</span>
             <span className="generation__chiffre generation__chiffre--succes">
               {t.prets_revue}
               <span className="generation__sur"> / {t.fabriques}</span>
@@ -121,7 +121,7 @@ export function Generation({ lotId, onChangement }: Props) {
             <span className={`generation__chiffre${t.relances > 0 ? " generation__chiffre--alerte" : ""}`}>{t.relances}</span>
           </li>
           <li className="generation__tuile">
-            <span className="generation__tuile-titre">Crédits Meshy du lot</span>
+            <span className="generation__tuile-titre">Crédits Meshy du projet</span>
             <span className="generation__chiffre">
               {formatNombre.format(t.credits_utilises)}
               <span className="generation__sur"> utilisés{t.credits_simules ? " · simulé" : ""}</span>
@@ -134,7 +134,7 @@ export function Generation({ lotId, onChangement }: Props) {
 
         <section aria-labelledby="file-lot-h" className="generation__carte">
           <h2 id="file-lot-h" className="generation__h">
-            File du lot
+            File du projet
           </h2>
           <p className="generation__texte">
             Trois files tournent en parallèle : Blender ({g.limites_files.blender ?? "?"} à la fois), Meshy ({g.limites_files.meshy ?? "?"}) et ta carte
@@ -148,9 +148,9 @@ export function Generation({ lotId, onChangement }: Props) {
             </div>
           ) : null}
           {g.objets.length === 0 ? (
-            <p className="secondaire">Aucun objet à fabriquer dans ce lot : valide le brief, puis choisis les références.</p>
+            <p className="secondaire">Aucun objet à fabriquer dans ce projet : valide la liste d'objets, puis choisis les looks.</p>
           ) : (
-            <ul role="list" aria-label="Objets du lot" className="generation__objets">
+            <ul role="list" aria-label="Objets du projet" className="generation__objets">
               {g.objets.map((o) => (
                 <li key={o.id} className="generation__objet">
                   <div className="generation__vignette">
@@ -203,9 +203,9 @@ export function Generation({ lotId, onChangement }: Props) {
 
         <section aria-labelledby="taches-lot-h" className="generation__carte">
           <h2 id="taches-lot-h" className="generation__h">
-            Tâches du lot
+            Tâches du projet
           </h2>
-          <ListeTaches taches={g.taches} onChangement={changement} vide="Aucune tâche pour ce lot pour l'instant." />
+          <ListeTaches taches={g.taches} onChangement={changement} vide="Aucune tâche pour ce projet pour l'instant." />
         </section>
 
         <div className="generation__pied">
@@ -214,11 +214,11 @@ export function Generation({ lotId, onChangement }: Props) {
           </Link>
           {t.prets_revue > 0 ? (
             <Link to={`/lots/${lotId}/revue`} className="bouton bouton--primaire">
-              Ouvrir la revue · {pluriel(t.prets_revue, "prêt", "prêts")}
+              Valider les objets · {pluriel(t.prets_revue, "prêt", "prêts")}
             </Link>
           ) : (
-            <button type="button" className="bouton bouton--primaire" disabled title="Aucun objet prêt pour la revue">
-              Ouvrir la revue · 0 prêt
+            <button type="button" className="bouton bouton--primaire" disabled title="Aucun objet prêt à valider">
+              Valider les objets · 0 prêt
             </button>
           )}
         </div>

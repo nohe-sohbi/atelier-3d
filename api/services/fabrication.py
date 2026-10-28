@@ -350,14 +350,14 @@ def _ranger(conn: sqlite3.Connection, essai: dict, objet: dict, lot: dict, style
         conn.execute("UPDATE essais SET etat = 'pret', fini_le = ?, erreur = NULL, rapport_tests_json = ? WHERE id = ?",
                      (maintenant, json.dumps(rapport.to_dict(), ensure_ascii=False), essai["id"]))
         conn.execute("UPDATE objets SET etape = 'revue' WHERE id = ?", (objet["id"],))
-        evenements.ecrire(conn, "objet_pret", f"Prêt pour la revue : {objet['nom']}", id_asset, niveau="succes",
+        evenements.ecrire(conn, "objet_pret", f"Prêt à valider : {objet['nom']}", id_asset, niveau="succes",
                           lien=f"/lots/{lot['id']}/generation", lot_id=lot["id"], objet_id=objet["id"])
     lots_svc.synchroniser_etat(conn, lot["id"])
     objets = [o for o in lots_svc.objets_du_lot(conn, lot["id"]) if not o["retire"] and o["voie"] not in VOIES_SANS_FABRICATION]
     tous_prets = objets and all(lots_svc.RANG.get(o["etape"], 1) >= 4 for o in objets)
     if tous_prets and not db.une(conn, "SELECT 1 FROM evenements WHERE type = ? AND lot_id = ?",
                                  (evenements.REVUE_PRETE, lot["id"])):
-        evenements.ecrire(conn, evenements.REVUE_PRETE, f"Revue prête · {lot['nom'] or 'lot ' + str(lot['id'])}",
-                          f"{len(objets)} objet{'s' if len(objets) > 1 else ''} à juger", niveau="succes",
+        evenements.ecrire(conn, evenements.REVUE_PRETE, f"À valider · {lot['nom'] or 'projet ' + str(lot['id'])}",
+                          f"{len(objets)} objet{'s' if len(objets) > 1 else ''} à regarder", niveau="succes",
                           lien=f"/lots/{lot['id']}/revue", lot_id=lot["id"])
     conn.commit()

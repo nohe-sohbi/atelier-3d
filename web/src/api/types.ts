@@ -335,7 +335,7 @@ export interface Tache {
 
 export type GroupeLots = "tous" | "en_cours" | "termines" | "brouillons";
 export type TonLot = "accent" | "run" | "warn" | "good" | "idle";
-export type CleEtapeLot = "brief" | "references" | "generation" | "revue";
+export type CleEtapeLot = "brief" | "references" | "generation" | "revue" | "essai" | "jeu";
 export type Voie = "code" | "ia" | "mixte" | "cc0" | "a_creer" | "reutilise" | "hors_perimetre";
 
 export interface StyleDuLot {

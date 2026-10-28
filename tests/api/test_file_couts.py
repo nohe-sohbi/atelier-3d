@@ -94,7 +94,7 @@ def test_migration_030_reprend_les_couts_deja_ecrits(atelier, monkeypatch):
         c.execute("INSERT INTO couts(date, service, detail) VALUES ('2026-10-18T08:00:00Z', 'claude', ?)",
                   (json.dumps({"type": "brief", "lot_id": 1, "simule": True}),))
         monkeypatch.setattr(db, "lister_migrations", lambda: tout)
-        assert db.appliquer_migrations(c) == [30, 50]
+        assert db.appliquer_migrations(c) == [30, 50, 60]
         r = c.execute("SELECT type, lot_id, simule FROM couts").fetchone()
         assert (r["type"], r["lot_id"], r["simule"]) == ("brief", 1, 1)
     finally:
@@ -180,7 +180,7 @@ def test_generation_suit_les_etapes_les_relances_et_les_credits(client, conn, cf
     g = client.get(f"/api/lots/{lid}/generation").json()
     par_id = {o["id"]: o for o in g["objets"]}
     assert [p["etat"] for p in par_id[ids[0]]["etapes"]] == ["fait", "en_cours", "a_faire", "a_faire"]
-    assert par_id[ids[1]]["statut"] == "Prêt pour la revue" and par_id[ids[1]]["pct"] == 100
+    assert par_id[ids[1]]["statut"] == "Prêt à valider" and par_id[ids[1]]["pct"] == 100
     t = g["tuiles"]
     # En cours : l'objet en finition ; celui à « generation » sans essai est un objet IA qui attend l'étape 7.
     assert (t["prets_revue"], t["en_cours"], t["relances"], t["credits_utilises"], t["credits_simules"]) == (1, 1, 2, 60, True)

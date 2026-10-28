@@ -13,7 +13,7 @@ from api.services import lots as lots_svc
 
 router = APIRouter(prefix="/lots", tags=["lots"])
 Groupe = Literal["tous", "en_cours", "termines", "brouillons"]
-Etape = Literal["brief", "references", "generation", "revue"]
+Etape = Literal["brief", "references", "generation", "revue", "essai", "jeu"]
 
 
 class _Modele(BaseModel):

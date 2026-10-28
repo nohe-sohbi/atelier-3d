@@ -8,7 +8,6 @@ import {
   ESTIMATION_APPLIQUER,
   LOTS,
   LOTS_VIDES,
-  LOT_CREE,
   LOT_DUPLIQUE,
   LOT_ENTETE,
   LOT_ENTETE_PROPOSE,
@@ -54,8 +53,8 @@ describe("Lots", () => {
     const { appels } = mockApi({ ...BASE, "GET /api/lots": (_i: unknown, url: URL) => (url.searchParams.get("groupe") === "termines" ? { ...LOTS, lots: [] } : LOTS) });
     const utilisateur = userEvent.setup();
     rendreApp("/lots");
-    expect(screen.getByRole("heading", { level: 1, name: "Lots" })).toBeInTheDocument();
-    const table = await screen.findByRole("table", { name: "Lots" });
+    expect(screen.getByRole("heading", { level: 1, name: "Projets" })).toBeInTheDocument();
+    const table = await screen.findByRole("table", { name: "Projets" });
     const lot = LOTS.lots[0]!;
     const ligne = within(table).getByRole("row", { name: new RegExp(lot.nom) });
     expect(within(ligne).getByRole("link", { name: lot.nom })).toHaveAttribute("href", lot.lien);
@@ -65,48 +64,43 @@ describe("Lots", () => {
     expect(within(ligne).getByText(lot.style!.code)).toBeInTheDocument();
     expect(within(table).getAllByRole("row")).toHaveLength(LOTS.lots.length + 1);
 
-    const filtres = within(screen.getByRole("group", { name: "Filtrer les lots" }));
+    const filtres = within(screen.getByRole("group", { name: "Filtrer les projets" }));
     expect(filtres.getByRole("button", { name: `Tous · ${LOTS.compteurs.tous}` })).toHaveAttribute("aria-pressed", "true");
     await utilisateur.click(filtres.getByRole("button", { name: `Terminés · ${LOTS.compteurs.termines}` }));
-    expect(await screen.findByText("Aucun lot terminé")).toBeInTheDocument();
+    expect(await screen.findByText("Aucun projet terminé")).toBeInTheDocument();
     expect(appels.some((a) => a.chemin === "/api/lots?groupe=termines")).toBe(true);
     expect(filtres.getByRole("button", { name: /^Terminés/ })).toHaveAttribute("aria-pressed", "true");
   });
 
-  it("sans lot : état vide et Nouveau lot", async () => {
+  it("sans projet : état vide et Nouveau projet", async () => {
     mockApi({ ...BASE, "GET /api/lots": LOTS_VIDES });
     rendreApp("/lots");
-    expect(await screen.findByText("Aucun lot pour l'instant")).toBeInTheDocument();
-    expect(screen.getAllByRole("link", { name: "Nouveau lot" }).length).toBeGreaterThan(1);
+    expect(await screen.findByText("Aucun projet pour l'instant")).toBeInTheDocument();
+    expect(screen.getAllByRole("link", { name: "Nouveau projet" }).length).toBeGreaterThan(1);
   });
 
-  it("Nouveau lot crée un lot vide une seule fois puis ouvre son Brief", async () => {
-    const { appels } = mockApi({
-      ...BASE,
-      "POST /api/lots": LOT_CREE,
-      [`GET /api/lots/${LOT_CREE.id}`]: LOT_CREE,
-      [`GET /api/lots/${LOT_CREE.id}/objets`]: OBJETS_VIDES,
-    });
+  it("/lots/nouveau ramène à l'écran Créer, sans rien créer", async () => {
+    const { appels } = mockApi({ ...BASE, "GET /api/styles": STYLES });
     rendreApp("/lots/nouveau");
-    expect(await screen.findByRole("heading", { level: 2, name: "Brief" })).toBeInTheDocument();
-    expect(screen.getByText("Aucune liste pour l'instant")).toBeInTheDocument();
-    expect(appels.filter((a) => a.methode === "POST" && a.chemin === "/api/lots")).toHaveLength(1);
+    expect(await screen.findByRole("heading", { level: 1, name: "Que veux-tu créer ?" })).toBeInTheDocument();
+    expect(appels.filter((a) => a.methode === "POST")).toHaveLength(0);
   });
 
-  it("/lots/:id ouvre le lot sur l'étape où il en est", async () => {
+  it("/lots/:id ouvre le projet sur l'étape où il en est", async () => {
     mockApi({ ...BASE, [`GET /api/lots/${LID}`]: LOT_VALIDE, [`GET /api/lots/${LID}/references`]: REFERENCES });
     rendreApp(`/lots/${LID}`);
-    expect(await screen.findByRole("heading", { name: "Choisis une référence par objet" })).toBeInTheDocument();
+    expect(await screen.findByRole("heading", { name: "Choisis un look par objet" })).toBeInTheDocument();
   });
 });
 
-describe("En-tête de lot", () => {
+describe("En-tête de projet", () => {
   it("étapes non atteintes verrouillées, étape courante marquée, puce du style vers Styles, ligne d'état", async () => {
     mockApi(BRIEF);
     rendreApp(`/lots/${LID}/brief`);
-    const etapes = within(await screen.findByRole("navigation", { name: "Étapes du lot" }));
-    expect(etapes.getByRole("link", { name: /Brief/ })).toHaveAttribute("aria-current", "step");
-    for (const nom of [/Références/, /Génération/, /Revue/]) expect(etapes.getByRole("link", { name: nom })).toHaveAttribute("aria-disabled", "true");
+    const etapes = within(await screen.findByRole("list", { name: "Étapes du projet" }));
+    expect(etapes.getAllByRole("listitem").map((li) => li.textContent?.replace(/\(terminée\)/, "").replace(/^\S/, ""))).toEqual(["Objets", "Look", "Fabrication", "Validation", "Essai", "Jeu"]);
+    expect(etapes.getByText("Objets").closest("li")).toHaveAttribute("aria-current", "step");
+    for (const nom of [/Look/, /Fabrication/, /Validation/, /Essai/, /Jeu/]) expect(etapes.getByRole("link", { name: nom })).toHaveAttribute("aria-disabled", "true");
     expect(screen.getByRole("heading", { level: 1, name: LOT_ENTETE_PROPOSE.nom })).toBeInTheDocument();
     expect(screen.getByRole("link", { name: LOT_ENTETE_PROPOSE.style!.code })).toHaveAttribute("href", `/styles?style=${LOT_ENTETE_PROPOSE.style!.code}`);
     expect(screen.getByText(LOT_ENTETE_PROPOSE.ligne_etat)).toBeInTheDocument();
@@ -123,14 +117,14 @@ describe("En-tête de lot", () => {
     });
     const utilisateur = userEvent.setup();
     rendreApp(`/lots/${LID}/brief`);
-    await utilisateur.click(await screen.findByRole("button", { name: "Renommer le lot" }));
-    const champ = screen.getByLabelText("Nom du lot");
+    await utilisateur.click(await screen.findByRole("button", { name: "Renommer le projet" }));
+    const champ = screen.getByLabelText("Nom du projet");
     await utilisateur.clear(champ);
     await utilisateur.type(champ, "Mon lot{Enter}");
     expect(await screen.findByRole("heading", { level: 1, name: "Mon lot" })).toBeInTheDocument();
     expect(appels.find((a) => a.methode === "PATCH" && a.chemin === `/api/lots/${LID}`)?.corps).toEqual({ nom: "Mon lot" });
 
-    await utilisateur.click(screen.getByRole("button", { name: "Dupliquer le lot" }));
+    await utilisateur.click(screen.getByRole("button", { name: "Dupliquer le projet" }));
     expect(await screen.findByRole("heading", { level: 1, name: LOT_DUPLIQUE.nom })).toBeInTheDocument();
   });
 
@@ -182,7 +176,7 @@ describe("Brief", () => {
     expect(screen.getByRole("checkbox", { name: DECOCHE.nom })).not.toBeChecked();
   });
 
-  it("Générer les références : un 409 s'affiche tel quel ; accepté, l'onglet Références s'ouvre", async () => {
+  it("Choisir les looks : un 409 s'affiche tel quel ; accepté, l'écran Look s'ouvre", async () => {
     let accepte = false;
     mockApi({
       ...BRIEF,
@@ -191,11 +185,11 @@ describe("Brief", () => {
     });
     const utilisateur = userEvent.setup();
     rendreApp(`/lots/${LID}/brief`);
-    await utilisateur.click(await screen.findByRole("button", { name: "Générer les références" }));
+    await utilisateur.click(await screen.findByRole("button", { name: "Choisir les looks →" }));
     expect(await screen.findByRole("alert")).toHaveTextContent(REFUS_VALIDATION.erreur);
     accepte = true;
-    await utilisateur.click(screen.getByRole("button", { name: "Générer les références" }));
-    expect(await screen.findByRole("heading", { name: "Choisis une référence par objet" })).toBeInTheDocument();
+    await utilisateur.click(screen.getByRole("button", { name: "Choisir les looks →" }));
+    expect(await screen.findByRole("heading", { name: "Choisis un look par objet" })).toBeInTheDocument();
     expect(screen.getAllByText(/En attente/).length).toBeGreaterThan(0); // les 4 propositions se préparent
   });
 

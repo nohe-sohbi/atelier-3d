@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from "react";
+import { Link } from "react-router-dom";
 import { api, messageErreur } from "../../api/client";
 import type {
   AlertePct,
@@ -434,7 +435,7 @@ export function Reglages() {
                 Utiliser ce chemin : <span className="mono">{etat.outils.blender.suggestion}</span>
               </button>
             ) : null}
-            <p className="note">Générateurs code, finition, tests, rendus et export FBX. Version figée : tous les lots passent par le même Blender.</p>
+            <p className="note">Générateurs code, finition, tests, rendus et export FBX. Version figée : tous les projets passent par le même Blender.</p>
           </div>
 
           <div className="reglages__carte reglages__carte--outil">
@@ -602,6 +603,9 @@ function Entete() {
       <p className="page-sous-titre">
         Les clés des services, les outils de ta machine et les limites que l'app respecte. Tout est rangé dans un fichier de configuration local,
         hors de la bibliothèque et de Git.
+      </p>
+      <p className="page-sous-titre">
+        Les modèles d'objets fabriqués par code : <Link to="/generateurs">Générateurs</Link>.
       </p>
     </div>
   );

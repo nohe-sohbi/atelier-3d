@@ -4,6 +4,7 @@ import { api, messageErreur } from "../../api/client";
 import { signalerChangement } from "../../api/rafraichissement";
 import type { CleEtapeLot, EnTeteLot as EnTeteApi, EstimationAppliquerStyle } from "../../api/types";
 import { Erreur } from "../../components/Etats";
+import { Etapes } from "../../components/Etapes";
 import { Fenetre } from "../../components/Fenetre";
 import { nomDuLot, pluriel } from "./commun";
 
@@ -14,7 +15,7 @@ interface Props {
   version: number;
 }
 
-/** En-tête des 4 écrans de lot (LotHeader.dc.html) : fil d'Ariane, nom, thème, style, ligne d'état, étapes. */
+/** En-tête des écrans d'un projet : fil d'Ariane, nom, thème, style, ligne d'état, les six étapes. */
 export function EnTeteLot({ lotId, etape, version }: Props) {
   const naviguer = useNavigate();
   const [lot, setLot] = useState<EnTeteApi | null>(null);
@@ -69,7 +70,7 @@ export function EnTeteLot({ lotId, etape, version }: Props) {
           <svg width="14" height="14" viewBox="0 0 14 14" aria-hidden="true">
             <path d="M9 3 L5 7 L9 11" style={{ fill: "none", stroke: "currentColor", strokeWidth: 1.8, strokeLinecap: "round", strokeLinejoin: "round" }} />
           </svg>
-          Lots
+          Projets
         </Link>
         <span aria-hidden="true">/</span>
         <span aria-current="page">{nomDuLot(lot.nom)}</span>
@@ -79,7 +80,7 @@ export function EnTeteLot({ lotId, etape, version }: Props) {
         {renommer ? (
           <form className="entete-lot__renommer" onSubmit={enregistrerNom}>
             <label htmlFor="entete-lot-nom" className="visuellement-cache">
-              Nom du lot
+              Nom du projet
             </label>
             <input
               id="entete-lot-nom"
@@ -104,8 +105,8 @@ export function EnTeteLot({ lotId, etape, version }: Props) {
             <button
               type="button"
               className="entete-lot__icone"
-              aria-label="Renommer le lot"
-              title="Renommer le lot"
+              aria-label="Renommer le projet"
+              title="Renommer le projet"
               onClick={() => {
                 setNom(lot.nom);
                 setRenommer(true);
@@ -133,7 +134,7 @@ export function EnTeteLot({ lotId, etape, version }: Props) {
             </button>
           ) : null}
           <button type="button" className="bouton bouton--petit" onClick={dupliquer}>
-            Dupliquer le lot
+            Dupliquer le projet
           </button>
         </div>
       </div>
@@ -143,36 +144,10 @@ export function EnTeteLot({ lotId, etape, version }: Props) {
         </p>
       ) : null}
 
-      <nav aria-label="Étapes du lot" className="entete-lot__etapes">
-        {lot.etapes.map((s) => {
-          const courant = s.cle === etape;
-          const classe = `entete-lot__onglet${courant ? " entete-lot__onglet--courant" : ""}${s.faite ? " entete-lot__onglet--fait" : ""}`;
-          const contenu = (
-            <>
-              <span className="entete-lot__point" aria-hidden="true">
-                {s.faite ? (
-                  <svg width="12" height="12" viewBox="0 0 12 12">
-                    <path d="M2.5 6.2 L5 8.5 L9.5 3.5" style={{ fill: "none", stroke: "currentColor", strokeWidth: 2, strokeLinecap: "round", strokeLinejoin: "round" }} />
-                  </svg>
-                ) : (
-                  s.numero
-                )}
-              </span>
-              {s.libelle}
-            </>
-          );
-          // Une étape pas encore atteinte reste visible mais ne s'ouvre pas.
-          return s.atteinte || courant ? (
-            <Link key={s.cle} to={s.lien} className={classe} aria-current={courant ? "step" : undefined}>
-              {contenu}
-            </Link>
-          ) : (
-            <span key={s.cle} role="link" aria-disabled="true" className={`${classe} entete-lot__onglet--verrouille`} title="Étape pas encore atteinte">
-              {contenu}
-            </span>
-          );
-        })}
-      </nav>
+      <Etapes
+        etapes={lot.etapes.map((e) => ({ cle: e.cle, libelle: e.libelle, lien: e.lien, faite: e.faite, atteinte: e.atteinte }))}
+        courante={Math.max(0, lot.etapes.findIndex((e) => e.cle === etape))}
+      />
 
       {lot.style_plus_recent ? (
         <AppliquerStyle ouverte={appliquer} lotId={lotId} cible={lot.style_plus_recent} onFermer={fermerAppliquer} />
@@ -211,11 +186,11 @@ function AppliquerStyle({
         {estimation ? (
           <>
             <p>
-              Une nouvelle version du style ne touche aucun lot : ici, tu choisis de la reprendre. Les objets code sont refaits gratuitement, les objets IA se
+              Une nouvelle version du style ne touche aucun projet : ici, tu choisis de la reprendre. Les objets code sont refaits gratuitement, les objets IA se
               régénèrent.
             </p>
             {estimation.objets_code.length + estimation.objets_ia.length === 0 ? (
-              <p className="secondaire">Aucun objet fabriqué dans ce lot pour l'instant : rien à refaire.</p>
+              <p className="secondaire">Aucun objet fabriqué dans ce projet pour l'instant : rien à refaire.</p>
             ) : (
               <ul role="list" className="fenetre-lot__liste">
                 <li>

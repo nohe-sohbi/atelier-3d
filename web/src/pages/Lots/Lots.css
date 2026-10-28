@@ -127,7 +127,7 @@
   margin-bottom: 6px;
 }
 .lots__segment {
-  width: 26px;
+  width: 20px;
   height: 6px;
   border-radius: 3px;
   background: var(--bordure);
@@ -166,6 +166,9 @@
   background: var(--blanc);
   border: 1px solid var(--bordure);
   border-radius: var(--rayon-carte);
+}
+.entete-lot .etapes {
+  margin: 14px 0 16px;
 }
 .entete-lot--chargement {
   min-height: 140px;
@@ -254,58 +257,6 @@ a.entete-lot__puce:hover {
   margin-top: 8px;
   font-size: 13.5px;
   color: var(--erreur);
-}
-.entete-lot__etapes {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 4px;
-  margin-top: 8px;
-}
-.entete-lot__onglet {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  min-height: 46px;
-  padding: 0 14px;
-  border-bottom: 2px solid transparent;
-  color: var(--texte-secondaire);
-  font-size: 14px;
-  font-weight: 500;
-  text-decoration: none;
-}
-.entete-lot__onglet--fait {
-  color: var(--texte);
-}
-.entete-lot__onglet--courant {
-  border-bottom-color: var(--accent);
-  color: var(--accent);
-  font-weight: 600;
-}
-.entete-lot__onglet--verrouille {
-  cursor: not-allowed;
-}
-.entete-lot__point {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 22px;
-  height: 22px;
-  border-radius: 50%;
-  border: 1px solid var(--point-vide);
-  background: var(--blanc);
-  color: var(--texte-secondaire);
-  font-size: 12px;
-  font-weight: 600;
-}
-.entete-lot__onglet--fait .entete-lot__point {
-  border-color: var(--succes);
-  background: var(--succes);
-  color: var(--blanc);
-}
-.entete-lot__onglet--courant .entete-lot__point {
-  border-color: var(--accent);
-  background: var(--accent);
-  color: var(--blanc);
 }
 
 /* --- Brief --- */

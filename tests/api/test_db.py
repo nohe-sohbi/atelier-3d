@@ -19,9 +19,9 @@ TABLES = {"styles", "lots", "objets", "essais", "assets", "versions", "collectio
 
 
 def test_migrations_appliquees_et_idempotentes(atelier, conn):
-    assert db.versions_appliquees(conn) == [0, 10, 20, 30, 50]
+    assert db.versions_appliquees(conn) == [0, 10, 20, 30, 50, 60]
     assert db.appliquer_migrations(conn) == []
-    assert db.versions_appliquees(conn) == [0, 10, 20, 30, 50]
+    assert db.versions_appliquees(conn) == [0, 10, 20, 30, 50, 60]
     noms = {r["name"] for r in conn.execute("SELECT name FROM sqlite_master WHERE type IN ('table')")}
     assert TABLES <= noms
     assert conn.execute("PRAGMA foreign_keys").fetchone()["foreign_keys"] == 1

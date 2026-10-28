@@ -3,12 +3,10 @@ import userEvent from "@testing-library/user-event";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import {
   LOTS_VIDES,
-  LOT_CREE,
   LOT_ENTETE_PROPOSE,
   MENU_VIDE,
   NOTIFICATIONS,
   OBJETS,
-  OBJETS_VIDES,
   REFERENCES,
   REGLAGES,
   STYLES,
@@ -39,11 +37,11 @@ describe("Navigation", () => {
     for (const libelle of ["Créer", "Projets", "Bibliothèque", "Styles"]) {
       expect(menu.getByRole("link", { name: libelle })).toBeInTheDocument();
     }
-    expect(menu.getByRole("link", { name: "Créer" })).toHaveAttribute("href", "/lots/nouveau");
+    expect(menu.getByRole("link", { name: "Créer" })).toHaveAttribute("href", "/");
 
     await utilisateur.click(menu.getByRole("link", { name: "Projets" }));
-    expect(screen.getByRole("heading", { level: 1, name: "Lots" })).toBeInTheDocument();
-    expect(await screen.findByText("Aucun lot pour l'instant")).toBeInTheDocument();
+    expect(screen.getByRole("heading", { level: 1, name: "Projets" })).toBeInTheDocument();
+    expect(await screen.findByText("Aucun projet pour l'instant")).toBeInTheDocument();
     expect(menu.getByRole("link", { name: "Projets" })).toHaveAttribute("aria-current", "page");
 
     await utilisateur.click(menu.getByRole("link", { name: "Bibliothèque" }));
@@ -54,14 +52,14 @@ describe("Navigation", () => {
     expect(await screen.findByRole("button", { name: /Rome antique stylisée/ })).toBeInTheDocument();
 
     await utilisateur.click(screen.getByRole("link", { name: "Atelier 3D, accueil" }));
-    expect(screen.getByText("Arrive à l'étape 11 du plan")).toBeInTheDocument();
+    expect(screen.getByRole("heading", { level: 1, name: "Que veux-tu créer ?" })).toBeInTheDocument();
+    expect(menu.getByRole("link", { name: "Créer" })).toHaveAttribute("aria-current", "page");
 
     await utilisateur.click(screen.getByRole("link", { name: "Réglages" }));
     expect(await screen.findByRole("heading", { level: 1, name: "Réglages" })).toBeInTheDocument();
   });
 
   it.each([
-    ["/", "Accueil", 11],
     ["/bibliotheque", "Bibliothèque", 9],
     ["/assets/ROM_PROP_Scutum_A", "Fiche asset", 9],
     ["/generateurs", "Générateurs", 11],
@@ -75,32 +73,21 @@ describe("Navigation", () => {
     await screen.findByRole("button", { name: "Notifications : 1 nouvelle" });
   });
 
-  it("/lots/:id/references : l'en-tête du lot, puis l'écran Références", async () => {
+  it("/lots/:id/references : l'en-tête du projet, puis l'écran Look", async () => {
     mockApi({ ...API, [`GET /api/lots/${LOT_ENTETE_PROPOSE.id}/references`]: REFERENCES });
     rendreApp(`/lots/${LOT_ENTETE_PROPOSE.id}/references`);
     expect(await screen.findByRole("heading", { level: 1, name: LOT_ENTETE_PROPOSE.nom })).toBeInTheDocument();
-    expect(await screen.findByRole("heading", { name: "Choisis une référence par objet" })).toBeInTheDocument();
+    expect(await screen.findByRole("heading", { name: "Choisis un look par objet" })).toBeInTheDocument();
   });
 
-  it.each([["revue", 8]])("/lots/:id/%s : l'en-tête du lot, puis « Arrive à l'étape %i du plan »", async (etape, numero) => {
+  it.each([
+    ["revue", "La validation arrive à l'étape 8 du plan"],
+    ["essai", "L'essai en scène arrive à l'étape 8 du plan"],
+    ["jeu", "La récupération du pack arrive à l'étape 10 du plan"],
+  ])("/lots/:id/%s : l'en-tête du projet, puis « %s »", async (etape, texte) => {
     mockApi(API);
     rendreApp(`/lots/${LOT_ENTETE_PROPOSE.id}/${etape}`);
     expect(await screen.findByRole("heading", { level: 1, name: LOT_ENTETE_PROPOSE.nom })).toBeInTheDocument();
-    expect(screen.getByText(`Arrive à l'étape ${numero} du plan`)).toBeInTheDocument();
-  });
-
-  it("« Créer » crée un projet et ouvre son Brief, pas la liste", async () => {
-    mockApi({
-      ...API,
-      "POST /api/lots": LOT_CREE,
-      [`GET /api/lots/${LOT_CREE.id}`]: LOT_CREE,
-      [`GET /api/lots/${LOT_CREE.id}/objets`]: OBJETS_VIDES,
-    });
-    const utilisateur = userEvent.setup();
-    rendreApp("/styles");
-    await screen.findByText(/Renouvelés le 1er novembre/);
-    await utilisateur.click(within(screen.getByRole("navigation", { name: "Menu principal" })).getByRole("link", { name: "Créer" }));
-    expect(await screen.findByRole("heading", { level: 2, name: "Brief" })).toBeInTheDocument();
-    expect(screen.getByRole("link", { name: /Brief/ })).toHaveAttribute("aria-current", "step");
+    expect(screen.getByText(texte)).toBeInTheDocument();
   });
 });

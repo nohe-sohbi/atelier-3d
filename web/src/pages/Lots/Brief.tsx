@@ -14,7 +14,7 @@ interface Props {
   onChangement: () => void;
 }
 
-/** Lot · 1 Brief (Brief.dc.html) : thème, style, besoin ; Claude propose la liste, le routage choisit les voies, tu coches. */
+/** Projet · 1 Objets : thème, style, demande ; Claude propose la liste, le routage choisit les voies, tu coches. */
 export function Brief({ lotId, onChangement }: Props) {
   const naviguer = useNavigate();
   const [lot, setLot] = useState<EnTeteLot | null>(null);
@@ -177,7 +177,7 @@ export function Brief({ lotId, onChangement }: Props) {
       <section aria-labelledby="brief-titre" className="brief__panneau brief__panneau--champs">
         <div>
           <h2 id="brief-titre" className="brief__titre">
-            Brief
+            Ta demande
           </h2>
           <p className="brief__texte">Un thème, un style, une phrase. Claude propose la liste d'objets à fabriquer.</p>
         </div>
@@ -208,7 +208,7 @@ export function Brief({ lotId, onChangement }: Props) {
             ))}
           </select>
           <p className="brief__aide">
-            Le style fixe la palette, les matériaux et les budgets de tout le lot. <Link to="/styles">Voir les styles</Link>
+            Le style fixe la palette, les matériaux et les budgets de tout le projet. <Link to="/styles">Voir les styles</Link>
           </p>
         </div>
         <div className="brief__champ">
@@ -311,7 +311,7 @@ export function Brief({ lotId, onChangement }: Props) {
           <div className="brief__pied">
             <p className="brief__resume">{texteResume(resume)}</p>
             <button type="button" className="bouton bouton--primaire" onClick={valider} disabled={occupe || resume.retenus === 0}>
-              Générer les références
+              Choisir les looks →
               <svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true">
                 <path d="M3 8 H13 M9 4 L13 8 L9 12" style={{ fill: "none", stroke: "currentColor", strokeWidth: 1.8, strokeLinecap: "round", strokeLinejoin: "round" }} />
               </svg>

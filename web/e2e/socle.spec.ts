@@ -34,12 +34,13 @@ test.describe("Étape 1 · Socle", () => {
     await expect(page.getByText("Arrive à l'étape 11 du plan")).toBeVisible();
 
     await page.getByRole("link", { name: "Atelier 3D, accueil" }).click();
-    await expect(page.getByRole("heading", { level: 1, name: "Accueil" })).toBeVisible();
+    await expect(page.getByRole("heading", { level: 1, name: "Que veux-tu créer ?" })).toBeVisible();
+    await expect(menu.getByRole("link", { name: "Créer" })).toHaveAttribute("aria-current", "page");
 
     // Projets est construit (étape 3) : la page s'ouvre sur ses filtres.
     await menu.getByRole("link", { name: "Projets" }).click();
-    await expect(page.getByRole("heading", { level: 1, name: "Lots" })).toBeVisible();
-    await expect(page.getByRole("group", { name: "Filtrer les lots" })).toBeVisible();
+    await expect(page.getByRole("heading", { level: 1, name: "Projets" })).toBeVisible();
+    await expect(page.getByRole("group", { name: "Filtrer les projets" })).toBeVisible();
     await expect(menu.getByRole("link", { name: "Projets" })).toHaveAttribute("aria-current", "page");
     // Les crédits viennent du simulateur et le disent.
     await expect(page.locator(".entete__credits")).toHaveAttribute("title", /solde simulé/);
@@ -62,7 +63,7 @@ test.describe("Étape 1 · Socle", () => {
     await page.getByRole("button", { name: /^Notifications/ }).click();
     const panneau = page.getByRole("region", { name: "Notifications" });
     if (notifications.length === 0) await expect(panneau.getByText("Aucune notification")).toBeVisible();
-    else await expect(panneau.getByText(notifications[0]!.titre)).toBeVisible();
+    else await expect(panneau.getByText(notifications[0]!.titre).first()).toBeVisible();
     await page.keyboard.press("Escape");
     await expect(panneau).toBeHidden();
   });
@@ -80,7 +81,7 @@ test.describe("Étape 1 · Socle", () => {
 
     const canal = page.getByLabel("Canal");
     await canal.fill("autre");
-    await page.getByRole("button", { name: "Annuler" }).click();
+    await page.getByRole("button", { name: "Annuler", exact: true }).click();
     await expect(page.getByLabel("Canal")).toHaveValue("assets");
   });
 

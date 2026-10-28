@@ -51,7 +51,7 @@ def _remplir(conn, client) -> None:
     meshy.image_vers_3d("reference-1.png")  # 30 crédits simulés chacun
     meshy.image_vers_3d("reference-2.png")
 
-    n1 = evenements.ecrire(conn, evenements.REVUE_PRETE, "Revue prête · Lot test", "4 objets à juger",
+    n1 = evenements.ecrire(conn, evenements.REVUE_PRETE, "À valider · Lot test", "4 objets à regarder",
                            lien="/lots/1/revue")
     n2 = evenements.ecrire(conn, evenements.BANC_TERMINE, "Banc d'essai terminé", "", lien="/generateurs")
     assert n1 != n2

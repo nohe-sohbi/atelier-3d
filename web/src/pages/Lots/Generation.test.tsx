@@ -37,7 +37,7 @@ function avancee(): Generation {
     tuiles: { ...GENERATION.tuiles, prets_revue: 1, en_cours: 1, relances: 3, credits_utilises: 60, credits_simules: true },
     objets: [
       { ...a!, statut: "Finition en cours", ton: "run", pct: 25, etapes: a!.etapes.map((p, i) => ({ ...p, etat: i === 0 ? "fait" : i === 1 ? "en_cours" : "a_faire" })) },
-      { ...b!, statut: "Prêt pour la revue", ton: "good", pct: 100, etapes: b!.etapes.map((p) => ({ ...p, etat: "fait" })) },
+      { ...b!, statut: "Prêt à valider", ton: "good", pct: 100, etapes: b!.etapes.map((p) => ({ ...p, etat: "fait" })) },
       ...reste,
     ],
     taches: [echec, PROPOSITION],
@@ -56,7 +56,7 @@ describe("Génération", () => {
     expect(screen.getByText(/Le worker ne tourne pas/)).toBeInTheDocument();
     expect(screen.queryByText(new RegExp(GENERATION.fabrication.raison_ia.slice(0, 40)))).not.toBeInTheDocument(); // ni mixte ni import
     expect(screen.getAllByText("Génération en cours")).toHaveLength(GENERATION.objets.length);
-    const objets = within(screen.getByRole("list", { name: "Objets du lot" }));
+    const objets = within(screen.getByRole("list", { name: "Objets du projet" }));
     expect(objets.getAllByRole("listitem", { name: "" }).length).toBeGreaterThan(0);
     for (const o of GENERATION.objets) {
       const puces = within(screen.getByRole("list", { name: `Étapes de ${o.nom}` }));
@@ -65,7 +65,7 @@ describe("Génération", () => {
       // L'image choisie aux Références sert de vignette tant que l'objet n'est pas rendu.
       expect(screen.getByRole("img", { name: `Vignette de ${o.nom}` }).getAttribute("src")).toMatch(/^\/api\/fichiers\/references\/\d+$/);
     }
-    expect(screen.getByRole("button", { name: "Ouvrir la revue · 0 prêt" })).toBeDisabled();
+    expect(screen.getByRole("button", { name: "Valider les objets · 0 prêt" })).toBeDisabled();
 
     expect(screen.getByText(PROPOSITION.libelle)).toBeInTheDocument();
     expect(screen.getByText("Terminée")).toBeInTheDocument();
@@ -92,7 +92,7 @@ describe("Génération", () => {
     const puces = within(await screen.findByRole("list", { name: `Étapes de ${premier.nom}` }));
     expect(puces.getByText(/: fait/)).toBeInTheDocument();
     expect(puces.getByText(/: en cours/)).toBeInTheDocument();
-    expect(screen.getByRole("link", { name: "Ouvrir la revue · 1 prêt" })).toHaveAttribute("href", `/lots/${LID}/revue`);
+    expect(screen.getByRole("link", { name: "Valider les objets · 1 prêt" })).toHaveAttribute("href", `/lots/${LID}/revue`);
     expect(screen.getByText(/utilisés · simulé/)).toBeInTheDocument();
     expect(screen.getByText("RuntimeError: Meshy injoignable")).toBeInTheDocument();
     await utilisateur.click(screen.getByRole("button", { name: "Relancer" }));
@@ -120,7 +120,7 @@ describe("Génération · en-tête du lot", () => {
       [`GET /api/lots/${LID}/generation`]: () => {
         lectures += 1;
         const o = GENERATION.objets[0]!;
-        return lectures < 2 ? tourne : { ...tourne, objets: [{ ...o, statut: "Prêt pour la revue", ton: "good", pct: 100 }, ...GENERATION.objets.slice(1)] };
+        return lectures < 2 ? tourne : { ...tourne, objets: [{ ...o, statut: "Prêt à valider", ton: "good", pct: 100 }, ...GENERATION.objets.slice(1)] };
       },
     });
     rendreApp(`/lots/${LID}/generation`);
@@ -146,7 +146,7 @@ describe("Génération · fabrication par code", () => {
         {
           ...b!, voie: "code", peut_fabriquer: false, peut_rechoisir: false, motif: "déjà fabriqué : il attend la revue", essai: essai(41, "pret"),
           vignette: "/api/fichiers/essais/41/vignette.png", planche: "/api/fichiers/essais/41/planche.png", asset_id: "TST_PROP_Objet_A",
-          statut: "Prêt pour la revue", ton: "good", pct: 100, etapes: b!.etapes.map((p) => ({ ...p, etat: "fait" })),
+          statut: "Prêt à valider", ton: "good", pct: 100, etapes: b!.etapes.map((p) => ({ ...p, etat: "fait" })),
         },
       ],
     };
@@ -168,7 +168,7 @@ describe("Génération · fabrication par code", () => {
     await waitFor(() => expect(appels.some((x) => x.methode === "POST" && x.chemin === `/api/lots/${LID}/fabriquer`)).toBe(true));
     expect(appels.find((x) => x.chemin === `/api/lots/${LID}/fabriquer`)!.corps).toEqual({ objet_id: a!.id });
     await utilisateur.click(screen.getByRole("button", { name: "Choisir une autre version" }));
-    expect(await screen.findByRole("heading", { name: "Choisis une référence par objet" })).toBeInTheDocument();
+    expect(await screen.findByRole("heading", { name: "Choisis un look par objet" })).toBeInTheDocument();
   });
 });
 

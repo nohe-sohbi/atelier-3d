@@ -7,9 +7,9 @@ import { ilYA, nomDuLot, pluriel } from "./commun";
 import "./Lots.css";
 
 const FILTRES: Array<{ groupe: GroupeLots; libelle: string; vide: string }> = [
-  { groupe: "tous", libelle: "Tous", vide: "Aucun lot pour l'instant" },
-  { groupe: "en_cours", libelle: "En cours", vide: "Aucun lot en cours" },
-  { groupe: "termines", libelle: "Terminés", vide: "Aucun lot terminé" },
+  { groupe: "tous", libelle: "Tous", vide: "Aucun projet pour l'instant" },
+  { groupe: "en_cours", libelle: "En cours", vide: "Aucun projet en cours" },
+  { groupe: "termines", libelle: "Terminés", vide: "Aucun projet terminé" },
   { groupe: "brouillons", libelle: "Brouillons", vide: "Aucun brouillon" },
 ];
 
@@ -42,18 +42,18 @@ export function Lots() {
     <div className="lots">
       <div className="lots__entete">
         <div>
-          <h1 className="page-titre">Lots</h1>
-          <p className="page-sous-titre">Un lot, c'est un thème, une liste d'objets et quatre étapes. Il s'ouvre sur l'étape où il en est.</p>
+          <h1 className="page-titre">Projets</h1>
+          <p className="page-sous-titre">Un projet, c'est une demande, une liste d'objets et six étapes. Il s'ouvre sur l'étape où il en est.</p>
         </div>
-        <Link to="/lots/nouveau" className="bouton bouton--primaire">
+        <Link to="/" className="bouton bouton--primaire">
           <svg width="14" height="14" viewBox="0 0 14 14" aria-hidden="true">
             <path d="M7 2 V12 M2 7 H12" style={{ fill: "none", stroke: "currentColor", strokeWidth: 1.8, strokeLinecap: "round" }} />
           </svg>
-          Nouveau lot
+          Nouveau projet
         </Link>
       </div>
 
-      <div role="group" aria-label="Filtrer les lots" className="lots__filtres">
+      <div role="group" aria-label="Filtrer les projets" className="lots__filtres">
         {FILTRES.map((f) => (
           <button
             key={f.groupe}
@@ -73,11 +73,11 @@ export function Lots() {
       {donnees && donnees.lots.length === 0 ? (
         <EtatVide
           titre={filtre.vide}
-          texte={groupe === "tous" ? "Un lot part d'un thème, d'un style et d'une phrase : Claude propose la liste d'objets à fabriquer." : undefined}
+          texte={groupe === "tous" ? "Un projet part d'une phrase et d'un style : l'app propose la liste d'objets à fabriquer." : undefined}
           enfants={
             groupe === "tous" ? (
-              <Link to="/lots/nouveau" className="bouton bouton--primaire">
-                Nouveau lot
+              <Link to="/" className="bouton bouton--primaire">
+                Nouveau projet
               </Link>
             ) : undefined
           }
@@ -85,10 +85,10 @@ export function Lots() {
       ) : null}
       {donnees && donnees.lots.length > 0 ? (
         <div className="lots__cadre">
-          <table className="lots__table" aria-label="Lots">
+          <table className="lots__table" aria-label="Projets">
             <thead>
               <tr>
-                <th scope="col">Lot</th>
+                <th scope="col">Projet</th>
                 <th scope="col">Style</th>
                 <th scope="col">Étape</th>
                 <th scope="col">Où il en est</th>
@@ -110,7 +110,7 @@ export function Lots() {
                   <td className="lots__style mono">{l.style ? l.style.code : "—"}</td>
                   <td>
                     <span aria-hidden="true" className="lots__segments">
-                      {[1, 2, 3, 4].map((i) => (
+                      {[1, 2, 3, 4, 5, 6].map((i) => (
                         <span key={i} className={`lots__segment${i < l.etape ? " lots__segment--fait" : i === l.etape ? " lots__segment--courant" : ""}`} />
                       ))}
                     </span>

@@ -1,7 +1,12 @@
 """Lots (B1) : création, liste par état, étape calculée depuis les objets, duplication, validation du brief.
 
 L'étape d'un lot est celle de son objet le moins avancé (correction 6) ; les objets réutilisés et hors
-périmètre ne comptent pas. Rien n'est inventé : un lot sans objet est au Brief.
+périmètre ne comptent pas. Rien n'est inventé : un lot sans objet est à la première étape.
+
+Six étapes pour l'utilisateur (maquette v4) : Objets, Look, Fabrication, Validation, Essai, Jeu. Les clés techniques
+(brief, references, generation, revue) ne changent pas : seuls les libellés ont changé. Quand tous les objets sont
+décidés, le projet passe à l'Essai (5), puis au Jeu (6) une fois l'essai accepté, puis il est Terminé (7) une fois
+le pack récupéré.
 """
 from __future__ import annotations
 
@@ -16,8 +21,10 @@ from api.services.routage import VOIES_SANS_FABRICATION
 
 RANG = {"brief": 1, "references": 2, "generation": 3, "finition": 3, "tests": 3, "rendus": 3, "revue": 4,
         "garde": 5, "rejete": 5, "archive": 5}
-ETAPES = ("brief", "references", "generation", "revue")
-LIBELLES_ETAPES = {"brief": "Brief", "references": "Références", "generation": "Génération", "revue": "Revue"}
+ETAPES = ("brief", "references", "generation", "revue", "essai", "jeu")
+LIBELLES_ETAPES = {"brief": "Objets", "references": "Look", "generation": "Fabrication", "revue": "Validation",
+                   "essai": "Essai", "jeu": "Jeu"}
+TERMINE = len(ETAPES) + 1  # 7
 GROUPES = ("tous", "en_cours", "termines", "brouillons")
 CREDITS_PAR_OBJET_IA = CREDITS_3D + CREDITS_IMAGE * IMAGES_REFERENCE_PAR_OBJET  # 30 + 4 × 3 = 42
 
@@ -58,13 +65,18 @@ def _fabriques(objets: list[dict]) -> list[dict]:
     return [o for o in objets if not o["retire"] and o["voie"] not in VOIES_SANS_FABRICATION]
 
 
-def etape_du_lot(objets: list[dict]) -> int:
-    """1 Brief, 2 Références, 3 Génération, 4 Revue, 5 Terminé : celle de l'objet le moins avancé."""
+def etape_du_lot(objets: list[dict], lot: dict | None = None) -> int:
+    """1 Objets, 2 Look, 3 Fabrication, 4 Validation : celle de l'objet le moins avancé. Tous décidés : 5 Essai,
+    puis 6 Jeu quand l'essai est accepté, puis 7 Terminé quand le pack est récupéré."""
     fab = _fabriques(objets)
     if not fab:
         return 1
     rangs = [RANG.get(o["etape"], 1) for o in fab]
-    return 5 if all(r == 5 for r in rangs) else min(rangs)
+    if not all(r == 5 for r in rangs):
+        return min(rangs)
+    if lot is None or not lot.get("essai_fait"):
+        return 5
+    return 6 if not lot.get("jeu_fait") else TERMINE
 
 
 def _compter(objets: list[dict]) -> dict:
@@ -94,26 +106,30 @@ def _pluriel(n: int, un: str, plusieurs: str) -> str:
 
 def situation(lot: dict, objets: list[dict]) -> dict:
     """Étape, statut, ton, détail, lien et libellé d'action pour la liste des lots et l'en-tête."""
-    etape = etape_du_lot(objets)
+    etape = etape_du_lot(objets, lot)
     c = _compter(objets)
     lid = lot["id"]
     if etape == 1:
         detail = "liste à valider" if c["total"] else "aucun objet pour l'instant"
         s = ("Brouillon", "idle", detail, f"/lots/{lid}/brief", "Reprendre")
     elif etape == 2:
-        detail = (_pluriel(c["references_a_choisir"], "référence à choisir", "références à choisir")
-                  if c["references_a_choisir"] else "références choisies : lance la génération")
+        detail = (_pluriel(c["references_a_choisir"], "look à choisir", "looks à choisir")
+                  if c["references_a_choisir"] else "looks choisis : lance la fabrication")
         s = ("À toi", "warn", detail, f"/lots/{lid}/references", "Reprendre")
     elif etape == 3:
-        s = ("En génération", "run", f"{c['fabriques'] - c['en_generation']} sur {c['fabriques']} générés",
+        s = ("En fabrication", "run", f"{c['fabriques'] - c['en_generation']} sur {c['fabriques']} fabriqués",
              f"/lots/{lid}/generation", "Suivre")
     elif etape == 4:
-        s = ("Revue prête", "accent", _pluriel(c["prets_revue"], "objet à juger", "objets à juger"), f"/lots/{lid}/revue", "Reprendre")
+        s = ("À valider", "accent", _pluriel(c["prets_revue"], "objet à regarder", "objets à regarder"), f"/lots/{lid}/revue", "Valider")
+    elif etape == 5:
+        s = ("Essai", "accent", "regarde tes objets ensemble avant de les récupérer", f"/lots/{lid}/essai", "Essayer")
+    elif etape == 6:
+        s = ("Jeu", "accent", "récupère le pack pour ton jeu", f"/lots/{lid}/jeu", "Récupérer")
     else:
         rejets = "aucun jeté" if c["rejetes"] == 0 else _pluriel(c["rejetes"], "jeté", "jetés")
-        s = ("Terminé", "good", f"{_pluriel(c['gardes'], 'gardé', 'gardés')}, {rejets}", f"/bibliotheque?lot={lid}", "Voir les assets")
+        s = ("Terminé", "good", f"{_pluriel(c['gardes'], 'gardé', 'gardés')}, {rejets}", f"/bibliotheque?lot={lid}", "Voir les objets")
     statut, ton, detail, lien, action = s
-    return {"etape": etape, "libelle_etape": "Terminé" if etape == 5 else f"Étape {etape} sur 4 · {LIBELLES_ETAPES[ETAPES[etape - 1]]}",
+    return {"etape": etape, "libelle_etape": "Terminé" if etape == TERMINE else f"Étape {etape} sur {len(ETAPES)} · {LIBELLES_ETAPES[ETAPES[etape - 1]]}",
             "statut": statut, "ton": ton, "detail": detail, "lien": lien, "action": action, "compteurs": c}
 
 
@@ -125,11 +141,13 @@ def ligne_etat(lot: dict, objets: list[dict], etape_courante: str) -> str:
         return f"{n} · créé le {_date_courte(lot['cree_le'])}"
     if etape_courante == "references":
         sans = c["reutilises"] + c["hors_perimetre"] + c["cc0"]
-        choisies = _pluriel(c["references_choisies"], "référence choisie", "références choisies")
-        return f"{n} · {choisies} · {sans} sans référence (import, réutilisation)"
+        choisies = _pluriel(c["references_choisies"], "look choisi", "looks choisis")
+        return f"{n} · {choisies} · {sans} sans look à choisir (import, réutilisation)"
     if etape_courante == "generation":
         prets = _pluriel(c["prets_revue"] + c["finis"], "prêt", "prêts")
         return f"{n} · {prets} · {c['en_generation']} en cours · {_pluriel(c['reutilises'], 'réutilisé', 'réutilisés')}"
+    if etape_courante in ("essai", "jeu"):
+        return f"{n} · {_pluriel(c['gardes'], 'gardé', 'gardés')} · {_pluriel(c['rejetes'], 'jeté', 'jetés')}"
     return f"{n} · {_pluriel(c['gardes'], 'gardé', 'gardés')} · {c['prets_revue']} à décider · {_pluriel(c['reutilises'], 'réutilisé', 'réutilisés')}"
 
 
@@ -187,7 +205,7 @@ def en_tete(conn: sqlite3.Connection, lot_id: int, etape_courante: str = "brief"
     etapes = []
     for i, cle in enumerate(ETAPES, start=1):
         etapes.append({"cle": cle, "libelle": LIBELLES_ETAPES[cle], "numero": i, "lien": f"/lots/{lot_id}/{cle}",
-                       "atteinte": True if sit["etape"] >= 5 else i <= max(sit["etape"], 1),
+                       "atteinte": True if sit["etape"] >= TERMINE else i <= max(sit["etape"], 1),
                        "faite": i < sit["etape"]})
     return {"id": lot_id, "nom": lot["nom"], "theme": lot["theme"], "besoin": lot["besoin"], "style": style,
             "style_plus_recent": version_plus_recente, "etat": lot["etat"], "cree_le": lot["cree_le"], "maj_le": lot["maj_le"],
@@ -207,8 +225,8 @@ def synchroniser_etat(conn: sqlite3.Connection, lot_id: int) -> str:
     lot = _ligne(conn, lot_id)
     if lot["etat"] == "archive":
         return "archive"
-    etape = etape_du_lot(objets_du_lot(conn, lot_id))
-    etat = "brouillon" if etape == 1 else "termine" if etape == 5 else "en_cours"
+    etape = etape_du_lot(objets_du_lot(conn, lot_id), lot)
+    etat = "brouillon" if etape == 1 else "termine" if etape == TERMINE else "en_cours"
     conn.execute("UPDATE lots SET etat = ? WHERE id = ?", (etat, lot_id))
     return etat
 

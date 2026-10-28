@@ -574,8 +574,8 @@
         "date": "2026-10-18T08:00:00Z",
         "type": "revue_prete",
         "niveau": "info",
-        "titre": "Revue prête · Lot test",
-        "texte": "4 objets à juger",
+        "titre": "À valider · Lot test",
+        "texte": "4 objets à regarder",
         "lien": "/lots/1/revue",
         "lu": false
       }
@@ -1440,7 +1440,7 @@
     "etapes": [
       {
         "cle": "brief",
-        "libelle": "Brief",
+        "libelle": "Objets",
         "numero": 1,
         "lien": "/lots/5/brief",
         "atteinte": true,
@@ -1448,7 +1448,7 @@
       },
       {
         "cle": "references",
-        "libelle": "Références",
+        "libelle": "Look",
         "numero": 2,
         "lien": "/lots/5/references",
         "atteinte": false,
@@ -1456,7 +1456,7 @@
       },
       {
         "cle": "generation",
-        "libelle": "Génération",
+        "libelle": "Fabrication",
         "numero": 3,
         "lien": "/lots/5/generation",
         "atteinte": false,
@@ -1464,16 +1464,32 @@
       },
       {
         "cle": "revue",
-        "libelle": "Revue",
+        "libelle": "Validation",
         "numero": 4,
         "lien": "/lots/5/revue",
+        "atteinte": false,
+        "faite": false
+      },
+      {
+        "cle": "essai",
+        "libelle": "Essai",
+        "numero": 5,
+        "lien": "/lots/5/essai",
+        "atteinte": false,
+        "faite": false
+      },
+      {
+        "cle": "jeu",
+        "libelle": "Jeu",
+        "numero": 6,
+        "lien": "/lots/5/jeu",
         "atteinte": false,
         "faite": false
       }
     ],
     "ligne_etat": "0 objet · créé le 18 oct.",
     "etape": 1,
-    "libelle_etape": "Étape 1 sur 4 · Brief",
+    "libelle_etape": "Étape 1 sur 6 · Objets",
     "statut": "Brouillon",
     "ton": "idle",
     "detail": "aucun objet pour l'instant",
@@ -1519,7 +1535,7 @@
     "etapes": [
       {
         "cle": "brief",
-        "libelle": "Brief",
+        "libelle": "Objets",
         "numero": 1,
         "lien": "/lots/5/brief",
         "atteinte": true,
@@ -1527,7 +1543,7 @@
       },
       {
         "cle": "references",
-        "libelle": "Références",
+        "libelle": "Look",
         "numero": 2,
         "lien": "/lots/5/references",
         "atteinte": false,
@@ -1535,7 +1551,7 @@
       },
       {
         "cle": "generation",
-        "libelle": "Génération",
+        "libelle": "Fabrication",
         "numero": 3,
         "lien": "/lots/5/generation",
         "atteinte": false,
@@ -1543,16 +1559,32 @@
       },
       {
         "cle": "revue",
-        "libelle": "Revue",
+        "libelle": "Validation",
         "numero": 4,
         "lien": "/lots/5/revue",
+        "atteinte": false,
+        "faite": false
+      },
+      {
+        "cle": "essai",
+        "libelle": "Essai",
+        "numero": 5,
+        "lien": "/lots/5/essai",
+        "atteinte": false,
+        "faite": false
+      },
+      {
+        "cle": "jeu",
+        "libelle": "Jeu",
+        "numero": 6,
+        "lien": "/lots/5/jeu",
         "atteinte": false,
         "faite": false
       }
     ],
     "ligne_etat": "0 objet · créé le 18 oct.",
     "etape": 1,
-    "libelle_etape": "Étape 1 sur 4 · Brief",
+    "libelle_etape": "Étape 1 sur 6 · Objets",
     "statut": "Brouillon",
     "ton": "idle",
     "detail": "aucun objet pour l'instant",
@@ -1598,7 +1630,7 @@
     "etapes": [
       {
         "cle": "brief",
-        "libelle": "Brief",
+        "libelle": "Objets",
         "numero": 1,
         "lien": "/lots/5/brief",
         "atteinte": true,
@@ -1606,7 +1638,7 @@
       },
       {
         "cle": "references",
-        "libelle": "Références",
+        "libelle": "Look",
         "numero": 2,
         "lien": "/lots/5/references",
         "atteinte": false,
@@ -1614,7 +1646,7 @@
       },
       {
         "cle": "generation",
-        "libelle": "Génération",
+        "libelle": "Fabrication",
         "numero": 3,
         "lien": "/lots/5/generation",
         "atteinte": false,
@@ -1622,16 +1654,32 @@
       },
       {
         "cle": "revue",
-        "libelle": "Revue",
+        "libelle": "Validation",
         "numero": 4,
         "lien": "/lots/5/revue",
+        "atteinte": false,
+        "faite": false
+      },
+      {
+        "cle": "essai",
+        "libelle": "Essai",
+        "numero": 5,
+        "lien": "/lots/5/essai",
+        "atteinte": false,
+        "faite": false
+      },
+      {
+        "cle": "jeu",
+        "libelle": "Jeu",
+        "numero": 6,
+        "lien": "/lots/5/jeu",
         "atteinte": false,
         "faite": false
       }
     ],
     "ligne_etat": "0 objet · créé le 18 oct.",
     "etape": 1,
-    "libelle_etape": "Étape 1 sur 4 · Brief",
+    "libelle_etape": "Étape 1 sur 6 · Objets",
     "statut": "Brouillon",
     "ton": "idle",
     "detail": "aucun objet pour l'instant",
@@ -1919,7 +1967,7 @@
     "etapes": [
       {
         "cle": "brief",
-        "libelle": "Brief",
+        "libelle": "Objets",
         "numero": 1,
         "lien": "/lots/5/brief",
         "atteinte": true,
@@ -1927,7 +1975,7 @@
       },
       {
         "cle": "references",
-        "libelle": "Références",
+        "libelle": "Look",
         "numero": 2,
         "lien": "/lots/5/references",
         "atteinte": false,
@@ -1935,7 +1983,7 @@
       },
       {
         "cle": "generation",
-        "libelle": "Génération",
+        "libelle": "Fabrication",
         "numero": 3,
         "lien": "/lots/5/generation",
         "atteinte": false,
@@ -1943,16 +1991,32 @@
       },
       {
         "cle": "revue",
-        "libelle": "Revue",
+        "libelle": "Validation",
         "numero": 4,
         "lien": "/lots/5/revue",
+        "atteinte": false,
+        "faite": false
+      },
+      {
+        "cle": "essai",
+        "libelle": "Essai",
+        "numero": 5,
+        "lien": "/lots/5/essai",
+        "atteinte": false,
+        "faite": false
+      },
+      {
+        "cle": "jeu",
+        "libelle": "Jeu",
+        "numero": 6,
+        "lien": "/lots/5/jeu",
         "atteinte": false,
         "faite": false
       }
     ],
     "ligne_etat": "4 objets · créé le 18 oct.",
     "etape": 1,
-    "libelle_etape": "Étape 1 sur 4 · Brief",
+    "libelle_etape": "Étape 1 sur 6 · Objets",
     "statut": "Brouillon",
     "ton": "idle",
     "detail": "liste à valider",
@@ -2576,7 +2640,7 @@
     "etapes": [
       {
         "cle": "brief",
-        "libelle": "Brief",
+        "libelle": "Objets",
         "numero": 1,
         "lien": "/lots/5/brief",
         "atteinte": true,
@@ -2584,7 +2648,7 @@
       },
       {
         "cle": "references",
-        "libelle": "Références",
+        "libelle": "Look",
         "numero": 2,
         "lien": "/lots/5/references",
         "atteinte": true,
@@ -2592,7 +2656,7 @@
       },
       {
         "cle": "generation",
-        "libelle": "Génération",
+        "libelle": "Fabrication",
         "numero": 3,
         "lien": "/lots/5/generation",
         "atteinte": false,
@@ -2600,19 +2664,35 @@
       },
       {
         "cle": "revue",
-        "libelle": "Revue",
+        "libelle": "Validation",
         "numero": 4,
         "lien": "/lots/5/revue",
         "atteinte": false,
         "faite": false
+      },
+      {
+        "cle": "essai",
+        "libelle": "Essai",
+        "numero": 5,
+        "lien": "/lots/5/essai",
+        "atteinte": false,
+        "faite": false
+      },
+      {
+        "cle": "jeu",
+        "libelle": "Jeu",
+        "numero": 6,
+        "lien": "/lots/5/jeu",
+        "atteinte": false,
+        "faite": false
       }
     ],
-    "ligne_etat": "3 objets · 0 référence choisie · 0 sans référence (import, réutilisation)",
+    "ligne_etat": "3 objets · 0 look choisi · 0 sans look à choisir (import, réutilisation)",
     "etape": 2,
-    "libelle_etape": "Étape 2 sur 4 · Références",
+    "libelle_etape": "Étape 2 sur 6 · Look",
     "statut": "À toi",
     "ton": "warn",
-    "detail": "3 références à choisir",
+    "detail": "3 looks à choisir",
     "lien": "/lots/5/references",
     "action": "Reprendre",
     "compteurs": {
@@ -3611,7 +3691,7 @@
     "etapes": [
       {
         "cle": "brief",
-        "libelle": "Brief",
+        "libelle": "Objets",
         "numero": 1,
         "lien": "/lots/5/brief",
         "atteinte": true,
@@ -3619,7 +3699,7 @@
       },
       {
         "cle": "references",
-        "libelle": "Références",
+        "libelle": "Look",
         "numero": 2,
         "lien": "/lots/5/references",
         "atteinte": true,
@@ -3627,7 +3707,7 @@
       },
       {
         "cle": "generation",
-        "libelle": "Génération",
+        "libelle": "Fabrication",
         "numero": 3,
         "lien": "/lots/5/generation",
         "atteinte": false,
@@ -3635,19 +3715,35 @@
       },
       {
         "cle": "revue",
-        "libelle": "Revue",
+        "libelle": "Validation",
         "numero": 4,
         "lien": "/lots/5/revue",
         "atteinte": false,
         "faite": false
+      },
+      {
+        "cle": "essai",
+        "libelle": "Essai",
+        "numero": 5,
+        "lien": "/lots/5/essai",
+        "atteinte": false,
+        "faite": false
+      },
+      {
+        "cle": "jeu",
+        "libelle": "Jeu",
+        "numero": 6,
+        "lien": "/lots/5/jeu",
+        "atteinte": false,
+        "faite": false
       }
     ],
-    "ligne_etat": "3 objets · 2 références choisies · 0 sans référence (import, réutilisation)",
+    "ligne_etat": "3 objets · 2 looks choisis · 0 sans look à choisir (import, réutilisation)",
     "etape": 2,
-    "libelle_etape": "Étape 2 sur 4 · Références",
+    "libelle_etape": "Étape 2 sur 6 · Look",
     "statut": "À toi",
     "ton": "warn",
-    "detail": "1 référence à choisir",
+    "detail": "1 look à choisir",
     "lien": "/lots/5/references",
     "action": "Reprendre",
     "compteurs": {
@@ -4270,10 +4366,10 @@
         "cree_le": "2026-10-18T08:00:00Z",
         "maj_le": "2026-10-18T08:00:00Z",
         "etape": 3,
-        "libelle_etape": "Étape 3 sur 4 · Génération",
-        "statut": "En génération",
+        "libelle_etape": "Étape 3 sur 6 · Fabrication",
+        "statut": "En fabrication",
         "ton": "run",
-        "detail": "0 sur 2 générés",
+        "detail": "0 sur 2 fabriqués",
         "lien": "/lots/5/generation",
         "action": "Suivre",
         "compteurs": {
@@ -4302,7 +4398,7 @@
         "cree_le": "2026-10-18T08:00:00Z",
         "maj_le": "2026-10-18T08:00:00Z",
         "etape": 1,
-        "libelle_etape": "Étape 1 sur 4 · Brief",
+        "libelle_etape": "Étape 1 sur 6 · Objets",
         "statut": "Brouillon",
         "ton": "idle",
         "detail": "aucun objet pour l'instant",
@@ -4334,7 +4430,7 @@
         "cree_le": "2026-10-18T08:00:00Z",
         "maj_le": "2026-10-18T08:00:00Z",
         "etape": 1,
-        "libelle_etape": "Étape 1 sur 4 · Brief",
+        "libelle_etape": "Étape 1 sur 6 · Objets",
         "statut": "Brouillon",
         "ton": "idle",
         "detail": "aucun objet pour l'instant",
@@ -4366,7 +4462,7 @@
         "cree_le": "2026-10-18T08:00:00Z",
         "maj_le": "2026-10-18T08:00:00Z",
         "etape": 1,
-        "libelle_etape": "Étape 1 sur 4 · Brief",
+        "libelle_etape": "Étape 1 sur 6 · Objets",
         "statut": "Brouillon",
         "ton": "idle",
         "detail": "aucun objet pour l'instant",
@@ -4398,7 +4494,7 @@
         "cree_le": "2026-10-18T08:00:00Z",
         "maj_le": "2026-10-18T08:00:00Z",
         "etape": 1,
-        "libelle_etape": "Étape 1 sur 4 · Brief",
+        "libelle_etape": "Étape 1 sur 6 · Objets",
         "statut": "Brouillon",
         "ton": "idle",
         "detail": "aucun objet pour l'instant",
@@ -4446,7 +4542,7 @@
     "etapes": [
       {
         "cle": "brief",
-        "libelle": "Brief",
+        "libelle": "Objets",
         "numero": 1,
         "lien": "/lots/6/brief",
         "atteinte": true,
@@ -4454,7 +4550,7 @@
       },
       {
         "cle": "references",
-        "libelle": "Références",
+        "libelle": "Look",
         "numero": 2,
         "lien": "/lots/6/references",
         "atteinte": false,
@@ -4462,7 +4558,7 @@
       },
       {
         "cle": "generation",
-        "libelle": "Génération",
+        "libelle": "Fabrication",
         "numero": 3,
         "lien": "/lots/6/generation",
         "atteinte": false,
@@ -4470,16 +4566,32 @@
       },
       {
         "cle": "revue",
-        "libelle": "Revue",
+        "libelle": "Validation",
         "numero": 4,
         "lien": "/lots/6/revue",
+        "atteinte": false,
+        "faite": false
+      },
+      {
+        "cle": "essai",
+        "libelle": "Essai",
+        "numero": 5,
+        "lien": "/lots/6/essai",
+        "atteinte": false,
+        "faite": false
+      },
+      {
+        "cle": "jeu",
+        "libelle": "Jeu",
+        "numero": 6,
+        "lien": "/lots/6/jeu",
         "atteinte": false,
         "faite": false
       }
     ],
     "ligne_etat": "2 objets · créé le 18 oct.",
     "etape": 1,
-    "libelle_etape": "Étape 1 sur 4 · Brief",
+    "libelle_etape": "Étape 1 sur 6 · Objets",
     "statut": "Brouillon",
     "ton": "idle",
     "detail": "liste à valider",
@@ -4529,7 +4641,7 @@
     "etapes": [
       {
         "cle": "brief",
-        "libelle": "Brief",
+        "libelle": "Objets",
         "numero": 1,
         "lien": "/lots/5/brief",
         "atteinte": true,
@@ -4537,7 +4649,7 @@
       },
       {
         "cle": "references",
-        "libelle": "Références",
+        "libelle": "Look",
         "numero": 2,
         "lien": "/lots/5/references",
         "atteinte": true,
@@ -4545,7 +4657,7 @@
       },
       {
         "cle": "generation",
-        "libelle": "Génération",
+        "libelle": "Fabrication",
         "numero": 3,
         "lien": "/lots/5/generation",
         "atteinte": true,
@@ -4553,19 +4665,35 @@
       },
       {
         "cle": "revue",
-        "libelle": "Revue",
+        "libelle": "Validation",
         "numero": 4,
         "lien": "/lots/5/revue",
         "atteinte": false,
         "faite": false
+      },
+      {
+        "cle": "essai",
+        "libelle": "Essai",
+        "numero": 5,
+        "lien": "/lots/5/essai",
+        "atteinte": false,
+        "faite": false
+      },
+      {
+        "cle": "jeu",
+        "libelle": "Jeu",
+        "numero": 6,
+        "lien": "/lots/5/jeu",
+        "atteinte": false,
+        "faite": false
       }
     ],
-    "ligne_etat": "2 objets · 2 références choisies · 0 sans référence (import, réutilisation)",
+    "ligne_etat": "2 objets · 2 looks choisis · 0 sans look à choisir (import, réutilisation)",
     "etape": 3,
-    "libelle_etape": "Étape 3 sur 4 · Génération",
-    "statut": "En génération",
+    "libelle_etape": "Étape 3 sur 6 · Fabrication",
+    "statut": "En fabrication",
     "ton": "run",
-    "detail": "0 sur 2 générés",
+    "detail": "0 sur 2 fabriqués",
     "lien": "/lots/5/generation",
     "action": "Suivre",
     "compteurs": {

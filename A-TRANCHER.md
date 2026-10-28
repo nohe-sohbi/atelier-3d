@@ -28,6 +28,22 @@ Conséquences à traiter écran par écran (rien n'est encore changé dans les �
   les règles d'asset. Seul le contenu des écrans suit la nouvelle maquette ;
 - les écarts entre le cahier des charges et la nouvelle maquette seront notés ici au fur et à mesure.
 
+### Créer, Objets, Look, Fabrication (28 octobre) · choix provisoires
+
+Le projet compte désormais six étapes dans l'API (migration 060 : `essai_fait`, `jeu_fait`) et dans l'interface.
+Les clés techniques (`brief`, `references`, `generation`, `revue`) et les adresses ne changent pas : seuls les
+libellés changent (Objets, Look, Fabrication, Validation).
+
+| N° | Sujet | Maquette | Choix provisoire dans le code |
+|---|---|---|---|
+| C.1 | Écran Créer | modes « Objets / Kit modulaire / Décor complet », images jointes, options, statistiques, activité | seulement la phrase, le style et « À toi de jouer » : le reste n'existe pas dans l'API et n'est pas inventé |
+| C.2 | Essai et Jeu | deux écrans | l'API connaît les deux étapes ; les écrans arrivent plus tard. D'ici là, un projet dont tous les objets sont décidés reste à « Essai » et ne peut pas devenir « Terminé » |
+| C.3 | Écran Objets | une carte par objet, case à cocher, « Régler… » (taille, finesse) | structure d'origine gardée (panneau « Ta demande » et liste avec voies), vocabulaire et aide nouveaux. Les cartes de la maquette sont à reprendre |
+| C.4 | Écrans Look et Fabrication | idem | structure d'origine gardée, vocabulaire et aide nouveaux |
+| C.5 | « Nouveau lot » | formulaire Créer | `/lots/nouveau` renvoie à Créer : un projet vide n'est plus créé tout seul |
+| C.6 | Notifications | — | « Revue prête » devient « À valider », « Références prêtes » devient « Looks prêts » |
+| C.7 | Page Générateurs | absente du menu | lien dans Réglages |
+
 ### Socle de la nouvelle interface (28 octobre) · choix provisoires
 
 Menu, en-tête, barre d'onglets du téléphone, thème et composants communs sont faits. Écarts avec la maquette,
