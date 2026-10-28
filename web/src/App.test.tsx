@@ -36,26 +36,24 @@ describe("Navigation", () => {
     const utilisateur = userEvent.setup();
     rendreApp("/");
     const menu = within(screen.getByRole("navigation", { name: "Menu principal" }));
-    for (const libelle of ["Accueil", "Lots", "Bibliothèque", "Générateurs", "Styles"]) {
+    for (const libelle of ["Créer", "Projets", "Bibliothèque", "Styles"]) {
       expect(menu.getByRole("link", { name: libelle })).toBeInTheDocument();
     }
+    expect(menu.getByRole("link", { name: "Créer" })).toHaveAttribute("href", "/lots/nouveau");
 
-    await utilisateur.click(menu.getByRole("link", { name: "Lots" }));
+    await utilisateur.click(menu.getByRole("link", { name: "Projets" }));
     expect(screen.getByRole("heading", { level: 1, name: "Lots" })).toBeInTheDocument();
     expect(await screen.findByText("Aucun lot pour l'instant")).toBeInTheDocument();
-    expect(menu.getByRole("link", { name: "Lots" })).toHaveAttribute("aria-current", "page");
+    expect(menu.getByRole("link", { name: "Projets" })).toHaveAttribute("aria-current", "page");
 
     await utilisateur.click(menu.getByRole("link", { name: "Bibliothèque" }));
     expect(screen.getByText("Arrive à l'étape 9 du plan")).toBeInTheDocument();
-
-    await utilisateur.click(menu.getByRole("link", { name: "Générateurs" }));
-    expect(screen.getByText("Arrive à l'étape 11 du plan")).toBeInTheDocument();
 
     await utilisateur.click(menu.getByRole("link", { name: "Styles" }));
     expect(screen.getByRole("heading", { level: 1, name: "Styles" })).toBeInTheDocument();
     expect(await screen.findByRole("button", { name: /Rome antique stylisée/ })).toBeInTheDocument();
 
-    await utilisateur.click(menu.getByRole("link", { name: "Accueil" }));
+    await utilisateur.click(screen.getByRole("link", { name: "Atelier 3D, accueil" }));
     expect(screen.getByText("Arrive à l'étape 11 du plan")).toBeInTheDocument();
 
     await utilisateur.click(screen.getByRole("link", { name: "Réglages" }));
@@ -73,7 +71,7 @@ describe("Navigation", () => {
     expect(screen.getByRole("heading", { level: 1, name: titre })).toBeInTheDocument();
     expect(screen.getByText(`Arrive à l'étape ${etape} du plan`)).toBeInTheDocument();
     // Attend la fin des chargements du menu et des notifications
-    expect(await screen.findByText("Aucune collection épinglée")).toBeInTheDocument();
+    await screen.findByText(/Renouvelés le 1er novembre/);
     await screen.findByRole("button", { name: "Notifications : 1 nouvelle" });
   });
 
@@ -91,7 +89,7 @@ describe("Navigation", () => {
     expect(screen.getByText(`Arrive à l'étape ${numero} du plan`)).toBeInTheDocument();
   });
 
-  it("le bouton Nouveau lot crée un lot et ouvre son Brief, pas la liste", async () => {
+  it("« Créer » crée un projet et ouvre son Brief, pas la liste", async () => {
     mockApi({
       ...API,
       "POST /api/lots": LOT_CREE,
@@ -100,8 +98,8 @@ describe("Navigation", () => {
     });
     const utilisateur = userEvent.setup();
     rendreApp("/styles");
-    await screen.findByText("Aucune collection épinglée");
-    await utilisateur.click(screen.getByRole("link", { name: "Nouveau lot" }));
+    await screen.findByText(/Renouvelés le 1er novembre/);
+    await utilisateur.click(within(screen.getByRole("navigation", { name: "Menu principal" })).getByRole("link", { name: "Créer" }));
     expect(await screen.findByRole("heading", { level: 2, name: "Brief" })).toBeInTheDocument();
     expect(screen.getByRole("link", { name: /Brief/ })).toHaveAttribute("aria-current", "step");
   });

@@ -77,6 +77,7 @@
   border: 1px solid var(--bordure);
   border-radius: var(--rayon-carte);
   overflow-x: auto;
+  position: relative; /* contient les textes cachés des cellules, sinon ils élargissent la page sur téléphone */
 }
 .lots__table {
   width: 100%;

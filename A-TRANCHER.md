@@ -28,6 +28,22 @@ Conséquences à traiter écran par écran (rien n'est encore changé dans les �
   les règles d'asset. Seul le contenu des écrans suit la nouvelle maquette ;
 - les écarts entre le cahier des charges et la nouvelle maquette seront notés ici au fur et à mesure.
 
+### Socle de la nouvelle interface (28 octobre) · choix provisoires
+
+Menu, en-tête, barre d'onglets du téléphone, thème et composants communs sont faits. Écarts avec la maquette,
+à confirmer avec Nohé :
+
+| N° | Sujet | Maquette | Choix provisoire dans le code |
+|---|---|---|---|
+| S.1 | Recherche globale | absente | gardée, derrière une loupe dans l'en-tête (on ne perd pas la fonction) |
+| S.2 | Collections épinglées | absentes du menu (elles sont des filtres de la Bibliothèque) | retirées du menu ; reviennent avec l'écran Bibliothèque (étape 9) |
+| S.3 | Entrée « Générateurs » | absente du menu | retirée ; la page reste à `/generateurs` (étape 11). À replacer, par exemple dans Réglages |
+| S.4 | « Créer » | l'écran d'accueil, avec le formulaire | ouvre `/lots/nouveau` en attendant l'écran Créer, qui prendra la racine `/` |
+| S.5 | Badges du menu | aucun | gardés sur Projets et Bibliothèque : ils comptent ce qui attend une action |
+| S.6 | Crédits | solde restant | solde restant affiché, détail (utilisés, renouvellement, « solde simulé ») au survol et pour les lecteurs d'écran |
+| S.7 | Six étapes | 6 étapes dans l'en-tête de projet | composant `Etapes` prêt et testé ; non branché : le contrat de l'API décrit 4 étapes, la partie serveur suit avec l'écran Projet (étape 2 de la reconstruction) |
+| S.8 | Liste des lots sur téléphone | cartes | le tableau défile dans son cadre en attendant la refonte de l'écran Projets |
+
 ## Étape 1 · Socle
 
 | # | Sujet | Ce que disent les sources | Choix provisoire dans le code | Question |

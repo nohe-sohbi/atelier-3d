@@ -1,0 +1,94 @@
+.etapes {
+  display: flex;
+  gap: 6px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.etapes__etape {
+  flex: 1 1 0;
+  min-width: 0;
+  border-radius: 14px;
+  background: var(--neutre);
+  color: var(--texte-secondaire);
+  font-size: 14px;
+  font-weight: 500;
+}
+.etapes__contenu {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-height: var(--cible);
+  padding: 8px 14px;
+  color: inherit;
+  text-decoration: none;
+}
+.etapes__rond {
+  flex: none;
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  background: var(--blanc);
+  font-size: 13px;
+  font-weight: 700;
+}
+.etapes__detail {
+  margin-left: auto;
+  font-size: 12px;
+  white-space: nowrap;
+}
+.etapes__etape--faite {
+  background: var(--succes-fond);
+  color: var(--succes);
+}
+.etapes__etape--faite .etapes__rond {
+  background: var(--succes);
+  color: var(--blanc);
+}
+.etapes__etape--courante {
+  background: var(--blanc);
+  color: var(--texte);
+  box-shadow: 0 1px 2px var(--liseret), 0 4px 14px var(--liseret);
+  outline: 2px solid var(--accent);
+}
+.etapes__etape--courante .etapes__rond {
+  background: var(--accent);
+  color: var(--blanc);
+}
+
+/* Téléphone : les étapes passées et à venir se réduisent à leur rond, l'étape en cours garde son nom. */
+@media (max-width: 720px) {
+  .etapes {
+    gap: 4px;
+  }
+  .etapes__etape:not(.etapes__etape--courante) {
+    flex: 1 1 0;
+  }
+  .etapes__etape--courante {
+    flex: 3 1 0;
+  }
+  .etapes__etape:not(.etapes__etape--courante) .etapes__contenu {
+    justify-content: center;
+    padding: 8px 0;
+  }
+  .etapes__etape:not(.etapes__etape--courante) .etapes__libelle,
+  .etapes__etape:not(.etapes__etape--courante) .etapes__detail {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip: rect(0 0 0 0);
+    white-space: nowrap;
+  }
+  .etapes__etape--courante .etapes__contenu {
+    flex-direction: column;
+    gap: 4px;
+    padding: 8px 4px;
+    text-align: center;
+  }
+  .etapes__etape--courante .etapes__detail {
+    margin-left: 0;
+  }
+}

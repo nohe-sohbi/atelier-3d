@@ -3,7 +3,7 @@ import { Link, useNavigate } from "react-router-dom";
 import { api, messageErreur } from "../api/client";
 import { surChangementEtPeriodique } from "../api/rafraichissement";
 import type { Notification, Notifications, Recherche, ResultatRecherche } from "../api/types";
-import "./TopBar.css";
+import "./RechercheEtNotifications.css";
 
 const DELAI_RECHERCHE_MS = 200;
 
@@ -22,7 +22,7 @@ function formatDate(iso: string): string {
 
 /* ---------- Recherche globale ---------- */
 
-function RechercheGlobale() {
+export function RechercheGlobale() {
   const [q, setQ] = useState("");
   const [resultats, setResultats] = useState<ResultatRecherche[] | null>(null);
   const [ouverte, setOuverte] = useState(false);
@@ -112,7 +112,7 @@ function RechercheGlobale() {
         id="global-search"
         type="search"
         className="recherche__champ"
-        placeholder="Rechercher un asset, un lot, une étiquette…"
+        placeholder="Rechercher un objet, un projet, une étiquette…"
         autoComplete="off"
         role="combobox"
         aria-expanded={ouverte}
@@ -153,7 +153,7 @@ function RechercheGlobale() {
 
 /* ---------- Notifications ---------- */
 
-function Notifications() {
+export function Notifications() {
   const [liste, setListe] = useState<Notification[]>([]);
   const [nonLues, setNonLues] = useState(0);
   const [erreur, setErreur] = useState<string | null>(null);
@@ -282,16 +282,5 @@ function Notifications() {
         </div>
       ) : null}
     </div>
-  );
-}
-
-export function TopBar() {
-  return (
-    <header className="topbar">
-      <div className="topbar__ligne">
-        <RechercheGlobale />
-        <Notifications />
-      </div>
-    </header>
   );
 }

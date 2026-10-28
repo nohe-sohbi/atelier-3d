@@ -2,12 +2,6 @@ import { spawnSync } from "node:child_process";
 import { expect, test } from "./garde-fous";
 import { RACINE } from "./serveur";
 
-const ENTREES: Array<[string, string, number]> = [
-  ["Bibliothèque", "Bibliothèque", 9],
-  ["Générateurs", "Générateurs", 11],
-  ["Accueil", "Accueil", 11],
-];
-
 test.describe("Étape 1 · Socle", () => {
   test("l'API répond sur /sante et /api/sante, et une route inconnue répond en JSON", async ({ request }) => {
     for (const chemin of ["/sante", "/api/sante"]) {
@@ -20,23 +14,45 @@ test.describe("Étape 1 · Socle", () => {
     expect(await inconnue.json()).toEqual({ erreur: "Not Found", detail: null });
   });
 
-  test("chaque entrée du menu ouvre sa page « Arrive à l'étape N du plan »", async ({ page }) => {
+  test("chaque entrée du menu ouvre sa page, l'entrée en cours est marquée, et le logo ramène à l'accueil", async ({ page }) => {
     await page.goto("/");
     const menu = page.getByRole("navigation", { name: "Menu principal" });
-    for (const [libelle, titre, etape] of ENTREES) {
-      await menu.getByRole("link", { name: libelle }).click();
-      await expect(page.getByRole("heading", { level: 1, name: titre })).toBeVisible();
-      await expect(page.getByText(`Arrive à l'étape ${etape} du plan`)).toBeVisible();
-      await expect(menu.getByRole("link", { name: libelle })).toHaveAttribute("aria-current", "page");
-    }
-    // Lots est construit (étape 3) : la page s'ouvre sur ses filtres.
-    await menu.getByRole("link", { name: "Lots" }).click();
+    for (const libelle of ["Créer", "Projets", "Bibliothèque", "Styles"]) await expect(menu.getByRole("link", { name: libelle })).toBeVisible();
+
+    await menu.getByRole("link", { name: "Bibliothèque" }).click();
+    await expect(page.getByRole("heading", { level: 1, name: "Bibliothèque" })).toBeVisible();
+    await expect(page.getByText("Arrive à l'étape 9 du plan")).toBeVisible();
+    await expect(menu.getByRole("link", { name: "Bibliothèque" })).toHaveAttribute("aria-current", "page");
+
+    await menu.getByRole("link", { name: "Styles" }).click();
+    await expect(page.getByRole("heading", { level: 1, name: "Styles" })).toBeVisible();
+    await expect(menu.getByRole("link", { name: "Styles" })).toHaveAttribute("aria-current", "page");
+
+    // Les générateurs n'ont plus d'entrée dans le menu (maquette) : la page existe toujours à son adresse.
+    await page.goto("/generateurs");
+    await expect(page.getByRole("heading", { level: 1, name: "Générateurs" })).toBeVisible();
+    await expect(page.getByText("Arrive à l'étape 11 du plan")).toBeVisible();
+
+    await page.getByRole("link", { name: "Atelier 3D, accueil" }).click();
+    await expect(page.getByRole("heading", { level: 1, name: "Accueil" })).toBeVisible();
+
+    // Projets est construit (étape 3) : la page s'ouvre sur ses filtres.
+    await menu.getByRole("link", { name: "Projets" }).click();
     await expect(page.getByRole("heading", { level: 1, name: "Lots" })).toBeVisible();
     await expect(page.getByRole("group", { name: "Filtrer les lots" })).toBeVisible();
-    await expect(menu.getByRole("link", { name: "Lots" })).toHaveAttribute("aria-current", "page");
-    // La jauge vient du simulateur et le dit ; aucune collection n'est inventée.
-    await expect(page.getByText("· simulé")).toBeVisible();
-    await expect(page.getByText("Aucune collection épinglée")).toBeVisible();
+    await expect(menu.getByRole("link", { name: "Projets" })).toHaveAttribute("aria-current", "page");
+    // Les crédits viennent du simulateur et le disent.
+    await expect(page.locator(".entete__credits")).toHaveAttribute("title", /solde simulé/);
+  });
+
+  test("le thème sombre se choisit, et il est gardé au rechargement", async ({ page }) => {
+    await page.goto("/");
+    await page.getByRole("button", { name: "Activer le mode sombre" }).click();
+    await expect(page.locator("html")).toHaveAttribute("data-theme", "sombre");
+    await page.reload();
+    await expect(page.locator("html")).toHaveAttribute("data-theme", "sombre");
+    await page.getByRole("button", { name: "Activer le mode clair" }).click();
+    await expect(page.locator("html")).toHaveAttribute("data-theme", "clair");
   });
 
   test("la cloche s'ouvre sur ce que l'API contient (« Aucune notification » quand il n'y en a pas)", async ({ page, request }) => {

@@ -1,14 +1,8 @@
 .layout {
   min-height: 100vh;
   display: flex;
-  align-items: stretch;
-  background: var(--fond);
-}
-.layout__corps {
-  flex: 1 1 auto;
-  min-width: 0;
-  display: flex;
   flex-direction: column;
+  background: var(--fond);
 }
 .layout__contenu {
   width: 100%;
@@ -18,4 +12,16 @@
   display: flex;
   flex-direction: column;
   gap: 24px;
+  flex: 1 1 auto;
+}
+/* Un écran plus large que le téléphone défile dans son propre cadre, il n'élargit pas la page. */
+.layout__contenu > * {
+  min-width: 0;
+}
+
+/* Téléphone et tablette : de la place sous le contenu pour la barre d'onglets du bas */
+@media (max-width: 1000px) {
+  .layout__contenu {
+    padding: 20px 16px calc(96px + env(safe-area-inset-bottom));
+  }
 }

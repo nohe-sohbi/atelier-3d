@@ -202,7 +202,7 @@ describe("Menu", () => {
     vi.useFakeTimers({ shouldAdvanceTime: true });
     const { appels } = mockApi({ ...BASE, [`GET /api/lots/${LID}/generation`]: GENERATION });
     rendreApp(`/lots/${LID}/generation`);
-    await screen.findByText("Aucune collection épinglée");
+    await screen.findByText(/Renouvelés le 1er novembre/);
     const lectures = () => appels.filter((a) => a.chemin === "/api/menu").length;
     const avant = lectures();
     await vi.advanceTimersByTimeAsync(15_000);
