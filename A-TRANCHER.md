@@ -9,6 +9,25 @@ par Claude Code (CLAUDE.md).
 Ordre de foi (docs/cahier-des-charges/README.md) : plan > fonctionnalités > cahier des charges >
 audit > maquette.
 
+## Décision du 28 octobre 2026 · Nouvelle maquette
+
+**Tranché par Nohé** : la maquette v4 (`docs/maquette/`, validée le 28 octobre) remplace la maquette des 11 écrans
+d'origine comme modèle des écrans. L'ancienne reste dans l'historique git (commit `89ac432` et précédents).
+
+Conséquences, déjà appliquées :
+- `docs/maquette/` contient la nouvelle maquette et un README aux règles mises à jour ;
+- `tokens.css` reprend la palette de la nouvelle maquette (thème clair par défaut, sombre en option) ;
+- la police est Inter, servie en local, à la place d'IBM Plex ;
+- le test des couleurs vérifie la nouvelle maquette.
+
+Conséquences à traiter écran par écran (rien n'est encore changé dans les écrans) :
+- le parcours passe de 4 à 6 étapes (Objets, Look, Fabrication, Validation, **Essai**, **Jeu**) ;
+- le vocabulaire change : Lot devient Projet, Brief devient Créer puis Objets, Références devient Look,
+  Génération devient Fabrication, Revue devient Validation ;
+- l'ordre de foi des documents n'est pas modifié : le cahier des charges reste la référence pour les données et
+  les règles d'asset. Seul le contenu des écrans suit la nouvelle maquette ;
+- les écarts entre le cahier des charges et la nouvelle maquette seront notés ici au fur et à mesure.
+
 ## Étape 1 · Socle
 
 | # | Sujet | Ce que disent les sources | Choix provisoire dans le code | Question |

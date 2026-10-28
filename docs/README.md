@@ -7,10 +7,10 @@ Point d'entrée pour comprendre le projet, que tu sois Claude Code ou une nouvel
 | Quoi | Source (là où on le modifie) | Copie dans ce dépôt |
 |---|---|---|
 | Cahier des charges : vision, fonctionnalités, plan, glossaire | [Document sur claude.ai](https://claude.ai/code/artifact/07ca744c-f2f7-4b87-82e7-d15446354a0f) | [cahier-des-charges/](cahier-des-charges/README.md) |
-| Maquette cliquable : 11 écrans, 5 fenêtres, 2 composants | [Canvas sur claude.ai](https://claude.ai/artifact/6VaneF7fyVErVuSLVnWthu) | [maquette/](maquette/README.md) |
+| Maquette cliquable (v4, responsive, 6 étapes) | ce dépôt | [maquette/](maquette/README.md) |
 | Code de l'app | ce dépôt | — |
 
-Les deux liens claude.ai sont privés : seul Nohé peut les ouvrir, avec ses sessions Claude.
+Le lien claude.ai du cahier des charges est privé : seul Nohé peut l'ouvrir, avec ses sessions Claude. La maquette n'a plus de canvas : elle vit dans ce dépôt.
 
 ## Où en est le projet
 

@@ -1,46 +1,72 @@
 /* Couleurs et polices de la maquette (docs/maquette/README.md). Jamais de couleur en dur ailleurs. */
 :root {
-  --accent: #2b50c8;
-  --accent-sombre: #1e3a96;
-  --accent-clair: #e8edfb;
-  --texte: #1d1c1a;
-  --texte-secondaire: #5e5b55;
-  --bordure: #e3e1dc;
-  --bordure-forte: #cfccc5;
-  --fond: #f5f4f1;
+  --accent: #3555d6;
+  --accent-sombre: color-mix(in srgb, var(--accent) 82%, black);
+  --accent-clair: #eef1fd;
+  --accent-trait: #d3dbf8;
+  --texte: #1b1a18;
+  --texte-secondaire: #6b6862;
+  --texte-fort: var(--texte);
+  --bordure: #e8e5df;
+  --bordure-forte: #d6d2ca;
+  --fond: #f6f5f2;
   --blanc: #ffffff;
-  --neutre: #f0eeea;
-  --separateur: #eceae5;
-  --succes: #1f6b45;
-  --succes-fond: #e3f2ea;
-  --alerte: #8a4b00;
-  --alerte-fond: #fbf7ef;
+  --neutre: #edebe6;
+  --separateur: var(--bordure);
+  --succes: #1e7a4c;
+  --succes-fond: #e6f4ec;
+  --alerte: #9a5b00;
+  --alerte-fond: #fdf3e3;
   --erreur: #b42318;
   --erreur-fond: #fdecea;
-  --texte-fort: #3f3d38;
-  --point-vide: #bdb9b1;
+  --point-vide: #9a968e;
 
-  /* Pastilles de voie (Brief) et tons d'avancement (Lots, en-tête de lot) */
-  --voie-code: #2f3a55;
-  --voie-code-fond: #eaedf3;
-  --voie-mixte: #5b3fa6;
-  --voie-mixte-fond: #f1ecfa;
-  --voie-reutilise: #1d5c5c;
-  --voie-reutilise-fond: #e2efef;
-  --a-faire-fond: #fbeedc;
+  /* Pastilles de voie (Brief) et tons d'avancement (Lots, en-tête de lot) : la palette de la maquette, sans teinte en plus */
+  --voie-code: var(--accent);
+  --voie-code-fond: var(--accent-clair);
+  --voie-mixte: var(--alerte);
+  --voie-mixte-fond: var(--alerte-fond);
+  --voie-reutilise: var(--succes);
+  --voie-reutilise-fond: var(--succes-fond);
+  --a-faire-fond: var(--alerte-fond);
 
-  /* Ombres et voiles (la maquette : rgba(29,28,26,0.12) pour le panneau, rgba(0,0,0,0.08) pour les liserés) */
-  --ombre: rgba(29, 28, 26, 0.12);
-  --ombre-fenetre: rgba(29, 28, 26, 0.18);
-  --voile: rgba(29, 28, 26, 0.4);
+  /* Ombres et voiles */
+  --ombre: rgba(27, 26, 24, 0.12);
+  --ombre-fenetre: rgba(27, 26, 24, 0.18);
+  --voile: rgba(27, 26, 24, 0.4);
   --liseret: rgba(0, 0, 0, 0.08);
-  --voile-clair: rgba(255, 255, 255, 0.86); /* légende posée sur une image */
+  --voile-clair: rgba(255, 255, 255, 0.9); /* légende posée sur une image */
 
-  --police: "IBM Plex Sans", system-ui, sans-serif;
-  --police-mono: "IBM Plex Mono", ui-monospace, monospace;
+  --police: "Inter", system-ui, sans-serif;
+  --police-mono: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
 
-  --rayon: 8px;
-  --rayon-carte: 12px;
+  --rayon: 12px;
+  --rayon-carte: 16px;
   --cible: 44px;
   --sidebar-largeur: 240px;
+}
+
+/* Thème sombre : proposé en option, le clair reste le thème par défaut. */
+[data-theme="sombre"] {
+  color-scheme: dark;
+  --fond: #0e1014;
+  --blanc: #161920;
+  --neutre: #242933;
+  --texte: #eceae6;
+  --texte-secondaire: #a6a39d;
+  --point-vide: #7e7b75;
+  --bordure: #272c35;
+  --bordure-forte: #363c47;
+  --accent: #7d95ff;
+  --accent-clair: rgba(125, 149, 255, 0.14);
+  --accent-trait: rgba(125, 149, 255, 0.35);
+  --succes: #5bd38c;
+  --succes-fond: rgba(91, 211, 140, 0.12);
+  --alerte: #f5b942;
+  --alerte-fond: rgba(245, 185, 66, 0.12);
+  --erreur: #f27b70;
+  --erreur-fond: rgba(242, 123, 112, 0.12);
+  --ombre: rgba(0, 0, 0, 0.35);
+  --ombre-fenetre: rgba(0, 0, 0, 0.5);
+  --voile-clair: rgba(22, 25, 32, 0.88);
 }

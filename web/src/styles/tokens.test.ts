@@ -15,7 +15,7 @@ function fichiersCss(dossier: string): string[] {
 
 describe("couleurs de l'interface", () => {
   const maquette = readdirSync(MAQUETTE)
-    .filter((f) => f.endsWith(".dc.html") || f.endsWith(".md"))
+    .filter((f) => f.endsWith(".html") || f.endsWith(".md"))
     .map((f) => readFileSync(join(MAQUETTE, f), "utf8").toLowerCase())
     .join("\n");
 
@@ -38,7 +38,7 @@ describe("couleurs de l'interface", () => {
 });
 
 describe("index.html", () => {
-  it("ne charge rien depuis Google Fonts : IBM Plex est servie en local", () => {
+  it("ne charge rien depuis Google Fonts : Inter est servie en local", () => {
     const html = readFileSync(join(RACINE, "web", "index.html"), "utf8");
     expect(html).not.toMatch(/googleapis|gstatic/);
   });
