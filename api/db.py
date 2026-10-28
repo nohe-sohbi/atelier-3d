@@ -7,6 +7,7 @@
 """
 from __future__ import annotations
 
+import logging
 import re
 import sqlite3
 import threading
@@ -21,6 +22,10 @@ from api import chemins
 DOSSIER_MIGRATIONS = Path(__file__).resolve().parent / "migrations"
 _NOM_MIGRATION = re.compile(r"^(\d{3})_([a-z0-9_]+)\.sql$")
 _verrou_migrations = threading.Lock()
+log = logging.getLogger("api.db")
+
+#: Copies gardées par motif : les plus anciennes sont supprimées.
+SAUVEGARDES_GARDEES = {"avant-migration": 10, "quotidienne": 14}
 
 
 def maintenant() -> str:
@@ -89,6 +94,44 @@ def lister_migrations() -> list[tuple[int, str, Path]]:
     return out
 
 
+def dossier_sauvegardes(conn: sqlite3.Connection) -> Path | None:
+    """Le dossier `sauvegardes/` à côté de la base ; None pour une base en mémoire."""
+    fichier = next((r["file"] for r in conn.execute("PRAGMA database_list").fetchall() if r["name"] == "main"), "")
+    return Path(fichier).parent / "sauvegardes" if fichier else None
+
+
+def sauvegarder_base(conn: sqlite3.Connection, motif: str) -> Path | None:
+    """Copie cohérente de la base (API de sauvegarde de SQLite, sûre même en cours d'écriture) dans `sauvegardes/`.
+
+    Le nom dit le motif et la date : `atelier-<motif>-<AAAAMMJJ-HHMMSS>.db`. Seules les copies les plus récentes de
+    chaque motif sont gardées. Renvoie None pour une base en mémoire.
+    """
+    dossier = dossier_sauvegardes(conn)
+    if dossier is None:
+        return None
+    dossier.mkdir(parents=True, exist_ok=True)
+    cible = dossier / f"atelier-{motif}-{datetime.now(UTC).strftime('%Y%m%d-%H%M%S')}.db"
+    copie = sqlite3.connect(str(cible))
+    try:
+        conn.backup(copie)
+    finally:
+        copie.close()
+    gardees = SAUVEGARDES_GARDEES.get(motif.split("-v", 1)[0], 10)
+    for ancienne in sorted(dossier.glob(f"atelier-{motif.split('-v', 1)[0]}*-*.db"))[:-gardees]:
+        ancienne.unlink(missing_ok=True)
+    log.info("sauvegarde de la base : %s", cible.name)
+    return cible
+
+
+def sauvegarde_quotidienne(conn: sqlite3.Connection, heures: float = 20.0) -> Path | None:
+    """Une sauvegarde `quotidienne` si la dernière a plus de `heures` (le worker l'appelle à chaque lancement et chaque jour)."""
+    dossier = dossier_sauvegardes(conn)
+    if dossier is None:
+        return None
+    recentes = [f for f in dossier.glob("atelier-quotidienne-*.db") if time.time() - f.stat().st_mtime < heures * 3600]
+    return None if recentes else sauvegarder_base(conn, "quotidienne")
+
+
 class FTS5Absent(RuntimeError):
     """Le SQLite de cette machine n'a pas FTS5 : la recherche globale ne peut pas être créée."""
 
@@ -115,6 +158,16 @@ def appliquer_migrations(conn: sqlite3.Connection) -> list[int]:
             " version INTEGER PRIMARY KEY, nom TEXT NOT NULL, applique_le TEXT NOT NULL)"
         )
         appliquees = []
+        deja = {r["version"] for r in conn.execute("SELECT version FROM migrations").fetchall()}
+        en_attente = [v for v, _, _ in lister_migrations() if v not in deja]
+        # Une base qui a déjà vécu est copiée avant d'être changée : une migration ratée ne coûte jamais les données.
+        if en_attente and deja:
+            try:
+                sauvegarder_base(conn, "avant-migration-v" + "-".join(str(v) for v in en_attente))
+            except sqlite3.OperationalError:
+                # Un autre processus migre la même base en ce moment (premier lancement de l'API et du worker) :
+                # c'est lui qui la copie ; on n'attend pas son verrou pour rien.
+                log.warning("sauvegarde avant migration ignorée : la base est occupée par une autre migration")
         for version, nom, fichier in lister_migrations():
             conn.execute("BEGIN IMMEDIATE")
             try:

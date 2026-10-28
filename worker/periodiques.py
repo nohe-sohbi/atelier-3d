@@ -2,6 +2,7 @@
 
 - scanner_generateurs (30 s) : un generators/<type>.py demandé à Claude Code est apparu ? Les objets
   « à créer » passent en voie code et un événement le dit.
+- sauvegarde_quotidienne (1 h) : copie de la base dans sauvegardes/ si la dernière a plus de 20 h.
 """
 from __future__ import annotations
 
@@ -17,8 +18,14 @@ def scanner_generateurs(conn) -> list[str]:
     return demandes.scanner(conn)
 
 
+def sauvegarde_quotidienne(conn) -> None:
+    from api import db
+    db.sauvegarde_quotidienne(conn)
+
+
 PERIODIQUES: dict[str, tuple[float, Callable]] = {
     "scanner_generateurs": (30.0, scanner_generateurs),
+    "sauvegarde_quotidienne": (3600.0, sauvegarde_quotidienne),
 }
 
 

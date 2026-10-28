@@ -4,6 +4,7 @@ config.local.yaml
 # Base locale
 atelier.db
 atelier.db-*
+sauvegardes/
 
 # Python
 __pycache__/
