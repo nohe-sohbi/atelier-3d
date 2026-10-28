@@ -1,0 +1,1860 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Atelier 3D · proposition de parcours (v3)</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<script type="importmap">{"imports":{"three":"https://unpkg.com/three@0.170.0/build/three.module.js","three/addons/":"https://unpkg.com/three@0.170.0/examples/jsm/"}}</script>
+<style>
+:root{
+  --fond:#F6F5F2; --surface:#FFFFFF; --texte:#1B1A18; --doux:#6B6862; --pale:#9A968E; --trait:#E8E5DF; --trait-fort:#D6D2CA;
+  --accent:#3555D6; --accent-fond:#EEF1FD; --accent-trait:#D3DBF8; --vert:#1E7A4C; --vert-fond:#E6F4EC; --ambre:#9A5B00; --ambre-fond:#FDF3E3;
+  --rouge:#B42318; --rouge-fond:#FDECEA; --rayon:16px; --ombre:0 1px 2px rgba(20,20,10,.04), 0 6px 24px rgba(20,20,10,.05);
+  --surface-2:#F6F5F2; --surface-3:#EDEBE6; --saisie:#FFFFFF; --voile-clair:rgba(255,255,255,.9); --haut:rgba(246,245,242,.92);
+  --scene3d:radial-gradient(circle at 50% 35%,#FFFFFF,#E7E4DD);
+}
+[data-theme="sombre"]{
+  --fond:#0E1014; --surface:#161920; --surface-2:#1C2028; --surface-3:#242933; --texte:#ECEAE6; --doux:#A6A39D; --pale:#7E7B75;
+  --trait:#272C35; --trait-fort:#363C47; --accent:#7D95FF; --accent-fond:rgba(125,149,255,.14); --accent-trait:rgba(125,149,255,.35);
+  --vert:#5BD38C; --vert-fond:rgba(91,211,140,.12); --ambre:#F5B942; --ambre-fond:rgba(245,185,66,.12); --rouge:#F27B70; --rouge-fond:rgba(242,123,112,.12);
+  --ombre:0 1px 2px rgba(0,0,0,.35), 0 10px 28px rgba(0,0,0,.35); --saisie:#11141A; --voile-clair:rgba(22,25,32,.88); --haut:rgba(14,16,20,.9);
+  --scene3d:radial-gradient(circle at 50% 35%,#2B303A,#111318);
+}
+[data-theme="sombre"]{color-scheme:dark}
+[data-theme="sombre"] .btn.primaire{color:#0E1014}
+[data-theme="sombre"] .etapes li span{background:var(--surface-3)}
+[data-theme="sombre"] .maquette{background:#000}
+.teinte{background:var(--teinte)}
+[data-theme="sombre"] .teinte{background:color-mix(in srgb,var(--teinte) 13%,#1D2129)}
+*{box-sizing:border-box}
+html,body{margin:0}
+body{font-family:Inter,system-ui,sans-serif;background:var(--fond);color:var(--texte);font-size:15px;line-height:1.5;-webkit-font-smoothing:antialiased}
+a{color:inherit;text-decoration:none}
+button,input,select,textarea{font:inherit;color:inherit}
+button{cursor:pointer}
+img{display:block;max-width:100%}
+.maquette{background:#1B1A18;color:#fff;font-size:12.5px;text-align:center;padding:6px 12px}
+.maquette b{color:#FFD58A;font-weight:600}
+
+/* barre du haut */
+.haut{position:sticky;top:0;z-index:30;background:var(--haut);backdrop-filter:blur(10px);border-bottom:1px solid var(--trait)}
+.haut-in{max-width:1320px;margin:0 auto;display:flex;align-items:center;gap:28px;padding:12px 28px}
+.logo{display:flex;align-items:center;gap:10px;font-weight:700;font-size:16px}
+.logo span{width:30px;height:30px;border-radius:9px;background:var(--texte);display:grid;place-items:center}
+.nav{display:flex;gap:4px}
+.nav a{padding:8px 14px;border-radius:999px;color:var(--doux);font-weight:500}
+.nav a:hover{color:var(--texte);background:var(--surface-3)}
+.nav a.actif{color:var(--texte);background:var(--surface);box-shadow:var(--ombre)}
+.outils{margin-left:auto;display:flex;align-items:center;gap:10px;position:relative}
+.pilule{display:flex;align-items:center;gap:8px;padding:7px 12px;border-radius:999px;background:var(--surface);border:1px solid var(--trait);font-size:13px;color:var(--doux)}
+.pilule b{color:var(--texte)}
+.pilule .mini{width:60px;height:5px;border-radius:9px;background:var(--surface-3);overflow:hidden}
+.pilule .mini i{display:block;height:100%;width:31%;background:var(--accent)}
+.icone{width:38px;height:38px;border-radius:999px;border:1px solid var(--trait);background:var(--surface);display:grid;place-items:center;position:relative;color:var(--doux)}
+.icone:hover{color:var(--texte)}
+.icone .point{position:absolute;top:8px;right:9px;width:8px;height:8px;border-radius:50%;background:#D9402B;border:2px solid #fff}
+.cloche{display:none;position:absolute;right:48px;top:48px;width:360px;padding:8px}
+.cloche.ouverte{display:block}
+.cloche a{display:flex;gap:12px;padding:10px;border-radius:12px;align-items:center}
+.cloche a:hover{background:var(--surface-3)}
+.cloche img{width:44px;height:44px;border-radius:10px;background:var(--surface-3);object-fit:contain;padding:3px}
+.cloche b{display:block;font-size:14px}
+.cloche small{color:var(--doux)}
+
+main{max-width:1320px;margin:0 auto;padding:34px 28px 130px}
+.ecran{display:none}
+.ecran.actif{display:block;animation:entree .25s ease}
+@keyframes entree{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+h1{font-size:32px;line-height:1.15;letter-spacing:-.02em;margin:0 0 8px}
+h2{font-size:19px;letter-spacing:-.01em;margin:0}
+h3{margin:0}
+.sous{color:var(--doux);font-size:15.5px;margin:0}
+.petit{font-size:13px;color:var(--doux)}
+.carte{background:var(--surface);border:1px solid var(--trait);border-radius:var(--rayon);box-shadow:var(--ombre)}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;border:0;border-radius:12px;padding:12px 18px;font-weight:600;font-size:14.5px;white-space:nowrap}
+.btn.primaire{background:var(--accent);color:#fff;box-shadow:0 6px 18px rgba(53,85,214,.25)}
+.btn.primaire:hover{background:color-mix(in srgb,var(--accent) 82%,#000)}
+.btn.secondaire{background:var(--surface);border:1px solid var(--trait-fort)}
+.btn.secondaire:hover{background:var(--surface-3)}
+.btn.discret{background:transparent;color:var(--doux);padding:9px 12px}
+.btn.discret:hover{color:var(--texte);background:var(--surface-3)}
+.btn.danger{background:var(--surface);border:1px solid color-mix(in srgb,var(--rouge) 35%,transparent);color:var(--rouge)}
+.btn.mini{padding:7px 11px;font-size:13px;border-radius:10px}
+.lien{color:var(--accent);font-weight:500;background:none;border:0;padding:0}
+.etiquette{display:inline-flex;align-items:center;gap:6px;padding:3px 10px;border-radius:999px;font-size:12.5px;font-weight:600;white-space:nowrap}
+.etiquette.gratuit{background:var(--vert-fond);color:var(--vert)}
+.etiquette.ia{background:var(--accent-fond);color:var(--accent)}
+.etiquette.attente{background:var(--ambre-fond);color:var(--ambre)}
+.etiquette.gris{background:var(--surface-3);color:var(--doux)}
+.etiquette.rouge{background:var(--rouge-fond);color:var(--rouge)}
+.points{display:flex;gap:4px}
+.points i{width:12px;height:12px;border-radius:50%;box-shadow:inset 0 0 0 1px rgba(0,0,0,.08)}
+.segment{display:inline-flex;padding:4px;background:var(--surface-3);border-radius:12px;gap:2px}
+.segment button{border:0;background:none;padding:8px 14px;border-radius:9px;font-weight:500;color:var(--doux);font-size:14px}
+.segment button.actif{background:var(--surface);color:var(--texte);box-shadow:0 1px 3px rgba(0,0,0,.08)}
+.champ{display:grid;gap:7px}
+.champ label,.champ .titre{font-weight:600;font-size:13.5px}
+.champ .aide{color:var(--doux);font-size:12.5px}
+input.saisie,select.saisie,textarea.saisie{border:1px solid var(--trait-fort);border-radius:10px;padding:10px 12px;background:var(--saisie);width:100%}
+textarea.saisie{resize:vertical;min-height:80px}
+.bascule{display:flex;align-items:center;gap:10px;font-size:14px}
+.bascule i{width:38px;height:22px;border-radius:99px;background:var(--accent);position:relative;flex:none}
+.bascule i::after{content:"";position:absolute;right:3px;top:3px;width:16px;height:16px;border-radius:50%;background:var(--surface)}
+.bascule i.off{background:var(--surface-3)}
+.bascule i.off::after{right:auto;left:3px}
+.onglets{display:flex;gap:4px;border-bottom:1px solid var(--trait);margin-bottom:16px}
+.onglets button{border:0;background:none;padding:10px 14px;font-weight:500;color:var(--doux);border-bottom:2px solid transparent;margin-bottom:-1px}
+.onglets button.actif{color:var(--texte);border-color:var(--texte)}
+.panneau-onglet{display:none}
+.panneau-onglet.actif{display:block}
+
+/* ---------- créer ---------- */
+.creer{display:grid;grid-template-columns:1fr 330px;gap:22px;align-items:start}
+.heros{padding:30px;display:grid;gap:22px}
+.heros textarea{width:100%;min-height:92px;resize:vertical;border:1px solid var(--trait-fort);border-radius:14px;padding:16px 18px;font-size:17px;background:var(--surface-3)}
+.ligne-titre{display:flex;align-items:center;gap:8px;margin:0 0 10px;font-weight:600;font-size:14px}
+.ligne-titre small{color:var(--doux);font-weight:400}
+.ligne-titre .lien{margin-left:auto;font-size:13.5px}
+.depot{display:flex;gap:12px;align-items:center;flex-wrap:wrap}
+.depot .vignette{width:80px;height:80px;border-radius:12px;background:var(--surface-3) center/80% no-repeat;border:1px solid var(--trait);position:relative}
+.depot .vignette small{position:absolute;bottom:-18px;left:0;right:0;text-align:center;font-size:11px;color:var(--doux)}
+.depot .ajout{width:80px;height:80px;border-radius:12px;border:1.5px dashed var(--trait-fort);display:grid;place-items:center;color:var(--doux);font-size:12px;text-align:center;background:none}
+.styles-mini{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:10px}
+.style-mini{border:2px solid transparent;border-radius:14px;background:var(--surface);padding:0;text-align:left;overflow:hidden;box-shadow:0 0 0 1px var(--trait);display:flex;flex-direction:column;justify-content:flex-start}
+.style-mini .scene{height:84px;display:flex;align-items:flex-end;justify-content:center;gap:2px;padding:6px 4px 0}
+.style-mini .scene img{height:74px}
+.style-mini .nom{padding:8px 10px 10px;font-weight:600;font-size:13px}
+.style-mini.choisi{border-color:var(--accent);box-shadow:0 0 0 4px var(--accent-fond)}
+.genre-projet{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+.genre-projet button{border:1.5px solid var(--trait);background:var(--surface);border-radius:14px;padding:14px;text-align:left;display:grid;gap:4px}
+.genre-projet button b{font-size:14.5px}
+.genre-projet button small{color:var(--doux);font-size:12.5px;line-height:1.35}
+.genre-projet button.actif{border-color:var(--accent);background:var(--accent-fond)}
+.options{border-top:1px solid var(--trait);padding-top:18px;display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:18px}
+.stepper{display:inline-flex;align-items:center;border:1px solid var(--trait-fort);border-radius:10px;overflow:hidden;background:var(--surface)}
+.stepper button{border:0;background:none;width:34px;height:38px;font-size:17px;color:var(--doux)}
+.stepper span{min-width:34px;text-align:center;font-weight:600}
+.action-principale{display:flex;align-items:center;gap:16px;flex-wrap:wrap}
+.action-principale span{color:var(--doux);font-size:13.5px}
+.cote{display:grid;gap:16px}
+.chiffres{padding:20px;display:grid;gap:14px}
+.chiffres .ligne{display:flex;justify-content:space-between;align-items:baseline}
+.chiffres .ligne b{font-size:20px}
+.jauge{height:7px;border-radius:999px;background:var(--surface-3);overflow:hidden}
+.jauge div{height:100%;border-radius:999px;background:var(--accent);transition:width .6s ease}
+.activite{padding:18px 20px}
+.activite ul{list-style:none;margin:10px 0 0;padding:0;display:grid;gap:12px}
+.activite li{display:flex;gap:10px;font-size:13.5px}
+.activite li i{width:8px;height:8px;border-radius:50%;margin-top:7px;flex:none}
+.section{margin-top:40px}
+.a-faire{margin:0 0 26px}
+.section-tete{display:flex;align-items:baseline;justify-content:space-between;margin-bottom:14px}
+.projets{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}
+.projet{padding:16px;display:flex;gap:14px;align-items:center}
+.projet:hover,.objet:hover,.style-carte:hover{box-shadow:0 1px 2px rgba(0,0,0,.04),0 12px 30px rgba(0,0,0,.08)}
+.mosaique{width:80px;height:80px;border-radius:12px;display:grid;grid-template-columns:1fr 1fr;gap:2px;padding:6px;flex:none}
+.mosaique img{width:100%;height:100%;object-fit:contain}
+.projet h3{font-size:15.5px;margin-bottom:2px}
+.projet p{margin:0 0 8px;color:var(--doux);font-size:13px}
+.grille-objets{display:grid;grid-template-columns:repeat(auto-fill,minmax(168px,1fr));gap:14px}
+.objet{padding:10px;position:relative;cursor:pointer}
+.objet .fond{border-radius:12px;height:146px;display:grid;place-items:center}
+.objet .fond img{height:124px}
+.objet b{display:block;margin:10px 2px 2px;font-size:14px}
+.objet small{color:var(--doux);margin:0 2px;display:block}
+.objet .coche{position:absolute;top:16px;left:16px;width:22px;height:22px;border-radius:7px;background:var(--voile-clair);border:2px solid var(--trait-fort);display:grid;place-items:center;color:#fff;font-size:13px}
+.objet.selection{outline:2px solid var(--accent)}
+.objet.selection .coche{background:var(--accent);border-color:var(--accent)}
+
+/* ---------- projet ---------- */
+.projet-tete{display:flex;align-items:flex-end;justify-content:space-between;gap:20px;flex-wrap:wrap;margin-bottom:22px}
+.retour{color:var(--doux);font-size:14px;display:inline-flex;gap:6px;margin-bottom:8px}
+.meta-projet{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.puce-style{display:inline-flex;align-items:center;gap:9px;padding:5px 12px 5px 8px;border-radius:999px;background:var(--surface);border:1px solid var(--trait);font-size:13px;font-weight:500}
+.etapes{display:flex;gap:6px;margin:0 0 26px;padding:0;list-style:none}
+.etapes li{flex:1;display:flex;align-items:center;gap:10px;padding:11px 14px;border-radius:14px;background:var(--surface-3);color:var(--doux);font-weight:500;font-size:14px}
+.etapes li span{width:26px;height:26px;border-radius:50%;display:grid;place-items:center;background:var(--surface);font-size:13px;font-weight:700}
+.etapes li small{margin-left:auto;font-size:12px}
+.etapes li.faite{background:var(--vert-fond);color:var(--vert)}
+.etapes li.faite span{background:var(--vert);color:#fff}
+.etapes li.courante{background:var(--surface);color:var(--texte);box-shadow:var(--ombre);outline:2px solid var(--accent)}
+.etapes li.courante span{background:var(--accent);color:#fff}
+.bandeau{padding:14px 18px;display:flex;gap:14px;align-items:center;margin-bottom:16px}
+.bandeau p{margin:0;flex:1}
+.bandeau.info{background:var(--accent-fond);border-color:var(--accent-trait)}
+.bandeau .vignettes{display:flex;gap:6px}
+.bandeau .vignettes img{width:46px;height:46px;border-radius:10px;background:var(--surface);object-fit:contain;padding:3px}
+.liste-objets{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}
+.choix-objet{padding:16px;display:grid;grid-template-columns:76px 1fr auto;gap:14px;align-items:start;text-align:left;border:2px solid transparent;background:var(--surface);box-shadow:0 0 0 1px var(--trait);border-radius:var(--rayon)}
+.choix-objet .fond{width:76px;height:76px;border-radius:12px;display:grid;place-items:center;background:var(--surface-3);color:var(--pale);font-size:24px}
+.choix-objet .fond img{height:68px}
+.choix-objet h3{font-size:15px;margin-bottom:3px}
+.choix-objet p{margin:0 0 9px;color:var(--doux);font-size:13px;line-height:1.4}
+.resume-objet{display:flex;flex-wrap:wrap;gap:6px;align-items:center}
+.resume-objet span{font-size:12px;color:var(--doux);background:var(--surface-3);border-radius:7px;padding:2px 7px}
+.case{width:24px;height:24px;border-radius:7px;border:2px solid var(--trait-fort);display:grid;place-items:center;color:#fff;font-size:13px}
+.choix-objet.oui{border-color:var(--accent)}
+.choix-objet.oui .case{background:var(--accent);border-color:var(--accent)}
+.choix-objet.non{opacity:.55}
+.choix-objet .regler{grid-column:2/4;justify-self:start;margin-top:-2px}
+.choix-objet.ajout{display:grid;place-items:center;grid-template-columns:1fr;color:var(--doux);border:1.5px dashed var(--trait-fort);box-shadow:none;min-height:120px;font-weight:500}
+.barre-bas{position:fixed;left:0;right:0;bottom:0;z-index:20;background:var(--voile-clair);backdrop-filter:blur(10px);border-top:1px solid var(--trait)}
+.barre-bas>div{max-width:1320px;margin:0 auto;padding:13px 28px;display:flex;align-items:center;justify-content:space-between;gap:20px}
+.barre-bas p{margin:0;color:var(--doux)}
+.barre-bas p b{color:var(--texte)}
+
+/* tiroir de détails */
+.voile{position:fixed;inset:0;background:rgba(27,26,24,.35);z-index:40;display:none}
+.voile.ouvert{display:block}
+.tiroir{position:fixed;top:0;right:0;bottom:0;width:560px;max-width:100%;background:var(--surface);z-index:41;transform:translateX(100%);transition:transform .25s ease;display:flex;flex-direction:column;box-shadow:-20px 0 60px rgba(0,0,0,.12)}
+.tiroir.ouvert{transform:none}
+.tiroir:not(.ouvert){box-shadow:none}
+.tiroir-tete{padding:20px 24px;border-bottom:1px solid var(--trait);display:flex;align-items:center;gap:12px}
+.tiroir-tete h2{flex:1}
+.tiroir-corps{padding:22px 24px;overflow:auto;display:grid;gap:22px;flex:1}
+.tiroir-pied{padding:16px 24px;border-top:1px solid var(--trait);display:flex;justify-content:space-between;align-items:center}
+.taille{display:grid;grid-template-columns:1fr 170px;gap:16px;align-items:end}
+.taille .trois{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.taille .trois label{font-size:12px;color:var(--doux);font-weight:500}
+.echelle{height:150px;border-radius:12px;background:var(--surface-3);display:flex;align-items:flex-end;justify-content:center;gap:16px;padding:10px 12px 0}
+.echelle small{font-size:11px;color:var(--doux);display:block;white-space:nowrap}
+.facons{display:grid;gap:8px}
+.facon{display:grid;grid-template-columns:20px 1fr auto;gap:12px;align-items:start;padding:12px 14px;border:1.5px solid var(--trait);border-radius:12px;text-align:left;background:var(--surface)}
+.facon .rond{width:18px;height:18px;border-radius:50%;border:2px solid var(--trait-fort);margin-top:2px}
+.facon.actif{border-color:var(--accent);background:var(--accent-fond)}
+.facon.actif .rond{border:5px solid var(--accent)}
+.facon b{font-size:14px}
+.facon small{display:block;color:var(--doux);font-size:12.5px;line-height:1.4}
+.facon.indispo{opacity:.55}
+.chips{display:flex;gap:6px;flex-wrap:wrap}
+.chips span{padding:5px 10px;border-radius:999px;background:var(--surface-3);font-size:13px;display:flex;align-items:center;gap:6px}
+.chips span.actif{background:var(--accent-fond);color:var(--accent);font-weight:500}
+.chips span i{width:10px;height:10px;border-radius:50%}
+.pieces{display:grid;gap:8px}
+.pieces div{display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:10px;background:var(--surface-2);font-size:14px}
+.pieces div b{flex:1}
+
+/* look */
+.look{padding:18px 20px;margin-bottom:14px}
+.look-tete{display:flex;align-items:center;gap:12px;margin-bottom:6px;flex-wrap:wrap}
+.look-tete h3{font-size:17px}
+.look-tete .actions{margin-left:auto;display:flex;gap:4px;flex-wrap:wrap}
+.look .onglets{margin-bottom:12px}
+.tuiles{display:grid;grid-template-columns:repeat(5,1fr);gap:12px}
+.tuile{aspect-ratio:1;border-radius:14px;border:3px solid transparent;background:var(--surface-3);padding:0;position:relative;overflow:hidden}
+.tuile img{width:100%;height:100%;object-fit:contain;padding:10%}
+.tuile:hover{border-color:var(--accent-trait)}
+.tuile.choisie{border-color:var(--accent)}
+.tuile.choisie::after{content:"✓";position:absolute;top:8px;right:8px;width:26px;height:26px;border-radius:50%;background:var(--accent);color:#fff;display:grid;place-items:center;font-size:14px;font-weight:700}
+.tuile .survol{position:absolute;left:8px;bottom:8px;display:none;gap:4px}
+.tuile:hover .survol{display:flex}
+.tuile .survol span{width:30px;height:30px;border-radius:9px;background:var(--voile-clair);display:grid;place-items:center;font-size:14px;box-shadow:0 1px 3px rgba(0,0,0,.12)}
+.tuile .fav{position:absolute;top:8px;left:8px;color:#E3A008;font-size:17px}
+.tuile.photo{border:2px dashed var(--trait-fort);background:none;color:var(--doux);font-size:13px;display:grid;place-items:center;text-align:center;padding:10px}
+.reglage-main{display:none;margin-top:14px;padding:16px;border-radius:12px;background:var(--surface-2);grid-template-columns:220px 1fr;gap:22px;align-items:center}
+.reglage-main.ouvert{display:grid}
+.apercu-direct{background:var(--surface);border-radius:12px;padding:10px;text-align:center}
+.apercu-direct img{height:170px;margin:0 auto}
+.curseurs{display:grid;gap:12px}
+.curseurs label{display:grid;grid-template-columns:90px 1fr 80px;gap:12px;align-items:center;font-size:14px;font-weight:500}
+.curseurs input{accent-color:var(--accent)}
+.curseurs span{color:var(--doux);font-weight:400}
+.curseurs .btn{justify-self:start}
+.consigne{margin-top:12px;padding:12px 14px;border-radius:12px;background:var(--surface-2);font-size:13.5px;color:var(--doux);display:flex;gap:10px;align-items:flex-start}
+.consigne b{color:var(--texte);font-weight:500}
+
+/* fabrication */
+.fab{padding:16px 18px;margin-bottom:12px}
+.fab-ligne{display:grid;grid-template-columns:72px 1fr auto;gap:16px;align-items:center}
+.fab .fond{width:72px;height:72px;border-radius:12px;background:var(--surface-3);display:grid;place-items:center}
+.fab .fond img{height:62px}
+.fab h3{font-size:15.5px;margin-bottom:8px;display:flex;gap:10px;align-items:center}
+.pas{display:flex;gap:6px;flex-wrap:wrap}
+.pas span{font-size:12.5px;padding:4px 10px;border-radius:999px;background:var(--surface-3);color:var(--pale)}
+.pas span.fait{background:var(--vert-fond);color:var(--vert)}
+.pas span.cours{background:var(--accent-fond);color:var(--accent);font-weight:600}
+.pas span.alerte{background:var(--ambre-fond);color:var(--ambre);font-weight:600}
+.journal{display:none;margin:14px 0 0 88px;padding:12px 14px;border-radius:12px;background:var(--surface-2);font-size:13px;color:var(--doux)}
+.journal.ouvert{display:block}
+.journal div{display:flex;gap:10px;padding:3px 0}
+.journal time{color:var(--pale);font-variant-numeric:tabular-nums}
+
+/* validation */
+.validation{display:grid;grid-template-columns:1.45fr 1fr;gap:18px}
+.visionneuse{padding:14px}
+.scene3d{height:440px;border-radius:12px;background:var(--scene3d);position:relative;overflow:hidden}
+.outils3d{position:absolute;top:12px;left:12px;right:12px;display:flex;gap:8px;align-items:center}
+.outils3d .segment{background:var(--surface-3)}
+.outils3d .segment button{padding:6px 11px;font-size:13px}
+.outils3d .droite{margin-left:auto}
+.repere{position:absolute;right:16px;bottom:14px;display:flex;align-items:flex-end;gap:8px;background:var(--voile-clair);padding:8px 10px;border-radius:10px;font-size:11.5px;color:var(--doux)}
+.aide3d{position:absolute;left:16px;bottom:14px;font-size:12px;color:var(--doux);background:var(--voile-clair);padding:5px 10px;border-radius:999px}
+.sous-onglets{margin-top:14px}
+.vues{display:grid;grid-template-columns:repeat(5,1fr);gap:8px}
+.vues div{border-radius:10px;background:var(--surface-3);padding:4px;height:96px}
+.vues img{height:100%;margin:auto}
+.comparer{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.comparer figure{margin:0;border-radius:12px;background:var(--surface-3);height:220px;display:grid;place-items:center;position:relative}
+.comparer figure img{height:190px}
+.comparer figcaption{position:absolute;top:10px;left:10px;font-size:12px;font-weight:600;background:var(--surface);padding:3px 9px;border-radius:999px}
+.controles{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.controles div{display:flex;gap:10px;padding:10px 12px;border-radius:10px;background:var(--surface-2);font-size:13px}
+.controles div b{display:block;font-size:13.5px}
+.controles .ok{color:var(--vert);font-weight:700}
+.controles .info{color:var(--ambre);font-weight:700}
+.avis{padding:14px 16px;border-radius:12px;background:var(--surface-2);font-size:14px;line-height:1.55}
+.decision{padding:22px;display:flex;flex-direction:column;gap:16px}
+.decision h2{font-size:23px}
+.verifs{padding:12px 14px;border-radius:12px;background:var(--vert-fond);color:var(--vert);font-weight:500;font-size:14px}
+.faits{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.faits div{padding:10px 12px;border-radius:12px;background:var(--surface-2)}
+.faits small{display:block;color:var(--doux);font-size:12px}
+.faits b{font-size:14.5px}
+.choix-decision{display:grid;gap:8px}
+.choix-decision>button{justify-content:flex-start}
+.sous-decision{display:none;padding:14px;border-radius:12px;background:var(--surface-2);gap:10px}
+.sous-decision.ouvert{display:grid}
+.navigateur{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;color:var(--doux)}
+.file-validation{display:flex;gap:8px}
+.file-validation img{width:52px;height:52px;border-radius:10px;background:var(--surface);border:2px solid var(--trait);object-fit:contain;padding:3px}
+.file-validation img.courant{border-color:var(--accent)}
+
+/* fiche objet, style, bibliothèque */
+.fiche{display:grid;grid-template-columns:1.2fr 1fr;gap:18px;align-items:start}
+.version{display:grid;grid-template-columns:56px 1fr auto;gap:12px;align-items:center;padding:12px;border-radius:12px;border:1px solid var(--trait);margin-bottom:8px}
+.version img{width:56px;height:56px;border-radius:10px;background:var(--surface-3);object-fit:contain;padding:4px}
+.version.active{border-color:var(--accent);background:var(--accent-fond)}
+.fichiers{display:grid;gap:6px}
+.fichiers div{display:flex;justify-content:space-between;padding:9px 12px;border-radius:10px;background:var(--surface-2);font-size:13.5px}
+.exports{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-top:12px}
+.exports button{border:1px solid var(--trait-fort);background:var(--surface);border-radius:12px;padding:12px 8px;font-weight:600;font-size:13.5px}
+.exports button small{display:block;color:var(--doux);font-weight:400;font-size:11.5px}
+.provenance{display:grid;grid-template-columns:120px 1fr;gap:8px 14px;font-size:14px}
+.provenance dt{color:var(--doux)}
+.provenance dd{margin:0}
+.biblio-styles{display:grid;grid-template-columns:repeat(3,1fr);gap:18px;margin-top:24px}
+.style-carte{overflow:hidden;cursor:pointer}
+.style-carte .scene{height:190px;display:flex;align-items:flex-end;justify-content:center;gap:4px;padding:16px 16px 0}
+.style-carte .scene img{height:150px;max-width:34%;object-fit:contain}
+.style-carte .scene img.petit{height:108px}
+.style-carte .corps{padding:16px 18px 18px;display:grid;gap:8px}
+.style-carte h3{font-size:17px}
+.style-carte p{margin:0;color:var(--doux);font-size:13.5px}
+.style-carte .pied{display:flex;align-items:center;justify-content:space-between;margin-top:4px}
+.style-carte.creer{display:grid;place-items:center;text-align:center;border:1.5px dashed var(--trait-fort);box-shadow:none;background:transparent;padding:30px;cursor:default}
+.style-carte.creer .plus{width:54px;height:54px;border-radius:50%;background:var(--accent-fond);color:var(--accent);display:grid;place-items:center;font-size:26px;margin:0 auto 12px}
+.style-detail{display:grid;grid-template-columns:1fr 1fr;gap:18px}
+.style-detail .carte{padding:20px}
+.style-detail h2{margin-bottom:14px}
+.planche-style{display:grid;grid-template-columns:repeat(6,1fr);gap:8px}
+.planche-style div{border-radius:10px;height:110px;display:grid;place-items:center}
+.planche-style img{height:92px}
+.palette{display:grid;grid-template-columns:repeat(5,1fr);gap:10px}
+.palette div{display:grid;gap:5px;font-size:12px;color:var(--doux)}
+.palette i{height:44px;border-radius:10px;box-shadow:inset 0 0 0 1px rgba(0,0,0,.06)}
+.spheres{display:grid;grid-template-columns:repeat(5,1fr);gap:12px}
+.spheres div{text-align:center;font-size:12.5px}
+.spheres img{width:76px;height:76px;margin:0 auto 4px}
+.spheres small{display:block;color:var(--pale);font-size:11px}
+.tableau{width:100%;border-collapse:collapse;font-size:13.5px}
+.tableau td,.tableau th{padding:8px 4px;border-bottom:1px solid var(--trait);text-align:left}
+.tableau th{color:var(--doux);font-weight:500;font-size:12.5px}
+.biblio{display:grid;grid-template-columns:240px 1fr;gap:22px;align-items:start}
+.filtres-cote{padding:18px;display:grid;gap:18px;position:sticky;top:90px}
+.filtres-cote h3{font-size:13px;color:var(--doux);font-weight:600;text-transform:uppercase;letter-spacing:.04em;margin-bottom:8px}
+.filtres-cote label{display:flex;gap:8px;align-items:center;font-size:14px;padding:3px 0}
+.filtres-cote label input{accent-color:var(--accent)}
+.filtres-cote label span{margin-left:auto;color:var(--pale);font-size:12px}
+.selection-barre{display:none;position:fixed;bottom:22px;left:50%;transform:translateX(-50%);z-index:25;background:var(--texte);color:#fff;border-radius:14px;padding:10px 12px 10px 18px;gap:10px;align-items:center;box-shadow:0 12px 40px rgba(0,0,0,.25)}
+.selection-barre.ouverte{display:flex}
+.selection-barre .btn{background:rgba(255,255,255,.12);color:#fff;padding:9px 13px;font-size:13.5px}
+.selection-barre .btn.blanc{background:var(--surface);color:var(--texte)}
+.reglages{display:grid;grid-template-columns:repeat(2,1fr);gap:18px;margin-top:24px}
+.reglages .carte{padding:20px;display:grid;gap:12px;align-content:start}
+.ligne-reglage{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:10px 0;border-bottom:1px solid var(--trait);font-size:14px}
+.ligne-reglage:last-child{border:0}
+.ligne-reglage small{display:block;color:var(--doux);font-size:12.5px}
+@media (max-width:1000px){.creer,.validation,.fiche,.style-detail,.biblio{grid-template-columns:1fr}.liste-objets,.projets,.biblio-styles{grid-template-columns:1fr 1fr}.nav{display:none}}
+
+.pin{width:26px;height:26px;border-radius:50%;border:2px solid #fff;background:var(--accent);color:#fff;font-weight:700;font-size:12px;box-shadow:0 2px 8px rgba(0,0,0,.35);display:grid;place-items:center;padding:0}
+.notes{display:grid;gap:6px}
+.notes div{display:flex;gap:8px;align-items:center;font-size:13.5px}
+.notes b{width:22px;height:22px;border-radius:50%;background:var(--accent);color:#fff;display:grid;place-items:center;font-size:11.5px;flex:none}
+.notes input{flex:1}
+.prompt{border:1px solid var(--trait-fort);border-radius:16px;background:var(--saisie);padding:14px 16px;display:grid;gap:12px}
+.prompt textarea{border:0;background:transparent;resize:vertical;min-height:70px;font-size:17px;padding:2px;outline:none;width:100%}
+.prompt .bas{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.prompt .bas .vignette{width:52px;height:52px;border-radius:10px;background:var(--surface-3) center/80% no-repeat}
+.prompt .bas .joindre{height:52px;border-radius:10px;border:1.5px dashed var(--trait-fort);background:none;padding:0 14px;color:var(--doux);font-size:13px}
+.prompt .bas .droite{margin-left:auto}
+details.plus summary{cursor:pointer;color:var(--doux);font-weight:500;font-size:14px;list-style:none}
+details.plus summary::before{content:"▸ "}
+details.plus[open] summary::before{content:"▾ "}
+.aides{padding:18px 20px;margin-top:16px}
+.conseils{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.conseils>div{display:flex;gap:14px;padding:14px;border-radius:12px;background:var(--surface-2)}
+.conseils img{width:84px;height:84px;border-radius:10px;background:var(--surface-3);object-fit:contain;padding:4px}
+.conseils .mauvais{display:grid;grid-template-columns:1fr 1fr;gap:4px}
+.conseils .mauvais img{width:56px;height:56px}
+.conseils ul{list-style:none;margin:0;padding:0;font-size:13.5px;display:grid;gap:3px}
+.conseils .ok li::before{content:"✓ ";color:var(--vert);font-weight:700}
+.conseils .ko li::before{content:"✕ ";color:var(--rouge);font-weight:700}
+.exemples{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
+.exemples button{display:flex;gap:12px;align-items:center;text-align:left;padding:10px;border-radius:12px;border:1px solid var(--trait);background:var(--surface-2)}
+.exemples img{width:56px;height:56px;border-radius:10px;object-fit:contain}
+.exemples small{display:block;color:var(--doux);font-size:12.5px}
+.gauche{display:grid;gap:22px;min-width:0}
+.modes{display:inline-flex;gap:4px;padding:4px;border-radius:999px;background:var(--surface-3)}
+.modes button{border:0;background:none;border-radius:999px;padding:8px 16px;font-weight:600;font-size:14px;color:var(--doux)}
+.modes button.actif{background:var(--surface);color:var(--texte);box-shadow:0 1px 3px rgba(0,0,0,.12)}
+.aide-mode{margin:8px 0 0 6px;color:var(--doux);font-size:13px}
+.aides{margin-top:0}
+.aides .onglets{margin-bottom:14px}
+.aides .panneau-onglet{display:none}.aides .panneau-onglet.actif{display:block}
+.annoter{position:absolute;left:50%;bottom:12px;transform:translateX(-50%)}
+.annoter-actif .annoter{background:var(--accent);color:#fff;border-color:var(--accent)}
+.conseils .mauvais span{width:56px;height:56px;border-radius:10px;overflow:hidden;background:var(--surface-3);position:relative;display:grid;place-items:center}
+.conseils .mauvais span img{width:100%;height:100%;object-fit:contain;padding:4px;border-radius:0;background:none}
+[data-theme="sombre"] .logo span{background:var(--accent)}
+
+
+/* ---- afficheur 3D (three.js) ---- */
+.vue3d{position:absolute;inset:0}
+.scene3d:has(.outils3d) .vue3d{top:54px}
+.toile3d{display:block;width:100%;height:100%;touch-action:none;outline:none}
+.calque3d{position:absolute;inset:0;overflow:hidden;pointer-events:none}
+.calque3d .pin{position:absolute;left:-13px;top:-13px;pointer-events:auto;cursor:pointer;transition:opacity .15s}
+.pin.cache{opacity:.3}
+.cote3d{position:absolute;left:0;top:0;margin:-11px 0 0 -24px;font-size:11.5px;font-weight:600;padding:2px 8px;border-radius:999px;background:var(--surface);color:var(--accent);box-shadow:0 1px 4px rgba(0,0,0,.18);white-space:nowrap;pointer-events:none}
+.cote3d.pivot{color:#B35F00;margin-left:12px}
+.etat3d{position:absolute;inset:0;display:grid;place-items:center;color:var(--doux);font-size:13px;pointer-events:none}
+.etat3d[hidden]{display:none}
+.menu3d{position:absolute;z-index:6;background:var(--surface);border:1px solid var(--trait);border-radius:14px;box-shadow:0 12px 36px rgba(0,0,0,.16);padding:6px;min-width:250px}
+.menu3d[hidden]{display:none!important}
+.menu3d.droite{top:54px;right:12px;display:grid}
+.menu3d.droite button{display:grid;text-align:left;border:0;background:none;padding:9px 12px;border-radius:10px;gap:1px;font-weight:600}
+.menu3d.droite button:hover{background:var(--surface-3)}
+.menu3d.droite button.actif{background:var(--accent-fond);color:var(--accent)}
+.menu3d.droite button small{color:var(--doux);font-size:12px;font-weight:400}
+.menu3d.lateral{top:64px;right:62px;width:min(260px,calc(100% - 80px));display:grid;gap:10px;padding:14px}
+.menu3d.lateral small{color:var(--doux);font-size:12px}
+.menu3d label{display:grid;gap:4px;font-size:13px;font-weight:500}
+.menu3d input[type=range]{accent-color:var(--accent);width:100%;margin:0}
+.menu3d .chips span{cursor:pointer}
+.pile-outils{position:absolute;right:12px;top:64px;display:grid;gap:8px;z-index:4}
+.pile-outils button{width:40px;height:40px;border-radius:50%;border:1px solid var(--trait);background:var(--voile-clair);display:grid;place-items:center;color:var(--doux);box-shadow:0 1px 4px rgba(0,0,0,.08)}
+.pile-outils button:hover{color:var(--texte)}
+.pile-outils button.actif{background:var(--accent);color:#fff;border-color:var(--accent)}
+.verifs3d{margin-top:10px;background:var(--surface-2);border-radius:12px;padding:10px 14px;font-size:13px;display:grid;gap:4px}
+.verifs3d[hidden]{display:none}
+.verifs3d div{display:flex;gap:7px;align-items:flex-start;line-height:1.35}
+.verifs3d .ok i{color:var(--vert)} .verifs3d .ko i{color:var(--ambre)} .verifs3d .info i{color:var(--accent)}
+.verifs3d small{color:var(--doux);font-size:11.5px;margin-top:2px}
+
+/* ---- validation : décisions, file, fin, notification ---- */
+.btn.gros{padding:15px 18px;font-size:16px}
+.choix-decision{display:grid;gap:10px}
+.petit-lien{justify-self:center;font-size:13px;margin-top:-2px}
+.deux{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.btn.rouge{color:var(--rouge)}
+.btn.rouge:hover{background:var(--rouge-fond);color:var(--rouge)}
+.file-validation button{width:56px;height:56px;border-radius:12px;border:2px solid var(--trait);background:var(--surface);padding:3px;position:relative}
+.file-validation button img{width:100%;height:100%;border:0;padding:0;border-radius:7px;background:none;object-fit:contain}
+.file-validation button.courant{border-color:var(--accent)}
+.file-validation .badge{position:absolute;right:-6px;top:-6px;width:20px;height:20px;border-radius:50%;display:grid;place-items:center;font-size:11px;font-weight:700;color:#fff;font-style:normal;border:2px solid var(--fond)}
+.file-validation .badge[hidden]{display:none}
+.file-validation .garde{background:var(--vert)} .file-validation .corrige{background:var(--accent)} .file-validation .refait{background:var(--accent)} .file-validation .jete{background:var(--pale)}
+.file-validation button.decide img{opacity:.55}
+.toast{position:fixed;left:50%;bottom:24px;transform:translateX(-50%);z-index:60;display:flex;gap:16px;align-items:center;background:var(--texte);color:var(--fond);padding:12px 14px 12px 18px;border-radius:14px;box-shadow:0 12px 40px rgba(0,0,0,.28);font-size:14px;max-width:calc(100vw - 24px)}
+.toast[hidden]{display:none}
+.toast .lien{color:#9DB2FF;font-weight:600;padding:6px 8px}
+.fin-validation{padding:36px 28px;text-align:center;display:grid;gap:14px;justify-items:center}
+.fin-validation[hidden]{display:none}
+.fin-liste{display:flex;gap:14px;flex-wrap:wrap;justify-content:center}
+.fin-liste div{display:grid;gap:4px;justify-items:center;font-size:13px;color:var(--doux)}
+.fin-liste img{width:72px;height:72px;border-radius:14px;background:var(--surface-3);object-fit:contain;padding:6px}
+.fin-actions{display:flex;gap:10px;flex-wrap:wrap;justify-content:center;margin-top:6px}
+@media (min-width:1001px){
+  .barre-bas[data-ecran="validation"]{display:none!important}
+  .decision{position:sticky;top:84px;max-height:calc(100vh - 104px);overflow:auto}
+}
+@media (max-width:1000px){ .actions-valid{display:grid!important;grid-template-columns:auto auto auto 1fr;gap:8px!important} .actions-valid .btn{flex:none;width:auto} .toast{bottom:calc(150px + env(safe-area-inset-bottom))} }
+@media (max-width:720px){ .barre-bas[data-ecran="validation"] p{display:none} .actions-valid .btn{flex:none!important;min-height:46px} .file-validation button{width:56px;height:56px} }
+
+#ecran-validation.fini .validation,#ecran-validation.fini .navigateur,#ecran-validation.fini #barre-valid{display:none!important}
+@media (min-width:721px){ .annoter{left:12px;transform:none;bottom:12px} #aide3d{display:none}
+  .annoter-actif #aide3d{display:block;left:50%;transform:translateX(-50%);top:62px;bottom:auto;background:var(--accent);color:#fff;z-index:3;font-size:12.5px} }
+/* ---- 6 étapes et aides ---- */
+.etapes li{min-width:0}
+.coach{display:flex;gap:12px;align-items:flex-start;background:var(--accent-fond);border:1px solid var(--accent-trait);border-radius:14px;padding:12px 14px;margin:-8px 0 18px}
+.coach i{flex:none;width:24px;height:24px;border-radius:50%;background:var(--accent);color:#fff;display:grid;place-items:center;font-style:normal;font-weight:700;font-size:13px;margin-top:1px}
+.coach p{margin:0;flex:1;font-size:14px;line-height:1.5}
+.coach b{color:var(--texte)}
+.coach-x{border:0;background:none;color:var(--doux);font-size:20px;line-height:1;padding:2px 6px;border-radius:8px}
+.coach-x:hover{background:var(--surface);color:var(--texte)}
+.coach[hidden]{display:none}
+@media (max-width:720px){
+  .etapes li:not(.courante){flex:1 1 0;font-size:0;gap:0;justify-content:center;padding:9px 0}
+  .etapes li:not(.courante) small{display:none}
+  .etapes li:not(.courante) span{font-size:12.5px}
+  .etapes li.courante{flex:3 1 0}
+}
+
+/* ---- validation guidée ---- */
+.verdict{border-radius:14px;padding:14px 16px;display:grid;gap:8px;border:1px solid transparent}
+.verdict[data-etat="ok"]{background:var(--vert-fond);color:var(--vert);border-color:color-mix(in srgb,var(--vert) 25%,transparent)}
+.verdict[data-etat="attention"]{background:var(--ambre-fond);color:var(--ambre);border-color:color-mix(in srgb,var(--ambre) 25%,transparent)}
+.verdict-tete{display:flex;gap:10px;align-items:center;font-size:17px}
+.verdict-tete i{width:26px;height:26px;border-radius:50%;display:grid;place-items:center;font-style:normal;font-weight:700;font-size:14px;color:#fff;background:currentColor}
+.verdict-tete i{background:var(--vert)} .verdict[data-etat="attention"] .verdict-tete i{background:var(--ambre)}
+.verdict-liste{list-style:none;margin:0;padding:0;display:grid;gap:5px;font-size:13.5px;color:var(--texte)}
+.verdict-liste li{display:flex;gap:8px;line-height:1.4}
+.verdict-liste li::before{content:"✓";color:var(--vert);font-weight:700}
+.verdict-liste li.ko::before{content:"!";color:var(--ambre);width:14px;text-align:center}
+.guide{display:grid;gap:10px;padding:14px;border-radius:14px;background:var(--surface-2)}
+.guide-titre{margin:0;font-weight:700;font-size:14px}
+.q{display:grid;gap:4px;padding-bottom:10px;border-bottom:1px solid var(--trait)}
+.q:last-of-type{border-bottom:0;padding-bottom:0}
+.q-ligne{display:flex;justify-content:space-between;gap:10px;align-items:center;font-size:14px;font-weight:500}
+.rep{display:flex;gap:6px;flex:none}
+.rep button{border:1px solid var(--trait-fort);background:var(--surface);border-radius:999px;padding:6px 14px;font-weight:600;font-size:13px;min-height:36px}
+.rep button[data-r="oui"].actif{background:var(--vert);border-color:var(--vert);color:#fff}
+.rep button[data-r="non"].actif{background:var(--ambre);border-color:var(--ambre);color:#fff}
+.q-aide{justify-self:start;font-size:13px}
+.q-suite{display:grid;gap:8px;justify-items:start;padding:10px 12px;border-radius:10px;background:var(--ambre-fond);font-size:13px}
+.q-suite[hidden]{display:none}
+.q-suite p{margin:0}
+.guide-bilan{margin:0;padding:10px 12px;border-radius:10px;font-size:13.5px;font-weight:600}
+.guide-bilan.bon{background:var(--vert-fond);color:var(--vert)}
+.guide-bilan.doute{background:var(--ambre-fond);color:var(--ambre)}
+.guide-bilan[hidden]{display:none}
+.btn.conseille{box-shadow:0 0 0 4px color-mix(in srgb,var(--accent) 28%,transparent),0 6px 18px rgba(53,85,214,.3)}
+details.details-tech{margin:-4px 0}
+details.details-tech .faits{margin-top:10px}
+#scene-valid.avec-perso .repere{display:none}
+
+/* ---- essai et jeu ---- */
+.scene-essai{background:linear-gradient(#cfe3f5,#efe9dd 70%)}
+.scene-essai[data-lumiere="soir"]{background:linear-gradient(#26304f,#e69a5e 80%)}
+.scene-essai[data-lumiere="interieur"]{background:radial-gradient(circle at 50% 40%,#3a3328,#15130f)}
+.scene-essai .vue3d{top:54px}
+.selection-essai{position:absolute;left:12px;bottom:12px;z-index:4;display:flex;gap:10px;align-items:center;background:var(--voile-clair);backdrop-filter:blur(6px);padding:8px 8px 8px 14px;border-radius:12px;box-shadow:0 2px 10px rgba(0,0,0,.12)}
+.selection-essai[hidden]{display:none}
+.bloc{padding:20px;display:grid;gap:14px}
+.liste-envoi{display:grid;gap:8px}
+.envoi{display:grid;grid-template-columns:56px 1fr auto;gap:12px;align-items:center;padding:10px 12px;border-radius:12px;background:var(--surface-2)}
+.envoi img{width:56px;height:56px;border-radius:10px;background:var(--surface-3);object-fit:contain;padding:4px}
+.envoi b{display:block;font-size:14.5px}
+.envoi small{color:var(--doux);font-size:12.5px;display:block}
+.envoi code{font-family:ui-monospace,Menlo,monospace;font-size:12px;background:var(--surface-3);padding:1px 6px;border-radius:6px}
+.destinations{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.dest{display:grid;gap:3px;text-align:left;padding:14px;border-radius:14px;border:1.5px solid var(--trait);background:var(--surface)}
+.dest b{font-size:15px}
+.dest small{color:var(--doux);font-size:12.5px;line-height:1.35}
+.dest.actif{border-color:var(--accent);background:var(--accent-fond)}
+.verifs-jeu{list-style:none;margin:0;padding:0;display:grid;gap:8px}
+.verifs-jeu li{display:flex;gap:10px;align-items:flex-start;font-size:14px;line-height:1.4}
+.verifs-jeu li::before{content:"✓";flex:none;width:20px;height:20px;border-radius:50%;background:var(--vert-fond);color:var(--vert);display:grid;place-items:center;font-size:12px;font-weight:700;margin-top:1px}
+.verifs-jeu small{display:block;color:var(--doux);font-size:12.5px}
+.mode-emploi{margin:10px 0 0;padding-left:20px;display:grid;gap:6px;font-size:14px;line-height:1.45}
+.mode-emploi.centre{text-align:left;max-width:520px}
+.validation.jeu{grid-template-columns:1.45fr 1fr}
+@media (max-width:1000px){ .validation.jeu{grid-template-columns:minmax(0,1fr)} .destinations{grid-template-columns:1fr 1fr} .scene-essai{height:min(60vh,520px)!important;min-height:380px} }
+@media (max-width:720px){ .scene-essai .vue3d{top:100px!important} .scene-essai .outils3d .droite{margin-left:0} .envoi{grid-template-columns:48px 1fr} .envoi img{width:48px;height:48px} .envoi>:last-child{grid-column:1/3} }
+
+.ico-fichier{width:56px;height:56px;border-radius:10px;background:var(--surface-3);display:grid;place-items:center;font-size:11px;font-weight:700;color:var(--doux)}
+.partage{display:grid;gap:6px;padding:12px 14px;border-radius:14px;background:var(--surface-2)}
+.partage b{font-size:14px}
+.partage small{color:var(--doux);font-size:12.5px}
+.partage-ligne{display:flex;gap:8px}
+.partage-ligne .saisie{flex:1;min-width:0;font-size:13px}
+
+[hidden]{display:none!important}
+/* ================= responsive : ordinateur, tablette, téléphone ================= */
+.nav-bas,.btn-filtres{display:none}
+.outils3d .segment small{font-weight:400}
+.cloche{max-width:calc(100vw - 24px)}
+.tableau{display:block;overflow-x:auto}
+
+/* tablette (≤ 1000 px) : une colonne, navigation du haut remplacée par la barre du bas */
+@media (max-width:1000px){
+  .creer,.validation,.fiche,.style-detail,.biblio{grid-template-columns:minmax(0,1fr)}
+  .creer>*,.validation>*,.fiche>*,.style-detail>*,.biblio>*,.heros>*,.carte>*{min-width:0}
+  /* navigation du bas (tablette et téléphone) */
+  .nav-bas{display:flex;position:fixed;left:0;right:0;bottom:0;z-index:35;background:var(--haut);backdrop-filter:blur(12px);border-top:1px solid var(--trait);padding:6px 6px calc(6px + env(safe-area-inset-bottom))}
+  .nav-bas a{flex:1;display:flex;flex-direction:column;align-items:center;gap:2px;padding:6px 2px;border-radius:12px;color:var(--doux);font-size:11.5px;font-weight:500;min-height:48px}
+  .nav-bas a.actif{color:var(--accent);background:var(--accent-fond)}
+  main{padding:26px 22px calc(150px + env(safe-area-inset-bottom))}
+  .barre-bas{bottom:calc(62px + env(safe-area-inset-bottom))}
+  .selection-barre{bottom:calc(76px + env(safe-area-inset-bottom))}
+  .haut-in{padding:10px 22px;gap:16px}
+  .styles-mini{grid-template-columns:repeat(3,minmax(0,1fr))}
+  .tuiles{grid-template-columns:repeat(4,1fr)}
+  .vues{grid-template-columns:repeat(5,1fr)}
+  .reglages,.conseils,.exemples{grid-template-columns:1fr}
+  .planche-style{grid-template-columns:repeat(3,1fr)}
+  .reglage-main{grid-template-columns:1fr}
+  .taille{grid-template-columns:1fr}
+}
+
+/* téléphone (≤ 720 px) */
+@media (max-width:720px){
+  body{font-size:15px}
+  .maquette{font-size:11.5px;padding:5px 10px}
+  .maquette .long{display:none}
+
+  /* barre du haut compacte */
+  .haut-in{padding:8px 14px;gap:10px}
+  .logo{font-size:0;gap:0}
+  .logo span{width:36px;height:36px}
+  .outils{gap:6px}
+  #theme{width:40px;height:40px;padding:0;justify-content:center;border-radius:50%}
+  #theme-nom{display:none}
+  .outils>.pilule:not(#theme){padding:6px 10px;font-size:12.5px}
+  .pilule .mini{display:none}
+  .icone{width:40px;height:40px}
+  .cloche{position:fixed;left:12px;right:12px;top:auto;margin-top:8px;width:auto;top:64px}
+
+  .barre-bas>div{padding:8px 16px;flex-wrap:wrap;gap:6px}
+  .barre-bas p{font-size:12.5px;line-height:1.35;flex:1 1 100%;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+  .barre-bas .btn{flex:1 1 100%}
+  .selection-barre{left:12px;right:12px;transform:none;flex-wrap:wrap;padding:10px}
+  .selection-barre.ouverte{display:flex}
+
+  main{padding:18px 16px calc(150px + env(safe-area-inset-bottom))}
+  /* titres et cartes */
+  h1{font-size:26px}
+  h2{font-size:18px}
+  .sous{font-size:15px}
+  .heros{padding:18px;gap:18px}
+  .heros textarea,.prompt textarea{font-size:16px}
+  .btn{padding:13px 18px;min-height:46px}
+  .btn.mini{padding:9px 12px;min-height:40px}
+  .btn.discret{min-height:44px}
+  input.saisie,select.saisie,textarea.saisie{font-size:16px;padding:12px}
+  .modes{display:flex;width:100%}
+  .modes button{flex:1;padding:10px 6px;font-size:13.5px}
+  .segment button{min-height:40px}
+
+  /* grilles → une colonne ou défilement horizontal */
+  .liste-objets,.projets,.biblio-styles,.conseils,.exemples,.genre-projet,.reglages,.faits,.controles,.comparer{grid-template-columns:1fr}
+  .faits,.controles{grid-template-columns:1fr 1fr}
+  .comparer{grid-template-columns:1fr 1fr}
+  .styles-mini{display:flex;overflow-x:auto;scroll-snap-type:x mandatory;gap:10px;margin:0 -18px;padding:4px 18px 10px;scrollbar-width:none}
+  .styles-mini::-webkit-scrollbar{display:none}
+  .style-mini{flex:0 0 132px;scroll-snap-align:start}
+  .options{grid-template-columns:1fr}
+  .action-principale .btn{flex:1 1 100%}
+  .grille-objets{grid-template-columns:repeat(2,1fr);gap:10px}
+  .objet .fond{height:118px}.objet .fond img{height:100px}
+  .tuiles{grid-template-columns:repeat(2,1fr);gap:10px}
+  .tuile .survol{display:flex}
+  .tuile .survol span{width:36px;height:36px}
+  .planche-style{grid-template-columns:repeat(3,1fr)}
+  .palette,.spheres{grid-template-columns:repeat(3,1fr)}
+  .exports{grid-template-columns:1fr 1fr}
+  .provenance{grid-template-columns:1fr}
+  .provenance dt{margin-top:6px}
+  .curseurs label{grid-template-columns:1fr;gap:4px}
+  .look{padding:14px}
+  .look-tete .actions{margin-left:0;width:100%}
+  .onglets{overflow-x:auto;scrollbar-width:none;flex-wrap:nowrap}
+  .onglets::-webkit-scrollbar{display:none}
+  .onglets button{white-space:nowrap;min-height:44px}
+  .ligne-reglage{flex-wrap:wrap}
+  .biblio input.saisie,.ecran .saisie[style*="width:320px"]{width:100%!important}
+  #ecran-bibliotheque>div:first-child>div:last-child{width:100%;flex-wrap:wrap}
+  #ecran-bibliotheque>div:first-child>div:last-child select{flex:1}
+
+  /* choix d'objets : poignée de sélection à droite, texte pleine largeur */
+  .choix-objet{grid-template-columns:64px 1fr auto;padding:14px;gap:12px}
+  .choix-objet .fond{width:64px;height:64px}.choix-objet .fond img{height:56px}
+  .choix-objet .regler{grid-column:1/4;justify-self:stretch}
+  .bandeau{flex-direction:column;align-items:stretch;gap:10px}
+  .bandeau .btn{width:100%}
+
+  /* projet : étapes compactes, file d'objets et navigation */
+  .projet-tete{align-items:flex-start}
+  .etapes{gap:4px;margin-bottom:18px}
+  .etapes li{flex-direction:column;gap:4px;padding:9px 2px;text-align:center;font-size:11.5px;border-radius:12px;min-width:0}
+  .etapes li small{margin:0;font-size:10.5px}
+  .etapes li span{width:24px;height:24px}
+  .navigateur{flex-wrap:wrap;gap:6px}
+  .navigateur>span{display:flex;flex:1;justify-content:space-between}
+  .file-validation img{width:56px;height:56px}
+  .projet{padding:14px}
+  .fab-ligne{grid-template-columns:56px 1fr;gap:12px}
+  .fab-ligne>:last-child{grid-column:1/3}
+  .fab .fond{width:56px;height:56px}.fab .fond img{height:48px}
+  .journal{margin-left:0}
+
+  /* validation : la 3D passe en grand, les outils à portée du pouce */
+  .visionneuse{padding:8px}
+  .scene3d,.scene3d[style]{height:min(62vh,520px)!important;min-height:400px;border-radius:12px}
+  .outils3d{flex-wrap:wrap;gap:6px;top:8px;left:8px;right:8px}
+  .outils3d .droite{margin-left:0}
+  .outils3d .segment button{padding:7px 10px;font-size:12.5px;min-height:34px}
+  .outils3d .segment small{display:none}
+  .scene3d:has(.outils3d) .vue3d{top:52px}
+  .menu3d.droite{right:8px;left:8px;min-width:0;top:52px}
+  .menu3d.lateral{top:60px;right:58px}
+  .pile-outils{right:8px;top:60px}
+  .aide3d{display:none}
+  .annoter-actif .aide3d{display:block;top:62px;bottom:auto;left:50%;right:auto;transform:translateX(-50%);width:max-content;max-width:calc(100% - 24px);text-align:center;font-size:12.5px;background:var(--accent);color:#fff;z-index:3}
+  .annoter{left:8px;right:auto;top:auto;bottom:8px;transform:none;min-height:44px;padding:10px 14px;box-shadow:0 2px 10px rgba(0,0,0,.18);z-index:3}
+  .repere{right:8px;bottom:8px;padding:6px 8px;transform:scale(.8);transform-origin:bottom right}
+  .vues{grid-template-columns:repeat(5,minmax(64px,1fr));overflow-x:auto}
+  .decision{padding:16px}
+  .facon{grid-template-columns:20px 1fr auto}
+
+  /* styles en ligne dans les écrans : les rangées de boutons passent à la ligne */
+  .ecran div[style*="display:flex"]{flex-wrap:wrap!important}
+  .ecran div[style*="display:flex"]>.btn{flex:1 1 auto}
+  .style-detail>.carte[style*="grid-column"],.fiche>.carte[style*="grid-column"]{grid-column:1/-1!important}
+  /* tiroir plein écran */
+  .tiroir{width:100%}
+  .tiroir-tete,.tiroir-corps,.tiroir-pied{padding-left:16px;padding-right:16px}
+  .tiroir-pied{flex-wrap:wrap;gap:8px;padding-bottom:calc(16px + env(safe-area-inset-bottom))}
+  .taille .trois{grid-template-columns:repeat(3,1fr)}
+
+  /* bibliothèque : filtres repliables */
+  .biblio{grid-template-columns:1fr;gap:12px}
+  .btn-filtres{display:inline-flex;justify-self:start}
+  .filtres-cote{display:none;position:static}
+  .filtres-cote.ouvert{display:grid}
+}
+
+/* petit téléphone (≤ 380 px) */
+@media (max-width:380px){
+  .outils>.pilule:not(#theme) span.mini,.outils>.pilule:not(#theme){font-size:12px}
+  .grille-objets{grid-template-columns:1fr 1fr}
+  .style-mini{flex-basis:118px}
+}
+</style>
+</head>
+<body>
+<div class="maquette"><b>Maquette de proposition v4</b><span class="long"> · données d'exemple, rien n'est enregistré · les objets, matériaux et la 3D sont de vrais rendus de l'app</span></div>
+
+<header class="haut"><div class="haut-in">
+  <a class="logo" href="#accueil"><span><svg width="16" height="16" viewBox="0 0 16 16"><path d="M8 1.5 14 5v6L8 14.5 2 11V5z M2 5l6 3.5L14 5 M8 8.5v6" fill="none" stroke="#fff" stroke-width="1.4" stroke-linejoin="round"/></svg></span>Atelier 3D</a>
+  <nav class="nav">
+    <a href="#accueil" data-nav="accueil">Créer</a>
+    <a href="#projets" data-nav="projets">Projets</a>
+    <a href="#bibliotheque" data-nav="bibliotheque">Bibliothèque</a>
+    <a href="#styles" data-nav="styles">Styles</a>
+  </nav>
+  <div class="outils">
+    <button class="pilule" id="theme" title="Changer de thème"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.985 12.486a9 9 0 1 1-9.473-9.472c.405-.022.617.46.402.803a6 6 0 0 0 8.268 8.268c.344-.215.825-.004.803.401"/></svg><b id="theme-nom">Sombre</b></button>
+    <span class="pilule" title="Crédits Meshy du mois : 312 utilisés sur 1 000, renouvelés le 1er novembre">Crédits <b>688</b><span class="mini"><i></i></span></span>
+    <button class="icone" id="ouvrir-cloche" aria-label="Notifications : 2 nouvelles"><svg width="18" height="18" viewBox="0 0 18 18"><path d="M4.5 12.5V8q0-4.5 4.5-4.5T13.5 8v4.5L15 14H3zm3 3q1.5 1.5 3 0" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round" stroke-linecap="round"/></svg><span class="point"></span></button>
+    <a class="icone" href="#reglages" aria-label="Réglages" title="Réglages"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"/><circle cx="12" cy="12" r="3"/></svg></a>
+    <div class="carte cloche" id="cloche">
+      <a href="#validation"><img src="img/look-amphore-1.png" alt=""><div><b>3 objets prêts à valider</b><small>Donjon · il y a 4 min</small></div></a>
+      <a href="#look"><img src="img/look-scutum-1.png" alt=""><div><b>Looks prêts à choisir</b><small>Camp romain · il y a 1 h</small></div></a>
+      <a href="#fabrication"><img src="img/style-scifi-caisse.png" alt=""><div><b>Relance automatique (1 sur 3)</b><small>Station orbitale · maillage ouvert, nouvel essai</small></div></a>
+    </div>
+  </div>
+</div></header>
+
+<nav class="nav-bas" aria-label="Navigation">
+  <a href="#accueil" data-nav="accueil"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>Créer</a>
+  <a href="#projets" data-nav="projets"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"><path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg>Projets</a>
+  <a href="#bibliotheque" data-nav="bibliotheque"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"><path d="M12 3 4 7v10l8 4 8-4V7zM4 7l8 4 8-4M12 11v10"/></svg>Bibliothèque</a>
+  <a href="#styles" data-nav="styles"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="8" cy="9" r="1.5"/><circle cx="14" cy="7" r="1.5"/><circle cx="17" cy="12" r="1.5"/><path d="M12 21a9 9 0 1 1 9-9c0 2-1.5 3-3.5 3H15a2 2 0 0 0-1.5 3.3c.6.8 0 2.7-1.5 2.7z"/></svg>Styles</a>
+</nav>
+
+<main>
+<!-- ================= CRÉER ================= -->
+<section class="ecran" id="ecran-accueil">
+  <div class="section a-faire" id="a-faire">
+    <div class="section-tete"><h2>À toi de jouer</h2><a class="lien" href="#projets">Tous les projets</a></div>
+    <div class="projets" id="projets-accueil"></div>
+  </div>
+  <div class="creer">
+    <div class="gauche">
+    <div class="carte heros">
+      <div><h1>Que veux-tu créer ?</h1>
+        <p class="sous">Décris-le et montre des images. L'app propose les objets, tu choisis leur look, elle fabrique, tu valides.</p></div>
+      <div>
+        <div class="modes" id="genre-projet">
+          <button class="actif" data-aide="Des props séparés : tonneaux, armes, mobilier…">Objets</button>
+          <button data-aide="Murs, sols, arches qui s'emboîtent sur une grille.">Kit modulaire</button>
+          <button data-aide="Une scène entière : l'app propose objets et modules ensemble.">Décor complet</button>
+        </div>
+        <p class="aide-mode" id="aide-mode">Des props séparés : tonneaux, armes, mobilier…</p>
+      </div>
+      <div class="prompt">
+        <textarea id="consigne" aria-label="Ce que tu veux créer">Des tonneaux, des caisses et une lanterne pour un petit port de pêche, un peu usés.</textarea>
+        <div class="bas" id="images-prompt">
+          <div class="vignette" style="background-image:url(img/style-postapo-caisse.png)"></div>
+          <div class="vignette" style="background-image:url(img/style-medieval-amphore.png)"></div>
+          <button class="joindre">＋ Images</button>
+          <span class="petit droite">Glisse tes photos, croquis ou captures ici · elles guident formes et style</span>
+        </div>
+      </div>
+      <div>
+        <p class="ligne-titre">Style <small>· palette, matériaux et finesse communs à tous les objets</small><a class="lien" href="#styles">Tous les styles · + créer le mien</a></p>
+        <div class="styles-mini" id="styles-mini"></div>
+      </div>
+      <details class="plus">
+        <summary>Plus d'options <span class="petit">· 2 variantes · Godot · 200 crédits max · brouillon d'abord</span></summary>
+        <div class="options">
+          <div class="champ"><span class="titre">Variantes par objet</span><span class="stepper"><button>−</button><span>2</span><button>+</button></span><span class="aide">2 tonneaux un peu différents</span></div>
+          <div class="champ"><label for="moteur">Moteur du jeu</label><select class="saisie" id="moteur"><option>Godot</option><option>Unity</option><option>Unreal</option><option>Autre (glTF)</option></select><span class="aide">Échelle et export adaptés</span></div>
+          <div class="champ"><label for="plafond">Budget max</label><select class="saisie" id="plafond"><option>200 crédits</option><option>Sans limite</option></select><span class="aide">L'app s'arrête avant</span></div>
+          <div class="champ"><span class="titre">Avant de fabriquer</span><span class="bascule"><i></i>Réutiliser ma bibliothèque</span><span class="bascule"><i></i>Chercher des modèles gratuits</span></div>
+          <div class="champ"><span class="titre">Brouillon d'abord</span><span class="bascule"><i></i>Valider la forme avant de payer la texture</span><span class="aide">Forme seule 20 cr, puis texture +10 cr si elle te plaît</span></div>
+        </div>
+      </details>
+      <div class="action-principale">
+        <a class="btn primaire" href="#objets">Proposer les objets →</a>
+        <span>Claude lit ta phrase et tes images · quelques secondes · gratuit</span>
+      </div>
+    </div>
+
+    <div class="carte aides">
+      <div class="onglets" data-groupe="aides"><button class="actif" data-cible="a-conseils">Conseils d'image</button><button data-cible="a-exemples">Essayer un exemple</button></div>
+      <div class="panneau-onglet actif" id="a-conseils">
+        <div class="conseils">
+          <div class="ok"><img src="img/look-amphore-1.png" alt="Bonne image : une amphore seule, nette, sur fond uni"><div><b>Ce qui marche</b><ul><li>Un seul objet, bien au centre</li><li>Net et bien éclairé</li><li>Entier, rien de coupé</li><li>Fond uni</li></ul></div></div>
+          <div class="ko"><div class="mauvais"><span><img src="img/look-amphore-1.png" alt="Image floue" style="filter:blur(2.5px)"></span><span><img src="img/look-amphore-1.png" alt="Objet coupé" style="transform:scale(2.1) translateY(22%)"></span><span style="background:repeating-linear-gradient(45deg,#8C6A2F 0 6px,#5E6B45 6px 12px)"><img src="img/look-amphore-1.png" alt="Fond chargé"></span><span><img src="img/style-rome-caisse.png" alt="Plusieurs objets" style="width:62%;height:auto;padding:0;position:absolute;right:3px;bottom:5px"><img src="img/style-rome-amphore.png" alt="" style="width:52%;height:auto;padding:0;position:absolute;left:3px;top:3px"></span></div><div><b>Ce qui trompe l'IA</b><ul><li>Image floue</li><li>Objet coupé par le bord</li><li>Fond chargé</li><li>Plusieurs objets mêlés</li></ul></div></div>
+        </div>
+      </div>
+      <div class="panneau-onglet" id="a-exemples">
+        <div class="exemples" id="exemples">
+          <button data-texte="Une amphore à vin en terre cuite, deux anses, pour un camp romain." data-style="rome" data-img="look-amphore-1"><img class="teinte" style="--teinte:#F4E7DA" src="img/look-amphore-1.png" alt=""><span><b>Amphore romaine</b><small>1 image · Rome antique</small></span></button>
+          <button data-texte="Un bouclier de légionnaire, rouge et or, un peu cabossé." data-style="rome" data-img="look-scutum-1"><img class="teinte" style="--teinte:#F4E7DA" src="img/look-scutum-1.png" alt=""><span><b>Bouclier de légionnaire</b><small>1 image · Rome antique</small></span></button>
+          <button data-texte="Des caisses de cargo pour une station orbitale, propres, avec marquages." data-style="scifi" data-img="style-scifi-caisse"><img class="teinte" style="--teinte:#E3E8EF" src="img/style-scifi-caisse.png" alt=""><span><b>Caisses de cargo</b><small>1 image · Science-fiction</small></span></button>
+        </div>
+      </div>
+    </div>
+    </div>
+
+    <div class="cote">
+      <div class="carte activite">
+        <h2>Activité</h2>
+        <ul>
+          <li><i style="background:var(--vert)"></i><span><b>Coffre de chêne</b> gardé · Donjon<br><small class="petit">il y a 20 min</small></span></li>
+          <li><i style="background:var(--accent)"></i><span><b>Station orbitale</b> : 2 objets prêts<br><small class="petit">il y a 1 h</small></span></li>
+          <li><i style="background:var(--ambre)"></i><span><b>Pilier</b> relancé : maillage ouvert<br><small class="petit">il y a 2 h</small></span></li>
+          <li><i style="background:var(--pale)"></i><span>Pack <b>Médiéval vol. 1</b> publié sur itch.io<br><small class="petit">hier</small></span></li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="section-tete"><h2>Derniers objets gardés</h2><a class="lien" href="#bibliotheque">Toute la bibliothèque</a></div>
+    <div class="grille-objets" id="derniers"></div>
+  </div>
+</section>
+
+<!-- ================= PROJET · OBJETS ================= -->
+<section class="ecran" id="ecran-objets">
+  <div class="projet-tete"><div>
+    <a class="retour" href="#projets">← Projets</a>
+    <h1>Port de pêche</h1>
+    <div class="meta-projet"><span class="puce-style"><span class="points"><i style="background:#5C3D24"></i><i style="background:#3E4045"></i><i style="background:#CDBF9E"></i></span>Médiéval rustique</span><span class="etiquette gris">Objets · 2 variantes · Godot</span></div>
+  </div><button class="btn secondaire">Réglages du projet</button></div>
+  <ol class="etapes"><li class="courante"><span>1</span>Objets<small>6 proposés</small></li><li><span>2</span>Look</li><li><span>3</span>Fabrication</li><li><span>4</span>Validation</li><li><span>5</span>Essai</li><li><span>6</span>Jeu</li></ol>
+  <div class="coach" data-coach="objets"><i aria-hidden="true">?</i><p><b>Ici, tu choisis ce qui sera fabriqué.</b> L'app propose une liste d'objets d'après ta demande. Décoche ce dont tu n'as pas besoin. Tu pourras en ajouter plus tard.</p><button class="coach-x" aria-label="Masquer cette aide" title="Masquer">×</button></div>
+  <div class="carte bandeau info">
+    <div class="vignettes"><img src="img/style-medieval-caisse.png" alt=""><img src="img/style-medieval-amphore.png" alt=""></div>
+    <p><b>2 objets ressemblent à ce que tu as déjà</b> : Coffre de chêne et Jarre (Donjon). Les réutiliser ne coûte rien.</p>
+    <button class="btn mini secondaire">Voir et réutiliser</button>
+  </div>
+  <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px"><span class="petit">Clique « Régler… » sur un objet, ou règle-les tous d'un coup.</span><button class="btn mini secondaire" id="regler-tous">Régler les objets gardés ensemble…</button></div>
+  <div class="liste-objets" id="liste-objets"></div>
+  <div class="barre-bas" data-ecran="objets"><div><p id="resume-objets"></p><a class="btn primaire" href="#look">Choisir les looks →</a></div></div>
+</section>
+
+<!-- ================= PROJET · LOOK ================= -->
+<section class="ecran" id="ecran-look">
+  <div class="projet-tete"><div>
+    <a class="retour" href="#projets">← Projets</a>
+    <h1>Camp romain</h1>
+    <div class="meta-projet"><span class="puce-style"><span class="points"><i style="background:#B5582E"></i><i style="background:#8C6A2F"></i><i style="background:#6B2D4C"></i></span>Rome antique stylisée</span><span class="etiquette gris">Objets · 1 variante · Godot</span></div>
+  </div></div>
+  <ol class="etapes"><li class="faite"><span>✓</span>Objets<small>3</small></li><li class="courante"><span>2</span>Look<small>1 sur 3</small></li><li><span>3</span>Fabrication</li><li><span>4</span>Validation</li><li><span>5</span>Essai</li><li><span>6</span>Jeu</li></ol>
+  <div class="coach" data-coach="look"><i aria-hidden="true">?</i><p><b>Ici, tu choisis à quoi ressemble chaque objet.</b> Pour chacun, l'app a dessiné plusieurs images. Garde celle qui ressemble le plus à ce que tu imagines : la 3D sera fabriquée d'après elle.</p><button class="coach-x" aria-label="Masquer cette aide" title="Masquer">×</button></div>
+  <div id="looks"></div>
+  <div class="barre-bas" data-ecran="look"><div><p><b id="nb-looks">1 sur 3</b> looks choisis · tes favoris ★ restent dans l'historique</p><a class="btn primaire" href="#fabrication">Lancer la fabrication · 30 crédits →</a></div></div>
+</section>
+
+<!-- ================= PROJET · FABRICATION ================= -->
+<section class="ecran" id="ecran-fabrication">
+  <div class="projet-tete"><div>
+    <a class="retour" href="#projets">← Projets</a>
+    <h1>Camp romain</h1>
+    <div class="meta-projet"><span class="puce-style"><span class="points"><i style="background:#B5582E"></i><i style="background:#8C6A2F"></i><i style="background:#6B2D4C"></i></span>Rome antique stylisée</span></div>
+  </div><div style="display:flex;gap:8px"><button class="btn secondaire">Mettre en pause</button></div></div>
+  <ol class="etapes"><li class="faite"><span>✓</span>Objets</li><li class="faite"><span>✓</span>Look</li><li class="courante"><span>3</span>Fabrication<small id="fab-etape">0 sur 3</small></li><li><span>4</span>Validation</li><li><span>5</span>Essai</li><li><span>6</span>Jeu</li></ol>
+  <div class="coach" data-coach="fabrication"><i aria-hidden="true">?</i><p><b>Ici, il n'y a rien à faire.</b> L'app fabrique les objets. Tu es prévenu quand c'est prêt. Si un objet échoue, elle réessaie seule, sans te demander.</p><button class="coach-x" aria-label="Masquer cette aide" title="Masquer">×</button></div>
+  <div class="carte bandeau info"><p><b>Tu n'as rien à faire.</b> Tu peux fermer la page : la cloche te prévient. Les défauts corrigeables sont réparés seuls ; un vrai défaut relance une nouvelle tentative (3 au plus).</p></div>
+  <div id="fabs"></div>
+  <div class="barre-bas" data-ecran="fabrication"><div><p id="fab-resume"></p><a class="btn primaire" href="#validation">Valider les objets prêts →</a></div></div>
+</section>
+
+<!-- ================= PROJET · VALIDATION ================= -->
+<section class="ecran" id="ecran-validation">
+  <div class="projet-tete"><div>
+    <a class="retour" href="#projets">← Projets</a>
+    <h1>Camp romain</h1>
+    <div class="meta-projet"><span class="puce-style"><span class="points"><i style="background:#B5582E"></i><i style="background:#8C6A2F"></i><i style="background:#6B2D4C"></i></span>Rome antique stylisée</span></div>
+  </div></div>
+  <ol class="etapes"><li class="faite"><span>✓</span>Objets</li><li class="faite"><span>✓</span>Look</li><li class="faite"><span>✓</span>Fabrication</li><li class="courante" id="etape-validation"><span>4</span>Validation<small id="etape-valid-n">1 sur 2</small></li><li><span>5</span>Essai</li><li><span>6</span>Jeu</li></ol>
+  <div class="navigateur" id="navigateur"><div class="file-validation" id="file-validation"></div><span><button class="btn discret" id="b-prec">← Précédent</button><button class="btn discret" id="b-suiv">Suivant →</button></span></div>
+  <div class="validation">
+    <div class="carte visionneuse">
+      <div class="scene3d" id="scene-valid">
+        <div class="vue3d" id="vision" role="img" aria-label="Objet en 3D : glisse pour tourner"></div>
+        <div class="outils3d">
+          <div class="segment" id="lods"><button class="actif" data-lod="lod0">Détail 1<small></small></button><button data-lod="lod1">Détail 2<small></small></button><button data-lod="lod2">Détail 3<small></small></button></div>
+          <button class="btn mini secondaire droite" id="b-affichage" aria-haspopup="true" aria-expanded="false"><span id="nom-affichage">Texturé</span> ▾</button>
+        </div>
+        <div class="menu3d droite" id="menu-affichage" hidden role="menu">
+          <button class="actif" data-mode="texture"><b>Texturé</b><small>Tel qu'il sera dans le jeu</small></button>
+          <button data-mode="argile"><b>Argile</b><small>Sans couleur : juge la forme seule</small></button>
+          <button data-mode="fil"><b>Fil de fer</b><small>Montre le maillage, les triangles</small></button>
+          <button data-mode="surfaces"><b>Surfaces</b><small>Couleur selon l'orientation ; du rouge = face à l'envers</small></button>
+          <button data-mode="damier"><b>Damier</b><small>Montre si la texture est bien étalée</small></button>
+        </div>
+        <div class="pile-outils">
+          <button data-outil="lumiere" title="Lumière" aria-label="Lumière"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M2 12h2M20 12h2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg></button>
+          <button data-outil="reperes" title="Repères : sol, taille, point d'ancrage" aria-label="Repères"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20V5M4 20h15M4 20l6-6"/><path d="M4 5 2.5 7M4 5l1.5 2M19 20l-2-1.5M19 20l-2 1.5"/></svg></button>
+          <button data-outil="personnage" title="Voir à côté d'un personnage" aria-label="Voir à côté d'un personnage"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="5" r="2.2"/><path d="M12 8v7M7.5 10.5 12 9l4.5 1.5M12 15l-3 6M12 15l3 6"/></svg></button>
+          <button data-outil="tourner" title="Tourner tout seul" aria-label="Tourner tout seul"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M20 12a8 8 0 1 1-2.6-5.9"/><path d="M20 4v4h-4"/></svg></button>
+          <button data-outil="recentrer" title="Recentrer la vue" aria-label="Recentrer la vue"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M4 9V5h4M20 9V5h-4M4 15v4h4M20 15v4h-4"/><circle cx="12" cy="12" r="2.5"/></svg></button>
+        </div>
+        <div class="menu3d lateral" id="menu-lumiere" hidden>
+          <b>Lumière</b>
+          <label>Direction<input type="range" id="l-dir" min="0" max="360" value="40"></label>
+          <label>Hauteur<input type="range" id="l-haut" min="5" max="85" value="50"></label>
+          <div class="chips"><span data-lum="40,50" class="actif">Studio</span><span data-lum="40,10">Rasante</span><span data-lum="210,28">Contre-jour</span></div>
+          <small>La lumière rasante fait ressortir les bosses et les creux.</small>
+        </div>
+        <span class="aide3d" id="aide3d">Glisse pour tourner · molette pour zoomer</span>
+        <button class="btn mini secondaire annoter" id="annoter">＋ Pointer un défaut</button>
+        <div class="repere" title="À l'échelle : une personne de 1,75 m"><svg width="22" height="64" viewBox="0 0 22 64"><circle cx="11" cy="6" r="5" fill="#9A968E"/><path d="M5 14h12l2 22h-4l-1 26h-4l-1-18-1 18H4L3 36H-1z" transform="translate(1 0)" fill="#9A968E"/></svg><svg width="12" height="33" viewBox="0 0 12 33"><path d="M4 0h4v3q4 2 4 10 0 12-6 20-6-8-6-20 0-8 4-10z" fill="#B5582E"/></svg><span>1,75 m<br>0,90 m</span></div>
+      </div>
+      <div class="verifs3d" id="verifs3d" hidden></div>
+      <div class="sous-onglets">
+        <div class="onglets" data-groupe="vision"><button class="actif" data-cible="v-vues">5 vues</button><button data-cible="v-ref">Comparer à ton look</button><button data-cible="v-controles">Vérifications 12/12</button><button data-cible="v-avis">Avis de l'IA</button></div>
+        <div class="panneau-onglet actif" id="v-vues"><div class="vues" id="vues"></div></div>
+        <div class="panneau-onglet" id="v-ref"><div class="comparer"><figure><figcaption>Ton look</figcaption><img src="img/look-amphore-1.png" alt=""></figure><figure><figcaption>Objet 3D</figcaption><img src="img/vue-amphore-trois_quarts.png" alt=""></figure></div></div>
+        <div class="panneau-onglet" id="v-controles"><div class="controles" id="controles"></div></div>
+        <div class="panneau-onglet" id="v-avis"><div class="avis"><b>Claude, en regardant les 5 vues :</b> la silhouette correspond au look choisi et la terre cuite est fidèle à la palette. Le col paraît un peu fin vu de dos ; si l'amphore doit être tenue par un personnage, des anses plus épaisses la rendraient plus lisible à distance. <span class="petit">· Avis indicatif, c'est toi qui décides.</span></div></div>
+      </div>
+    </div>
+    <div class="carte decision" id="decision">
+      <div><h2 id="d-nom">Amphore</h2><p class="sous" id="d-source"></p></div>
+      <div class="verdict" id="verdict" data-etat="ok">
+        <div class="verdict-tete"><i id="verdict-icone">✓</i><b id="verdict-titre">Prêt à garder</b></div>
+        <ul class="verdict-liste" id="verdict-raisons"></ul>
+      </div>
+      <div class="guide" id="guide">
+        <p class="guide-titre">Regarde-le en 3 questions</p>
+        <div class="q" data-q="look">
+          <div class="q-ligne"><span>Ressemble-t-il à ton image ?</span><div class="rep"><button data-r="oui">Oui</button><button data-r="non">Non</button></div></div>
+          <button class="lien q-aide" data-aide="look">Voir côte à côte avec ton image</button>
+          <div class="q-suite" hidden><p>Un autre look de la série collera peut-être mieux.</p><button class="btn mini secondaire" data-suite="look">Refaire avec un autre look</button></div>
+        </div>
+        <div class="q" data-q="tour">
+          <div class="q-ligne"><span>Tourne-le : tout est bien de chaque côté ?</span><div class="rep"><button data-r="oui">Oui</button><button data-r="non">Non</button></div></div>
+          <button class="lien q-aide" data-aide="tour">Le faire tourner tout seul</button>
+          <div class="q-suite" hidden><p>Montre l'endroit : pointe le défaut sur l'objet, puis lance la correction.</p><button class="btn mini secondaire" data-suite="tour">＋ Pointer un défaut</button></div>
+        </div>
+        <div class="q" data-q="taille">
+          <div class="q-ligne"><span>La taille te paraît juste ?</span><div class="rep"><button data-r="oui">Oui</button><button data-r="non">Non</button></div></div>
+          <button class="lien q-aide" data-aide="taille">Le voir à côté d'un personnage</button>
+          <div class="q-suite" hidden><p>On peut changer la taille sans tout refaire.</p><button class="btn mini secondaire" data-suite="taille">Changer la taille</button></div>
+        </div>
+        <p class="guide-bilan" id="guide-bilan" hidden></p>
+      </div>
+      <details class="plus details-tech"><summary>Détails techniques</summary>
+        <div class="faits">
+          <div><small>Taille</small><b id="f-taille">–</b></div>
+          <div><small>Finesse</small><b id="f-finesse">–</b></div>
+          <div><small>Textures</small><b id="f-tex">–</b></div>
+          <div><small>Coût</small><b id="f-cout">–</b></div>
+        </div>
+      </details>
+      <div class="choix-decision">
+        <button class="btn primaire gros" id="b-garder" data-decision="garde"><span>✓ Garder dans <span id="nom-collection">Camp romain</span></span></button>
+        <button class="lien petit-lien" data-ouvrir="d-garder">Choisir une autre collection</button>
+        <div class="sous-decision" id="d-garder">
+          <div class="champ"><label>Dans la collection</label><select class="saisie"><option>Camp romain</option><option>Contenants</option><option>+ Nouvelle collection</option></select></div>
+          <div class="chips" id="chips-garder"></div>
+          <button class="btn primaire" data-decision="garde">Garder ici</button>
+        </div>
+        <div class="deux">
+          <button class="btn secondaire" data-ouvrir="d-corriger">Corriger</button>
+          <button class="btn secondaire" data-ouvrir="d-refaire">Refaire</button>
+        </div>
+        <div class="sous-decision" id="d-corriger">
+          <p class="petit" style="margin:0">On garde la forme et on change ce qui ne va pas.</p>
+          <div class="facons">
+            <button class="facon actif"><span class="rond"></span><span><b>Repeindre seulement</b><small>Garde la forme, refait la texture d'après une consigne ou une image</small></span><span class="etiquette ia">10 cr</span></button>
+            <button class="facon"><span class="rond"></span><span><b>Retoucher les zones pointées</b><small>Pointe chaque défaut sur l'objet 3D et dis ce qui ne va pas</small></span><span class="etiquette ia">10 cr</span></button>
+            <button class="facon"><span class="rond"></span><span><b>Alléger ou changer la finesse</b><small>Moins de triangles, ou des quadrilatères pour l'animer</small></span><span class="etiquette ia">5 cr</span></button>
+            <button class="facon" data-facon="taille"><span class="rond"></span><span><b>Changer la taille ou les proportions</b><small>Plus grand, plus petit, plus trapu : sans refaire la forme</small></span><span class="etiquette gratuit">0 cr</span></button>
+            <button class="facon"><span class="rond"></span><span><b>Séparer en pièces</b><small id="t-pieces">Pour les régler ou les réutiliser à part</small></span><span class="etiquette gratuit">0 cr</span></button>
+          </div>
+          <div class="notes" id="notes"><span class="petit">Astuce : « ＋ Pointer un défaut » sur la vue 3D pour montrer où ça ne va pas.</span></div>
+          <textarea class="saisie" id="t-corriger" placeholder="Ce qu'il faut changer"></textarea>
+          <button class="btn primaire" data-decision="corrige">Lancer la correction</button>
+        </div>
+        <div class="sous-decision" id="d-refaire">
+          <p class="petit" style="margin:0">On repart de zéro, avec une autre consigne ou un autre look.</p>
+          <div class="facons">
+            <button class="facon actif"><span class="rond"></span><span><b>Même look, avec une consigne</b><small>« plus trapue, plus épais »</small></span><span class="etiquette ia">30 cr</span></button>
+            <button class="facon"><span class="rond"></span><span><b>Un autre look de la série</b><small>Tes autres images et tes favoris</small></span><span class="etiquette ia">30 cr</span></button>
+            <button class="facon"><span class="rond"></span><span><b>Retoucher le look, puis refaire</b><small>Corrige l'image d'abord, la 3D suit</small></span><span class="etiquette ia">33 cr</span></button>
+            <button class="facon"><span class="rond"></span><span><b>Avec ta carte graphique</b><small>ComfyUI · gratuit · plus lent</small></span><span class="etiquette gratuit">0 cr</span></button>
+          </div>
+          <textarea class="saisie" id="t-refaire" placeholder="Ce que tu veux de différent"></textarea>
+          <button class="btn primaire" data-decision="refait">Refaire l'objet</button>
+        </div>
+        <button class="btn discret rouge" data-ouvrir="d-jeter">Jeter cet objet</button>
+        <div class="sous-decision" id="d-jeter">
+          <span class="petit">Pourquoi ? (ça améliore les prochaines propositions)</span>
+          <div class="chips"><span>Proportions</span><span>Détails flous</span><span>Ne ressemble pas au look</span><span>Hors du style</span><span>Inutile</span></div>
+          <button class="btn danger" data-decision="jete">Jeter l'objet</button>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="carte fin-validation" id="fin-validation" hidden>
+    <h2>Tout est validé</h2>
+    <p class="sous" id="fin-resume"></p>
+    <div class="fin-liste" id="fin-liste"></div>
+    <div class="fin-actions"><a class="btn primaire" href="#essai">Essayer les objets ensemble →</a><a class="btn secondaire" href="#bibliotheque">Voir dans la bibliothèque</a></div>
+  </div>
+  <div class="barre-bas" data-ecran="validation" id="barre-valid"><div class="actions-valid">
+    <button class="btn mini danger" data-aller="d-jeter">Jeter</button>
+    <button class="btn mini secondaire" data-aller="d-refaire">Refaire</button>
+    <button class="btn mini secondaire" data-aller="d-corriger">Corriger</button>
+    <button class="btn mini primaire" data-decision="garde">✓ Garder</button>
+  </div></div>
+</section>
+
+<!-- ================= ESSAI ================= -->
+<section class="ecran" id="ecran-essai">
+  <a class="retour" href="#projets">← Projets</a>
+  <div class="projet-tete"><div><h1>Camp romain</h1><div class="meta-projet"><span class="puce-style"><span class="points"><i style="background:#B5582E"></i><i style="background:#8C6A2F"></i><i style="background:#6B2D4C"></i></span>Rome antique stylisée</span></div></div></div>
+  <ol class="etapes"><li class="faite"><span>✓</span>Objets</li><li class="faite"><span>✓</span>Look</li><li class="faite"><span>✓</span>Fabrication</li><li class="faite"><span>✓</span>Validation</li><li class="courante" id="etape-essai"><span>5</span>Essai</li><li><span>6</span>Jeu</li></ol>
+  <div class="coach" data-coach="essai"><i aria-hidden="true">?</i><p><b>Ici, tu vois tous tes objets ensemble.</b> C'est le moment de vérifier que l'ensemble tient la route : les tailles entre elles, les couleurs, l'ambiance. Clique sur un objet pour le désigner.</p><button class="coach-x" aria-label="Masquer cette aide" title="Masquer">×</button></div>
+  <div class="validation">
+    <div class="carte visionneuse">
+      <div class="scene3d scene-essai" id="scene-essai" data-lumiere="jour" style="height:520px">
+        <div class="vue3d" id="vue-essai" role="img" aria-label="Tes objets ensemble dans une scène : glisse pour tourner"></div>
+        <div class="outils3d">
+          <div class="segment" id="essai-vues"><button class="actif" data-vue="ensemble">Vue d'ensemble</button><button data-vue="joueur">Vue du joueur</button></div>
+          <div class="segment droite" id="essai-lum"><button class="actif" data-lum="jour">Jour</button><button data-lum="soir">Soir</button><button data-lum="interieur">Intérieur</button></div>
+        </div>
+        <div class="selection-essai" id="essai-sel" hidden><b id="essai-sel-nom"></b><a class="btn mini secondaire" href="#validation">Revoir cet objet</a></div>
+      </div>
+    </div>
+    <div class="carte decision" id="essai-panneau">
+      <div><h2>Tes objets ensemble</h2><p class="sous" id="essai-sous">Une disposition d'essai, avec un personnage de 1,75 m pour l'échelle.</p></div>
+      <div class="verdict" id="essai-verdict" data-etat="ok">
+        <div class="verdict-tete"><i>✓</i><b>Ça tient bien ensemble</b></div>
+        <ul class="verdict-liste" id="essai-raisons"></ul>
+      </div>
+      <div class="guide" id="guide-essai">
+        <p class="guide-titre">Regarde-les en 2 questions</p>
+        <div class="q">
+          <div class="q-ligne"><span>Les tailles se tiennent bien entre elles ?</span><div class="rep"><button data-r="oui">Oui</button><button data-r="non">Non</button></div></div>
+          <button class="lien q-aide" data-essai-aide="joueur">Passer en vue du joueur</button>
+          <div class="q-suite" hidden><p>Corrige la taille de l'objet concerné depuis la validation.</p><a class="btn mini secondaire" href="#validation">Revoir un objet</a></div>
+        </div>
+        <div class="q">
+          <div class="q-ligne"><span>L'ambiance te plaît ?</span><div class="rep"><button data-r="oui">Oui</button><button data-r="non">Non</button></div></div>
+          <button class="lien q-aide" data-essai-aide="soir">Voir la scène le soir</button>
+          <div class="q-suite" hidden><p>Essaie un autre éclairage, ou change le look des objets.</p><a class="btn mini secondaire" href="#look">Changer les looks</a></div>
+        </div>
+        <p class="guide-bilan" id="essai-bilan" hidden></p>
+      </div>
+      <div class="choix-decision">
+        <a class="btn primaire gros" id="b-vers-jeu" href="#jeu">Récupérer pour mon jeu →</a>
+        <a class="btn discret" href="#validation">← Revenir à la validation</a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ================= JEU ================= -->
+<section class="ecran" id="ecran-jeu">
+  <a class="retour" href="#projets">← Projets</a>
+  <div class="projet-tete"><div><h1>Camp romain</h1><div class="meta-projet"><span class="puce-style"><span class="points"><i style="background:#B5582E"></i><i style="background:#8C6A2F"></i><i style="background:#6B2D4C"></i></span>Rome antique stylisée</span></div></div></div>
+  <ol class="etapes"><li class="faite"><span>✓</span>Objets</li><li class="faite"><span>✓</span>Look</li><li class="faite"><span>✓</span>Fabrication</li><li class="faite"><span>✓</span>Validation</li><li class="faite"><span>✓</span>Essai</li><li class="courante" id="etape-jeu"><span>6</span>Jeu</li></ol>
+  <div class="coach" data-coach="jeu"><i aria-hidden="true">?</i><p><b>Dernière étape : récupérer tes objets pour ton jeu.</b> Télécharge le pack, ou copie un lien à ouvrir sur l'ordinateur où est ton jeu. L'app prépare tout et vérifie les fichiers.</p><button class="coach-x" aria-label="Masquer cette aide" title="Masquer">×</button></div>
+  <div class="validation jeu" id="jeu-corps">
+    <div class="gauche">
+      <div class="carte bloc"><h2>Ce que contient le pack</h2><div class="liste-envoi" id="liste-envoi"></div></div>
+      <div class="carte bloc"><h2>Pour quel logiciel ?</h2>
+        <p class="petit" style="margin:-6px 0 0">Les fichiers sont toujours les mêmes (.glb, le format standard de la 3D). Ton choix sert seulement à écrire le bon mode d'emploi.</p>
+        <div class="destinations" id="destinations">
+          <button class="dest actif" data-dest="autre"><b>Je ne sais pas encore</b><small>Aucun souci : le pack marche partout</small></button>
+          <button class="dest" data-dest="godot"><b>Godot</b><small>Moteur de jeu</small></button>
+          <button class="dest" data-dest="unity"><b>Unity</b><small>Avec le paquet glTFast</small></button>
+          <button class="dest" data-dest="unreal"><b>Unreal</b><small>Import glTF intégré</small></button>
+        </div>
+      </div>
+      <div class="carte bloc"><h2>Vérification finale</h2><ul class="verifs-jeu" id="verifs-jeu"></ul></div>
+    </div>
+    <div class="carte decision" id="panneau-envoi">
+      <div><h2>Prêt à récupérer</h2><p class="sous" id="resume-envoi">–</p></div>
+      <div class="verdict" data-etat="ok"><div class="verdict-tete"><i>✓</i><b>Tout est vérifié</b></div></div>
+      <div class="choix-decision">
+        <button class="btn primaire gros" id="b-zip">Télécharger le pack (.zip)</button>
+        <div class="partage">
+          <b>Ou sur un autre appareil</b>
+          <div class="partage-ligne"><input class="saisie" id="lien-partage" readonly aria-label="Lien de téléchargement"><button class="btn secondaire" id="b-lien">Copier</button></div>
+          <small>Ouvre ce lien sur l'ordinateur où est ton jeu. Il reste valable 7 jours.</small>
+        </div>
+        <button class="btn discret">Publier sur itch.io…</button>
+      </div>
+      <details class="plus"><summary>Comment les utiliser dans <span id="nom-moteur">ton logiciel</span></summary>
+        <ol class="mode-emploi" id="mode-emploi"></ol>
+      </details>
+    </div>
+  </div>
+  <div class="carte fin-validation" id="fin-jeu" hidden>
+    <h2 id="fin-jeu-titre">Pack téléchargé</h2>
+    <p class="sous" id="fin-jeu-resume"></p>
+    <p class="guide-titre" style="margin:6px 0 0">Pour l'utiliser dans <span id="fin-moteur">ton logiciel</span></p>
+    <ol class="mode-emploi centre" id="fin-jeu-emploi"></ol>
+    <div class="fin-actions"><a class="btn primaire" href="#bibliotheque">Voir dans la bibliothèque</a><a class="btn secondaire" href="#accueil">Créer autre chose</a><button class="btn discret" id="b-retour-jeu">Retélécharger</button></div>
+  </div>
+</section>
+
+<!-- ================= PROJETS ================= -->
+<section class="ecran" id="ecran-projets">
+  <div style="display:flex;justify-content:space-between;align-items:flex-end;flex-wrap:wrap;gap:16px">
+    <div><h1>Projets</h1><p class="sous">Chaque projet suit 4 étapes. Ce qui attend ton action est en haut.</p></div>
+    <div class="segment"><button class="actif">En cours · 3</button><button>Terminés · 7</button><button>Archivés</button></div>
+  </div>
+  <div style="margin-top:22px" id="lignes-projets"></div>
+</section>
+
+<!-- ================= BIBLIOTHÈQUE ================= -->
+<section class="ecran" id="ecran-bibliotheque">
+  <div style="display:flex;align-items:flex-end;justify-content:space-between;gap:20px;flex-wrap:wrap;margin-bottom:22px">
+    <div><h1>Bibliothèque</h1><p class="sous">142 objets gardés · prêts à exporter vers ton jeu ou à publier.</p></div>
+    <div style="display:flex;gap:10px"><input class="saisie" style="width:320px" placeholder="Rechercher : tonneau, bronze, médiéval…"><select class="saisie" style="width:auto"><option>Plus récents</option><option>Nom</option><option>Finesse</option></select><button class="btn secondaire">Importer un pack gratuit</button></div>
+  </div>
+  <div class="biblio">
+    <button class="btn secondaire btn-filtres" id="btn-filtres" type="button">Filtres</button>
+    <aside class="carte filtres-cote" id="filtres-cote">
+      <div><h3>Collections</h3><label><input type="radio" name="col" checked> Tout<span>142</span></label><label><input type="radio" name="col"> Camp romain<span>18</span></label><label><input type="radio" name="col"> Contenants<span>23</span></label><label><input type="radio" name="col"> Pack Médiéval vol. 1<span>40</span></label></div>
+      <div><h3>Style</h3><div id="filtre-styles"></div></div>
+      <div><h3>Catégorie</h3><label><input type="checkbox"> Petits objets<span>61</span></label><label><input type="checkbox"> Objets moyens<span>52</span></label><label><input type="checkbox"> Grands objets<span>17</span></label><label><input type="checkbox"> Modules d'architecture<span>12</span></label></div>
+      <div><h3>Fabriqué par</h3><label><input type="checkbox"> IA (Meshy)<span>88</span></label><label><input type="checkbox"> Ta carte graphique<span>9</span></label><label><input type="checkbox"> Script<span>31</span></label><label><input type="checkbox"> Modèle gratuit<span>14</span></label></div>
+      <div><h3>État</h3><label><input type="checkbox"> Publiés<span>40</span></label><label><input type="checkbox"> Pas encore publiés<span>102</span></label></div>
+    </aside>
+    <div class="grille-objets" id="tous-objets"></div>
+  </div>
+  <div class="selection-barre" id="selection-barre"><span id="nb-selection">2 sélectionnés</span><button class="btn">Ajouter à une collection</button><button class="btn">Étiqueter</button><button class="btn">Exporter</button><button class="btn blanc">Publier sur itch.io…</button></div>
+</section>
+
+<!-- ================= FICHE OBJET ================= -->
+<section class="ecran" id="ecran-fiche">
+  <a class="retour" href="#bibliotheque">← Bibliothèque</a>
+  <div style="display:flex;justify-content:space-between;align-items:flex-end;gap:16px;flex-wrap:wrap;margin-bottom:20px">
+    <div><h1>Caisse ferrée</h1><div class="meta-projet"><span class="puce-style"><span class="points"><i style="background:#B5582E"></i><i style="background:#8C6A2F"></i><i style="background:#6B2D4C"></i></span>Rome antique stylisée · v0</span><span class="etiquette gratuit">Gardée</span><span class="etiquette gris">Pas encore publiée</span></div></div>
+    <div style="display:flex;gap:8px"><button class="btn secondaire">Refaire dans un autre style…</button><button class="btn primaire">Publier…</button></div>
+  </div>
+  <div class="fiche">
+    <div class="carte visionneuse"><div class="scene3d" style="height:420px"><div class="vue3d" id="vision-fiche" role="img" aria-label="Caisse en 3D : glisse pour tourner"></div><span class="aide3d" style="display:block">Glisse pour tourner</span></div></div>
+    <div class="carte" style="padding:18px 20px">
+      <div class="onglets" data-groupe="fiche"><button class="actif" data-cible="f-versions">Versions</button><button data-cible="f-fichiers">Fichiers et export</button><button data-cible="f-provenance">Provenance</button><button data-cible="f-usage">Utilisée dans</button></div>
+      <div class="panneau-onglet actif" id="f-versions">
+        <div class="version active"><img src="img/look-caisse-2.png" alt=""><div><b>Version 2 · active</b><br><span class="petit">Script · cadre fer, 3 planches · gardée le 21 oct.</span></div><span class="etiquette gratuit">Active</span></div>
+        <div class="version"><img src="img/look-caisse-0.png" alt=""><div><b>Version 1</b><br><span class="petit">Jetée · motif : « trop simple, sans cadre »</span></div><button class="btn mini secondaire">Comparer</button></div>
+        <button class="btn discret">+ Nouvelle version</button>
+      </div>
+      <div class="panneau-onglet" id="f-fichiers">
+        <div class="fichiers"><div><span>Caisse · GLB (3 détails + collision)</span><b>29 Ko</b></div><div><span>Caisse · FBX</span><b>41 Ko</b></div><div><span>Fichier Blender</span><b>612 Ko</b></div><div><span>Finesse</span><b>404 · 202 · 100 triangles</b></div></div>
+        <p class="petit" style="margin:14px 0 0">Exporter pour ton moteur (échelle, axes et dossiers adaptés) :</p>
+        <div class="exports"><button>Godot<small>.glb · glTF</small></button><button>Unity<small>.fbx · prefab</small></button><button>Unreal<small>.fbx · cm</small></button><button>Pack ZIP<small>tout</small></button></div>
+      </div>
+      <div class="panneau-onglet" id="f-provenance">
+        <dl class="provenance"><dt>Fabriquée par</dt><dd>Script <b>caisse</b> v1 (gratuit)</dd><dt>Réglages</dt><dd>cadre fer · 3 planches · creux 1 cm</dd><dt>Style</dt><dd>Rome antique stylisée v0</dd><dt>Projet</dt><dd>Camp romain</dd><dt>Licence</dt><dd>À choisir à la publication (CC0 proposé)</dd><dt>Créée</dt><dd>21 oct. 2026</dd></dl>
+      </div>
+      <div class="panneau-onglet" id="f-usage"><p class="petit">Projets : Camp romain · Collections : Contenants · Packs : aucun</p></div>
+    </div>
+  </div>
+</section>
+
+<!-- ================= STYLES ================= -->
+<section class="ecran" id="ecran-styles">
+  <div style="display:flex;justify-content:space-between;align-items:flex-end;flex-wrap:wrap;gap:16px">
+    <div><h1>Styles</h1><p class="sous">Un style donne à tous les objets d'un projet la même palette, les mêmes matériaux et la même finesse. Clique un style pour voir et régler ses règles.</p></div>
+    <div class="segment"><button class="actif">Tous · 6</button><button>Stylisés</button><button>Réalistes</button><button>Mes styles</button></div>
+  </div>
+  <div class="biblio-styles" id="biblio-styles"></div>
+</section>
+
+<!-- ================= DÉTAIL D'UN STYLE ================= -->
+<section class="ecran" id="ecran-style">
+  <a class="retour" href="#styles">← Styles</a>
+  <div style="display:flex;justify-content:space-between;align-items:flex-end;gap:16px;flex-wrap:wrap;margin-bottom:20px">
+    <div><h1>Rome antique stylisée</h1><p class="sous">Formes simples et lisibles, arêtes légèrement arrondies, couleurs franches, usure discrète.</p>
+      <div class="meta-projet" style="margin-top:10px"><span class="etiquette gratuit">Version 0 · active</span><span class="etiquette gris">Utilisé par 2 projets · 31 objets</span></div></div>
+    <div style="display:flex;gap:8px"><button class="btn secondaire">Créer une version 1…</button><a class="btn primaire" href="#accueil">Nouveau projet dans ce style</a></div>
+  </div>
+  <div class="style-detail">
+    <div class="carte" style="grid-column:1/3"><h2>Planche du style</h2><div class="planche-style" id="planche-style"></div><p class="petit" style="margin:10px 0 0">Les objets gardés ici servent d'exemples à chaque image que l'app demande dans ce style.</p></div>
+    <div class="carte"><h2>Palette</h2><div class="palette" id="palette"></div></div>
+    <div class="carte"><h2>Matériaux</h2><div class="spheres" id="spheres"></div></div>
+    <div class="carte"><h2>Finesse</h2>
+      <table class="tableau"><tr><th>Taille d'objet</th><th>Triangles max</th><th>Texture</th></tr><tr><td>Petit objet</td><td>2 000</td><td>1024 px</td></tr><tr><td>Objet moyen</td><td>6 000</td><td>1024 px</td></tr><tr><td>Grand objet</td><td>15 000</td><td>2048 px</td></tr><tr><td>Module d'architecture</td><td>8 000</td><td>2048 px</td></tr></table>
+      <p class="petit" style="margin:10px 0 0">3 niveaux de détail par objet (100 %, 50 %, 25 %) · 512 pixels par mètre</p></div>
+    <div class="carte"><h2>Tailles de référence</h2>
+      <table class="tableau"><tr><th>Objet</th><th>Largeur × profondeur × hauteur</th></tr><tr><td>Amphore</td><td>0,35 × 0,35 × 0,90 m</td></tr><tr><td>Caisse</td><td>0,60 × 0,40 × 0,40 m</td></tr><tr><td>Colonne</td><td>0,60 × 0,60 × 4,50 m</td></tr><tr><td>Table</td><td>1,20 × 0,70 × 0,75 m</td></tr><tr><td>Banc</td><td>1,20 × 0,35 × 0,45 m</td></tr></table></div>
+    <div class="carte" style="grid-column:1/3"><h2>Consigne envoyée à l'IA pour chaque image</h2>
+      <div class="avis"><b>{objet}</b>, Rome antique stylisée, prop de jeu vidéo, formes lisibles, couleurs <b>{palette}</b>, fond neutre uni, éclairage doux, vue trois-quarts, sans texte</div></div>
+  </div>
+</section>
+
+<!-- ================= NOUVEAU STYLE ================= -->
+<section class="ecran" id="ecran-nouveau-style">
+  <a class="retour" href="#styles">← Styles</a>
+  <h1>Nouveau style</h1><p class="sous">Montre ce que tu aimes ; l'app comprend, tu corriges, elle teste, tu gardes.</p>
+  <ol class="etapes" style="margin-top:22px"><li class="faite"><span>✓</span>Tes images<small>14</small></li><li class="courante"><span>2</span>Ce que l'app a compris</li><li><span>3</span>Test sur 6 objets</li></ol>
+  <div class="style-detail">
+    <div class="carte"><h2>Tes images de référence</h2><div class="planche-style" style="grid-template-columns:repeat(7,1fr)" id="ns-images"></div>
+      <p class="petit" style="margin:12px 0 0">Glisse aussi une image depuis un site ou une capture de jeu. Plus elles se ressemblent (couleurs, lumière, rendu), plus le style est net.</p></div>
+    <div class="carte"><h2>Description proposée</h2><textarea class="saisie" style="min-height:120px">Rustique et robuste : chêne sombre, fer forgé noirci, pierre grise. Formes massives, arêtes usées, peu de saturation, lumière froide.</textarea>
+      <div class="chips" style="margin-top:12px"><span class="actif">semi-réaliste</span><span class="actif">usé</span><span>propre</span><span>saturé</span><span>+ mot-clé</span></div></div>
+    <div class="carte"><h2>Palette tirée de tes images</h2><div class="palette" id="ns-palette"></div><p class="petit" style="margin:12px 0 0">Clique une couleur pour la changer ou la renommer.</p></div>
+    <div class="carte"><h2>Matériaux proposés</h2><div class="spheres" id="ns-spheres"></div></div>
+  </div>
+  <div class="barre-bas" data-ecran="nouveau-style"><div><p><b>Étape 2 sur 3</b> · le test dessine 6 objets dans ce style · 18 crédits</p><a class="btn primaire" href="#style">Tester le style sur 6 objets →</a></div></div>
+</section>
+
+<!-- ================= RÉGLAGES ================= -->
+<section class="ecran" id="ecran-reglages">
+  <h1>Réglages</h1><p class="sous">Tes comptes, ta machine, tes dépenses et la fabrication. Rien ne part ailleurs que vers ces services.</p>
+  <div class="reglages">
+    <div class="carte"><h2>Comptes</h2>
+      <div class="ligne-reglage"><span><b>Meshy</b><small>Images et objets 3D · forfait Pro</small></span><span class="etiquette gratuit">Connecté · 688 crédits</span></div>
+      <div class="ligne-reglage"><span><b>Claude</b><small>Listes d'objets, avis · claude-sonnet-5-5</small></span><span class="etiquette gratuit">Connecté · 0,42 $ ce mois</span></div>
+      <div class="ligne-reglage"><span><b>itch.io</b><small>Publication des packs</small></span><span class="etiquette gris">Non relié</span></div></div>
+    <div class="carte"><h2>Ta machine</h2>
+      <div class="ligne-reglage"><span><b>Blender 5.2.2</b><small>Finition, contrôles, photos</small></span><span class="etiquette gratuit">Trouvé</span></div>
+      <div class="ligne-reglage"><span><b>Carte graphique · PC Windows</b><small>ComfyUI · RTX 3060 Ti · objets IA gratuits</small></span><span class="etiquette attente">PC éteint · Réveiller</span></div></div>
+    <div class="carte"><h2>Dépenses</h2>
+      <div class="ligne-reglage"><span><b>Alerte crédits Meshy</b><small>Prévenir à 80 % du mois</small></span><span>800 crédits</span></div>
+      <div class="ligne-reglage"><span><b>Plafond Claude</b><small>Au-delà, l'app passe en simulé</small></span><span>5 $ / mois</span></div></div>
+    <div class="carte"><h2>Fabrication</h2>
+      <div class="ligne-reglage"><span><b>Relances automatiques</b><small>Sur un vrai défaut, par objet</small></span><span>3</span></div>
+      <div class="ligne-reglage"><span><b>Générateurs</b><small>6 scripts · Meshy · ComfyUI · banc d'essai pour les comparer</small></span><a class="lien" href="#reglages">Gérer</a></div></div>
+  </div>
+</section>
+</main>
+
+<!-- Tiroir : détails d'un objet proposé -->
+<div class="voile" id="voile"></div>
+<aside class="tiroir" id="tiroir" aria-label="Détails de l'objet">
+  <div class="tiroir-tete"><h2 id="t-nom">Tonneau cerclé</h2><button class="icone" id="fermer-tiroir" aria-label="Fermer">✕</button></div>
+  <div class="tiroir-corps">
+    <div class="champ"><label>Description (envoyée à l'IA)</label><textarea class="saisie" id="t-desc"></textarea><span class="aide">Formes, matières, détails. Ton style ajoute la palette et la finition.</span></div>
+    <div class="champ" id="t-images"><span class="titre">Images de cet objet <small class="petit">· 1 à 4 vues : face, profil, dos…</small></span>
+      <div class="depot"><div class="vignette" style="background-image:url(img/look-amphore-1.png)"><small>face</small></div><button class="ajout">+ profil</button><button class="ajout">+ dos</button></div>
+      <span class="aide" style="margin-top:14px">Plusieurs vues du même objet donnent une meilleure 3D. Le look choisi à l'étape 2 compte comme la face.</span></div>
+    <div class="champ"><span class="titre">Taille</span>
+      <div class="taille"><div class="trois"><div class="champ"><label>Largeur</label><input class="saisie" value="0,60 m"></div><div class="champ"><label>Profondeur</label><input class="saisie" value="0,60 m"></div><div class="champ"><label>Hauteur</label><input class="saisie" value="0,90 m"></div></div>
+        <div class="echelle"><div style="text-align:center"><svg width="26" height="120" viewBox="0 0 26 120"><circle cx="13" cy="10" r="9" fill="#B9B4AA"/><path d="M3 24h20l3 44h-6l-2 52h-6l-1-34-1 34H4L2 68H-4z" transform="translate(3 0)" fill="#B9B4AA"/></svg><small>1,75 m</small></div><div style="text-align:center"><svg width="40" height="62" viewBox="0 0 40 62"><rect x="2" y="2" width="36" height="58" rx="12" fill="#8A5F3A"/><rect x="2" y="14" width="36" height="4" fill="#3E4045"/><rect x="2" y="44" width="36" height="4" fill="#3E4045"/></svg><small>0,90 m</small></div></div></div>
+      <span class="aide">Le style connaît la taille d'un tonneau : 0,60 × 0,60 × 0,90 m.</span></div>
+    <div class="champ"><span class="titre">Finesse</span><div class="segment"><button>Petit · 2 000</button><button class="actif">Moyen · 6 000</button><button>Grand · 15 000</button></div><span class="aide">Nombre de triangles maximum ; 3 niveaux de détail sont faits automatiquement.</span></div>
+    <div class="champ"><span class="titre">Variantes</span><span class="stepper"><button>−</button><span>2</span><button>+</button></span></div>
+    <div class="champ"><span class="titre">Façon de le fabriquer</span>
+      <div class="facons">
+        <button class="facon actif"><span class="rond"></span><span><b>IA · Meshy</b> <span class="etiquette gratuit" style="font-size:11px">conseillé</span><small>Le plus fidèle au look choisi · ~6 min</small></span><span class="etiquette ia">42 cr</span></button>
+        <button class="facon"><span class="rond"></span><span><b>IA · ta carte graphique</b><small>ComfyUI sur ton PC · gratuit · ~12 min · PC à allumer</small></span><span class="etiquette gratuit">0 cr</span></button>
+        <button class="facon indispo"><span class="rond"></span><span><b>Script Blender</b><small>Pas de script « tonneau » pour l'instant · <span class="lien">demander à Claude Code de l'écrire</span></small></span><span class="etiquette gratuit">0 cr</span></button>
+        <button class="facon"><span class="rond"></span><span><b>Modèle gratuit (CC0)</b><small>2 trouvés : Kenney « barrel », Quaternius « Barrel_01 » · tel quel</small></span><span class="etiquette gratuit">0 cr</span></button>
+        <button class="facon"><span class="rond"></span><span><b>Repartir d'un modèle existant, repeint dans ton style</b><small>Un modèle gratuit, le tien ou un objet de ta bibliothèque · seule la texture est refaite</small></span><span class="etiquette ia">10 cr</span></button>
+      </div></div>
+    <div class="champ"><span class="titre">Qualité</span><div class="segment"><button class="actif">Brouillon d'abord · forme 20 cr</button><button>Directement final · 30 cr</button><button>Haute précision · 35 cr</button></div><span class="aide">Brouillon : tu valides la forme sans texture, puis la finition texturée coûte 10 crédits.</span></div>
+    <div class="champ"><span class="titre">Matériaux du style attendus</span><div class="chips"><span class="actif"><i style="background:#5C3D24"></i>bois</span><span class="actif"><i style="background:#3E4045"></i>fer</span><span><i style="background:#4A2F1F"></i>cuir</span><span><i style="background:#7D7A72"></i>pierre</span></div></div>
+    <div class="champ"><span class="titre">Fait de plusieurs pièces ?</span><span class="bascule"><i class="off"></i>Non · un seul bloc</span><span class="aide">Ex. une colonne : le fût par script (gratuit) et le chapiteau sculpté par IA, assemblés.</span></div>
+  </div>
+  <div class="tiroir-pied"><span class="petit">Estimation : 2 variantes · 84 crédits · ~12 min</span><button class="btn primaire" id="valider-tiroir">Enregistrer</button></div>
+</aside>
+
+<div class="toast" id="toast" hidden role="status"><span id="toast-texte"></span><button class="lien" id="toast-annuler">Annuler</button></div>
+<script>
+const STYLES = [
+  {id:"rome", nom:"Rome antique stylisée", desc:"Terre cuite, bronze et marbre. Formes simples, couleurs franches.", fond:"#F4E7DA", palette:["#B5582E","#8C6A2F","#E8E3D8","#6B2D4C"], objets:31, sorte:"Stylisé"},
+  {id:"medieval", nom:"Médiéval rustique", desc:"Chêne sombre, fer forgé, pierre. Usé et robuste.", fond:"#E7E3DC", palette:["#5C3D24","#3E4045","#7D7A72","#CDBF9E"], objets:54, sorte:"Semi-réaliste"},
+  {id:"cartoon", nom:"Fantasy cartoon", desc:"Couleurs vives, or et violet. Rond et généreux.", fond:"#F3E9FB", palette:["#C7894B","#E2B13C","#8E44AD","#7A8CA8"], objets:0, sorte:"Stylisé"},
+  {id:"scifi", nom:"Sci-fi épuré", desc:"Blanc, acier, touches de cyan et d'orange. Net et propre.", fond:"#E8EEF7", palette:["#F5F7FA","#4B5563","#38BDF8","#F97316"], objets:12, sorte:"Stylisé"},
+  {id:"postapo", nom:"Post-apocalyptique", desc:"Rouille, toile, béton. Rafistolé avec ce qui reste.", fond:"#ECE6DC", palette:["#7A4A2A","#6B5B45","#9C8F6E","#A8A397"], objets:0, sorte:"Semi-réaliste"},
+  {id:"japon", nom:"Japon féodal", desc:"Laque rouge, bois noir, papier. Sobre et précis.", fond:"#F3E6E2", palette:["#B23A2A","#2B2420","#EFE6D6","#B08D3C"], objets:45, sorte:"Stylisé"},
+];
+const S = id => STYLES.find(s=>s.id===id);
+const points = p => `<span class="points">${p.map(c=>`<i style="background:${c}"></i>`).join("")}</span>`;
+const $ = id => document.getElementById(id);
+
+// Créer
+$("styles-mini").innerHTML = STYLES.map((s,i)=>`<button class="style-mini ${i===1?"choisi":""}" data-style="${s.id}"><div class="scene teinte" style="--teinte:${s.fond}"><img src="img/style-${s.id}-caisse.png" alt=""><img src="img/style-${s.id}-amphore.png" alt=""></div><div class="nom">${s.nom}</div></button>`).join("");
+$("styles-mini").addEventListener("click", e=>{ const b=e.target.closest("[data-style]"); if(!b) return; document.querySelectorAll(".style-mini").forEach(x=>x.classList.toggle("choisi",x===b)); });
+$("genre-projet").addEventListener("click", e=>{ const b=e.target.closest("button"); if(!b) return; $("genre-projet").querySelectorAll("button").forEach(x=>x.classList.toggle("actif",x===b)); $("aide-mode").textContent=b.dataset.aide; });
+$("exemples").addEventListener("click", e=>{ const b=e.target.closest("button"); if(!b) return;
+  $("consigne").value=b.dataset.texte;
+  $("images-prompt").querySelectorAll(".vignette").forEach(v=>v.remove());
+  $("images-prompt").insertAdjacentHTML("afterbegin", `<div class="vignette" style="background-image:url(img/${b.dataset.img}.png)"></div>`);
+  document.querySelectorAll(".style-mini").forEach(x=>x.classList.toggle("choisi",x.dataset.style===b.dataset.style));
+  window.scrollTo({top:0,behavior:"smooth"}); });
+document.querySelectorAll(".bascule i").forEach(i=>i.addEventListener("click",()=>i.classList.toggle("off")));
+document.querySelectorAll(".segment").forEach(g=>g.addEventListener("click",e=>{ const b=e.target.closest("button"); if(!b||g.id==="lods") return; g.querySelectorAll("button").forEach(x=>x.classList.toggle("actif",x===b)); }));
+
+// Projets
+const PROJETS = [
+  {nom:"Camp romain", st:"rome", info:"3 objets · 2 looks à choisir", etape:1, lien:"#look", tag:["attente","À toi : choisir les looks"]},
+  {nom:"Donjon", st:"medieval", info:"4 objets · 3 prêts à valider", etape:3, lien:"#validation", tag:["ia","À toi : valider"]},
+  {nom:"Station orbitale", st:"scifi", info:"6 objets · 2 prêts, 4 en fabrication", etape:2, lien:"#fabrication", tag:["gratuit","En fabrication"]},
+  {nom:"Temple de Kyoto", st:"japon", info:"8 objets · tous gardés · publié", etape:6, lien:"#bibliotheque", tag:["gris","Terminé"]},
+];
+const mosaique = st => `<div class="mosaique teinte" style="--teinte:${S(st).fond}">${["caisse","amphore","gladius","colonne"].map(o=>`<img src="img/style-${st}-${o}.png" alt="">`).join("")}</div>`;
+$("projets-accueil").innerHTML = PROJETS.filter(p=>p.tag[1].startsWith("À toi")).map(p=>`<a class="carte projet" href="${p.lien}">${mosaique(p.st)}<div><h3>${p.nom}</h3><p>${S(p.st).nom} · ${p.info}</p><span class="etiquette ${p.tag[0]}">${p.tag[1]}</span></div></a>`).join("");
+$("lignes-projets").innerHTML = PROJETS.map(p=>`<a class="carte projet" style="margin-bottom:12px" href="${p.lien}">${mosaique(p.st)}<div style="flex:1"><h3>${p.nom}</h3><p>${S(p.st).nom} · ${p.info}</p>
+  <div class="pas">${["Objets","Look","Fabrication","Validation","Essai","Jeu"].map((l,k)=>`<span class="${k<p.etape?"fait":k===p.etape?"cours":""}">${k<p.etape?"✓ ":""}${l}</span>`).join("")}</div></div><span class="etiquette ${p.tag[0]}">${p.tag[1]}</span></a>`).join("");
+
+// Bibliothèque
+const OBJETS = [["Amphore","rome","amphore"],["Caisse ferrée","rome","caisse"],["Colonne","japon","colonne"],["Glaive","rome","gladius"],["Coffre de chêne","medieval","caisse"],["Jarre","medieval","amphore"],["Caisse rouillée","postapo","caisse"],["Épée","medieval","gladius"],["Pilier","postapo","colonne"],["Vase laqué","japon","amphore"],["Caisse dorée","cartoon","caisse"],["Lame courbe","japon","gladius"],["Conteneur","scifi","caisse"],["Réservoir","scifi","amphore"],["Colonne sculptée","rome","colonne"]];
+const carteObjet = ([nom,st,obj],i) => `<div class="carte objet" data-i="${i}"><span class="coche">✓</span><div class="fond teinte" style="--teinte:${S(st).fond}"><img src="img/style-${st}-${obj}.png" alt=""></div><b>${nom}</b><small>${S(st).nom}</small></div>`;
+$("derniers").innerHTML = OBJETS.slice(0,6).map(carteObjet).join("");
+$("tous-objets").innerHTML = OBJETS.map(carteObjet).join("");
+$("filtre-styles").innerHTML = STYLES.map(s=>`<label><input type="checkbox"> ${s.nom}<span>${s.objets}</span></label>`).join("");
+const choisis = new Set();
+$("tous-objets").addEventListener("click", e=>{ const c=e.target.closest(".objet"); if(!c) return;
+  if(e.target.closest(".coche")){ const i=c.dataset.i; choisis.has(i)?choisis.delete(i):choisis.add(i); c.classList.toggle("selection");
+    $("selection-barre").classList.toggle("ouverte", choisis.size>0); $("nb-selection").textContent = `${choisis.size} sélectionné${choisis.size>1?"s":""}`; return; }
+  location.hash="#fiche"; });
+$("derniers").addEventListener("click", ()=>location.hash="#fiche");
+
+// Styles
+$("biblio-styles").innerHTML = STYLES.map(s=>`<a class="carte style-carte" href="#style"><div class="scene teinte" style="--teinte:${s.fond}"><img class="petit" src="img/style-${s.id}-gladius.png" alt=""><img src="img/style-${s.id}-caisse.png" alt=""><img src="img/style-${s.id}-amphore.png" alt=""><img class="petit" src="img/style-${s.id}-colonne.png" alt=""></div>
+  <div class="corps"><h3>${s.nom}</h3><p>${s.desc}</p><div class="pied">${points(s.palette)}<span class="petit">${s.sorte} · ${s.objets} objets</span></div></div></a>`).join("") +
+  `<div class="carte style-carte creer"><div><div class="plus">+</div><h3>Créer un style à partir de mes images</h3><p style="margin-top:8px">Dépose 10 à 25 images cohérentes : l'app en tire la palette, les matériaux et la description, puis teste le style sur 6 objets avant que tu l'enregistres.</p><a class="btn primaire" style="margin-top:14px" href="#nouveau-style">Commencer</a></div></div>`;
+$("planche-style").innerHTML = ["caisse","amphore","colonne","gladius"].map(o=>`<div class="teinte" style="--teinte:${S("rome").fond}"><img src="img/style-rome-${o}.png" alt=""></div>`).join("") + `<div class="teinte" style="--teinte:#F4E7DA"><img src="img/look-scutum-1.png" alt=""></div><div class="teinte" style="--teinte:#F4E7DA"><img src="img/look-amphore-2.png" alt=""></div>`;
+$("palette").innerHTML = [["terre cuite","#B5582E"],["ocre","#C8902A"],["bronze","#8C6A2F"],["marbre","#E8E3D8"],["fer","#5B5E63"],["cuir","#6E4A2B"],["bois","#8A5F3A"],["pourpre","#6B2D4C"],["lin","#D9CBA8"],["pierre","#A39F93"]].map(([n,c])=>`<div><i style="background:${c}"></i>${n}</div>`).join("");
+$("spheres").innerHTML = [["bois",.75,0],["cuir",.6,0],["bronze",.35,1],["fer",.45,1],["marbre",.3,0],["terre_cuite",.8,0],["tissu",.9,0],["pierre",.85,0],["pourpre",.85,0],["ocre",.8,0]].map(([m,r,me])=>`<div><img src="img/sphere-rome-${m}.png" alt=""><b>${m.replace("_"," ")}</b><small>${me?"métal":"mat"} · rugosité ${String(r).replace(".",",")}</small></div>`).join("");
+
+// Objets proposés + tiroir de détails
+const PROPOSES = [
+  {nom:"Tonneau cerclé", d:"Tonneau de chêne à deux cercles de fer, un peu usé.", facon:"ia", taille:"0,60 × 0,60 × 0,90 m", var:2, oui:true},
+  {nom:"Caisse de poissons", d:"Caisse en planches avec poignées de corde.", facon:"code", img:"style-medieval-caisse", taille:"0,60 × 0,40 × 0,40 m", var:2, oui:true},
+  {nom:"Lanterne de quai", d:"Lanterne en fer forgé, vitres fumées, anneau pour la suspendre.", facon:"ia", taille:"0,25 × 0,25 × 0,55 m", var:1, oui:true},
+  {nom:"Filet roulé", d:"Filet de pêche roulé avec flotteurs de liège.", facon:"cc0", taille:"0,90 × 0,40 × 0,35 m", var:1, oui:true},
+  {nom:"Jarre à huile", d:"Grande jarre en terre, col étroit.", facon:"reutilise", img:"style-medieval-amphore", taille:"0,35 × 0,35 × 0,90 m", var:1, oui:true},
+  {nom:"Ancre", d:"Petite ancre de barque, rouillée.", facon:"ia", taille:"0,50 × 0,15 × 0,70 m", var:1, oui:false},
+];
+const FACON = {ia:["ia","IA · 42 cr par variante"], code:["gratuit","Script · gratuit"], cc0:["gratuit","Modèle gratuit · CC0"], reutilise:["gris","Déjà dans ta bibliothèque"]};
+function dessinerObjets(){
+  $("liste-objets").innerHTML = PROPOSES.map((o,i)=>`<div class="choix-objet ${o.oui?"oui":"non"}">
+    <div class="fond">${o.img?`<img src="img/${o.img}.png" alt="">`:"◇"}</div>
+    <div><h3>${o.nom}</h3><p>${o.d}</p><div class="resume-objet"><span class="etiquette ${FACON[o.facon][0]}">${FACON[o.facon][1]}</span><span>${o.taille}</span><span>${o.var} variante${o.var>1?"s":""}</span></div></div>
+    <button class="case" data-cocher="${i}" aria-label="Garder ${o.nom}">${o.oui?"✓":""}</button>
+    <button class="btn mini discret regler" data-regler="${i}">Régler la taille, la finesse, la fabrication…</button></div>`).join("") + `<button class="choix-objet ajout">+ Ajouter un objet</button>`;
+  const g = PROPOSES.filter(o=>o.oui), cr = g.filter(o=>o.facon==="ia").reduce((t,o)=>t+42*o.var,0), n = g.reduce((t,o)=>t+o.var,0);
+  $("resume-objets").innerHTML = `<b>${g.length} objets · ${n} modèles</b> · ≈ ${cr} crédits Meshy · ~${Math.round(n*5)} min · le reste est gratuit`;
+}
+$("liste-objets").addEventListener("click", e=>{
+  const c=e.target.closest("[data-cocher]"); if(c){ PROPOSES[c.dataset.cocher].oui=!PROPOSES[c.dataset.cocher].oui; dessinerObjets(); return; }
+  const r=e.target.closest("[data-regler]"); if(r){ const o=PROPOSES[r.dataset.regler]; $("t-nom").textContent=o.nom; $("t-desc").value=o.d; $("t-images").style.display=""; $("voile").classList.add("ouvert"); $("tiroir").classList.add("ouvert"); }
+});
+const fermer = ()=>{ $("voile").classList.remove("ouvert"); $("tiroir").classList.remove("ouvert"); };
+$("voile").addEventListener("click", fermer); $("fermer-tiroir").addEventListener("click", fermer); $("valider-tiroir").addEventListener("click", fermer);
+$("tiroir").addEventListener("click", e=>{ const f=e.target.closest(".facon"); if(!f||f.classList.contains("indispo")) return; f.parentElement.querySelectorAll(".facon").forEach(x=>x.classList.toggle("actif",x===f)); });
+dessinerObjets();
+
+// Looks
+const LOOKS = [
+  {nom:"Amphore", ia:true, series:[["look-amphore-0","look-amphore-1","look-amphore-2","look-amphore-3"],["look-amphore-2","look-amphore-0","look-amphore-3","look-amphore-1"]], choix:1, fav:[2], consigne:"Amphore de transport en terre cuite, panse large, deux anses, pied pointu."},
+  {nom:"Bouclier", ia:false, series:[["look-scutum-0","look-scutum-1","look-scutum-2","look-scutum-3"]], choix:null, fav:[], apercu:1,
+   reglages:[["Motif",1,["ailes","foudre","uni","uni"]],["Courbure",1,["0,30","0,35","0,50","0,60"]],["Umbo",2,["petit","moyen","grand","très grand"]]]},
+  {nom:"Caisse de ravitaillement", ia:false, series:[["look-caisse-0","look-caisse-1","look-caisse-2","look-caisse-3"]], choix:null, fav:[]},
+];
+const serieVue = LOOKS.map(()=>0);
+let reglageOuvert = null;
+function dessinerLooks(){
+  $("looks").innerHTML = LOOKS.map((o,i)=>{ const imgs = o.series[serieVue[i]];
+    return `<div class="carte look"><div class="look-tete"><h3>${o.nom}</h3>${o.ia?`<span class="etiquette ia">IA · images à 3 crédits</span>`:`<span class="etiquette gratuit">Script · versions gratuites</span>`}
+      <div class="actions">${o.ia?`<button class="btn discret">✎ Décrire autrement</button><button class="btn discret">Vues multiples · +3 cr</button>`:`<button class="btn discret" data-ouvrir-reglage="${i}">Régler à la main</button>`}<button class="btn discret">↻ 4 autres</button></div></div>
+      ${o.series.length>1?`<div class="onglets" data-look="${i}">${o.series.map((_,k)=>`<button class="${serieVue[i]===k?"actif":""}" data-serie="${k}">Série ${k+1}${k===o.series.length-1?" · dernière":""}</button>`).join("")}<button>★ Favoris · ${o.fav.length}</button><button>Tes images · 0</button></div>`:`<div style="height:8px"></div>`}
+      <div class="tuiles">${imgs.map((m,j)=>`<button class="tuile ${o.choix===j&&serieVue[i]===0?"choisie":""}" data-o="${i}" data-j="${j}">${o.fav.includes(j)&&serieVue[i]===0?`<span class="fav">★</span>`:""}<img src="img/${m}.png" alt=""><span class="survol"><span title="Agrandir">⤢</span>${o.ia?`<span title="Retoucher avec une consigne">✎</span>`:""}<span title="Favori">☆</span></span></button>`).join("")}
+      ${o.ia?`<button class="tuile photo">+ Ta photo<br>ou ton croquis</button>`:`<span></span>`}</div>
+      ${o.ia?`<div class="consigne">✎<span>Consigne envoyée : <b>${o.consigne}</b> + ton style (palette, rendu). <span class="lien">Modifier</span></span></div>`:""}
+      ${o.reglages?`<div class="reglage-main ${reglageOuvert===i?"ouvert":""}" data-reglage="${i}"><div class="apercu-direct"><img id="apercu-${i}" src="img/${o.series[0][o.apercu]}.png" alt=""><span class="petit">Aperçu en direct · gratuit</span></div><div class="curseurs">${o.reglages.map((r,k)=>`<label>${r[0]}<input type="range" min="0" max="3" value="${r[1]}" data-curseur="${i}" data-k="${k}"><span>${r[2][r[1]]}</span></label>`).join("")}<button class="btn primaire mini">Garder ce réglage</button></div></div>`:""}</div>`; }).join("");
+  $("nb-looks").textContent = `${LOOKS.filter(o=>o.choix!==null).length} sur ${LOOKS.length}`;
+}
+$("looks").addEventListener("click", e=>{
+  const rg=e.target.closest("[data-ouvrir-reglage]"); if(rg){ reglageOuvert = reglageOuvert===Number(rg.dataset.ouvrirReglage)?null:Number(rg.dataset.ouvrirReglage); dessinerLooks(); return; }
+  const s=e.target.closest("[data-serie]"); if(s){ serieVue[s.closest("[data-look]").dataset.look]=Number(s.dataset.serie); dessinerLooks(); return; }
+  const t=e.target.closest("[data-o]"); if(t && !e.target.closest(".survol")){ LOOKS[t.dataset.o].choix=Number(t.dataset.j); serieVue[t.dataset.o]=0; dessinerLooks(); }
+});
+$("looks").addEventListener("input", e=>{ const c=e.target.closest("[data-curseur]"); if(!c) return; const o=LOOKS[c.dataset.curseur], k=Number(c.dataset.k);
+  o.reglages[k][1]=Number(c.value); c.nextElementSibling.textContent=o.reglages[k][2][c.value];
+  o.apercu = o.reglages[0][1]; $("apercu-"+c.dataset.curseur).src=`img/${o.series[0][o.apercu]}.png`; });
+dessinerLooks();
+
+// Fabrication
+const FABS = [
+  {nom:"Amphore", img:"look-amphore-1", facon:"IA · Meshy", pas:["Sculpture par l'IA","Nettoyage","Vérifications","Photos"], av:15,
+   journal:[["14:02","Image envoyée à Meshy (42 crédits prévus)"],["14:06","Objet reçu : 6 000 triangles, texture 2K"],["14:06","Nettoyage : 1 débris retiré, 2 fissures bouchées, texture ramenée à 1024 px"]]},
+  {nom:"Pilier", img:"style-postapo-colonne", facon:"IA · Meshy", pas:["Sculpture par l'IA","Nettoyage","Vérifications","Photos"], av:55, relance:true,
+   journal:[["13:40","Essai 1 : maillage ouvert (un trou de 40 côtés), non réparable seul"],["13:41","Relance automatique 1 sur 3 · nouvelle sculpture"]]},
+  {nom:"Lanterne de quai", img:"style-medieval-colonne", facon:"IA · brouillon", brouillon:true, pas:["Forme seule","Nettoyage","Vérifications"], av:100,
+   journal:[["13:52","Brouillon : forme sans texture (20 crédits)"],["13:55","Forme prête : valide-la pour lancer la finition texturée (+10 crédits)"]]},
+  {nom:"Caisse de ravitaillement", img:"look-caisse-2", facon:"Script", pas:["Fabrication","Nettoyage","Vérifications","Photos"], av:80,
+   journal:[["14:01","Script caisse · cadre fer, 3 planches"],["14:01","404 triangles · 3 niveaux de détail"]]},
+];
+function dessinerFabs(){
+  $("fabs").innerHTML = FABS.map((f,i)=>{ const p=f.av, k=Math.min(f.pas.length-1,Math.floor(p/(100/f.pas.length))), pret=p>=100;
+    return `<div class="carte fab"><div class="fab-ligne"><div class="fond"><img src="img/${f.img}.png" alt="" ${f.brouillon?'style="filter:grayscale(1) brightness(1.15)" title="Forme seule, sans texture"':""}></div>
+      <div><h3>${f.nom} <span class="etiquette gris">${f.facon}</span>${f.relance&&!pret?`<span class="etiquette attente">Relance 1 sur 3</span>`:""}</h3>
+      <div class="pas">${f.pas.map((l,j)=>`<span class="${pret||j<k?"fait":j===k?(f.relance&&j===0?"alerte":"cours"):""}">${pret||j<k?"✓ ":""}${l}</span>`).join("")}</div>
+      <div class="jauge" style="margin-top:10px"><div style="width:${p}%;${pret?"background:var(--vert)":""}"></div></div></div>
+      <div style="display:grid;gap:6px;justify-items:end">${f.brouillon?`<button class="btn mini primaire">Valider la forme · +10 cr</button><span class="petit">ou refaire la forme</span>`:`<span class="etiquette ${pret?"gratuit":"ia"}">${pret?"Prêt":Math.round(p)+" %"}</span>`}<button class="btn mini discret" data-journal="${i}">Détails</button></div></div>
+      <div class="journal" id="journal-${i}">${f.journal.map(([t,l])=>`<div><time>${t}</time><span>${l}</span></div>`).join("")}</div></div>`; }).join("");
+  const n = FABS.filter(f=>f.av>=100).length;
+  $("fab-resume").innerHTML = `<b>${n} sur ${FABS.length}</b> prêts · ~4 min restantes · 84 crédits utilisés`;
+  $("fab-etape").textContent = `${n} sur ${FABS.length}`;
+}
+const ouverts = new Set();
+$("fabs").addEventListener("click", e=>{ const b=e.target.closest("[data-journal]"); if(!b) return; const i=b.dataset.journal; ouverts.has(i)?ouverts.delete(i):ouverts.add(i); $("journal-"+i).classList.toggle("ouvert"); });
+dessinerFabs();
+setInterval(()=>{ if(!$("ecran-fabrication").classList.contains("actif")) return; FABS.forEach((f,i)=>f.av=Math.min(100,f.av+[2,1.5,0,5][i])); dessinerFabs(); ouverts.forEach(i=>$("journal-"+i).classList.add("ouvert")); }, 900);
+
+// Validation
+$("controles").innerHTML = [["Taille","0,90 m pour 0,90 m prévus","ok"],["Finesse","3 816 triangles · budget 6 000","ok"],["Niveaux de détail","50 % et 25 % du détail 1","ok"],["Forme fermée","aucun trou","ok"],["Morceaux","1 pièce, aucun débris","ok"],["Faces","toutes vers l'extérieur","ok"],["Dépliage des textures","aucun chevauchement","ok"],["Netteté de texture","512 px/m · conforme","ok"],["Fichiers","GLB, FBX, Blender relus","ok"],["Format","glTF valide (0 erreur)","ok"],["Photos","5 vues","ok"],["Proportions","+4 % en largeur · à juger","info"]]
+  .map(([n,d,e])=>`<div><span class="${e}">${e==="ok"?"✓":"!"}</span><span><b>${n}</b>${d}</span></div>`).join("");
+document.querySelectorAll(".onglets[data-groupe]").forEach(g=>g.addEventListener("click",e=>{ const b=e.target.closest("[data-cible]"); if(!b) return;
+  g.querySelectorAll("button").forEach(x=>x.classList.toggle("actif",x===b));
+  g.parentElement.querySelectorAll(":scope > .panneau-onglet").forEach(p=>p.classList.toggle("actif",p.id===b.dataset.cible)); }));
+document.querySelectorAll("[data-ouvrir]").forEach(b=>b.addEventListener("click",()=>{ document.querySelectorAll(".sous-decision").forEach(s=>s.classList.toggle("ouvert", s.id===b.dataset.ouvrir && !s.classList.contains("ouvert"))); }));
+document.querySelectorAll(".sous-decision .chips span").forEach(c=>c.addEventListener("click",()=>c.classList.toggle("actif")));
+["d-refaire","d-corriger"].forEach(id=>$(id).addEventListener("click", e=>{ const f=e.target.closest(".facon"); if(!f) return; f.parentElement.querySelectorAll(".facon").forEach(x=>x.classList.toggle("actif",x===f)); }));
+// Nouveau style
+$("ns-images").innerHTML = ["medieval-caisse","medieval-amphore","medieval-gladius","medieval-colonne","postapo-caisse","postapo-amphore","medieval-caisse","postapo-gladius","medieval-amphore","postapo-colonne","medieval-gladius","postapo-caisse","medieval-colonne","postapo-amphore"]
+  .map(n=>`<div class="teinte" style="--teinte:#E7E3DC"><img src="img/style-${n}.png" alt="" style="height:70px"></div>`).join("");
+$("ns-palette").innerHTML = [["chêne","#5C3D24"],["fer noirci","#3E4045"],["pierre","#7D7A72"],["lin","#CDBF9E"],["cuir","#4A2F1F"],["terre","#8E4B2E"],["laiton","#6B5A3A"],["mousse","#5E6B45"],["rouille","#7A4A2A"],["vin","#4E2A3A"]].map(([n,c])=>`<div><i style="background:${c}"></i>${n}</div>`).join("");
+$("ns-spheres").innerHTML = ["bois","fer","pierre","cuir","tissu","terre_cuite","bronze","pourpre","ocre","marbre"].map(m=>`<div><img src="img/sphere-medieval-${m}.png" alt=""><b>${m.replace("_"," ")}</b></div>`).join("");
+document.querySelectorAll("#ecran-nouveau-style .chips span").forEach(x=>x.addEventListener("click",()=>x.classList.toggle("actif")));
+
+// Régler plusieurs objets ensemble
+$("regler-tous").addEventListener("click", ()=>{ const n=PROPOSES.filter(o=>o.oui).length; $("t-nom").textContent=`${n} objets gardés`; $("t-desc").value="(différentes : laissées telles quelles)"; $("t-images").style.display="none"; $("voile").classList.add("ouvert"); $("tiroir").classList.add("ouvert"); });
+
+// Cloche
+$("ouvrir-cloche").addEventListener("click", e=>{ e.stopPropagation(); $("cloche").classList.toggle("ouverte"); });
+document.addEventListener("click", e=>{ if(!e.target.closest("#cloche")) $("cloche").classList.remove("ouverte"); });
+
+// Thème clair / sombre (gardé d'une visite à l'autre)
+function appliquerTheme(t){ document.documentElement.dataset.theme=t; $("theme-nom").textContent = t==="sombre"?"Clair":"Sombre"; localStorage.setItem("theme-atelier", t); }
+appliquerTheme(localStorage.getItem("theme-atelier") || "clair");
+$("theme").addEventListener("click", ()=>appliquerTheme(document.documentElement.dataset.theme==="sombre"?"clair":"sombre"));
+
+// Navigation
+const PARENT = {objets:"accueil", look:"projets", fabrication:"projets", validation:"projets", essai:"projets", jeu:"projets", fiche:"bibliotheque", style:"styles", "nouveau-style":"styles", reglages:""};
+function afficher(){
+  const id = (location.hash || "#accueil").slice(1);
+  document.querySelectorAll(".ecran").forEach(e=>e.classList.toggle("actif", e.id==="ecran-"+id));
+  document.querySelectorAll(".barre-bas").forEach(b=>b.style.display = b.dataset.ecran===id ? "" : "none");
+  const nav = id in PARENT ? PARENT[id] : id;
+  document.querySelectorAll("[data-nav]").forEach(a=>a.classList.toggle("actif", a.dataset.nav===nav));
+  $("selection-barre").classList.toggle("ouverte", id==="bibliotheque" && choisis.size>0);
+  fermer(); window.scrollTo(0,0);
+}
+
+// Mobile : filtres repliables, aide adaptée au doigt
+$("btn-filtres").addEventListener("click", ()=>$("filtres-cote").classList.toggle("ouvert"));
+const TACTILE = matchMedia("(pointer:coarse)").matches;
+const AIDE_3D = TACTILE ? "Un doigt : tourner · deux doigts : zoomer" : "Glisse pour tourner · molette pour zoomer";
+$("aide3d").textContent = AIDE_3D;
+window.addEventListener("hashchange", afficher);
+afficher();
+</script>
+<script type="module">
+import { creerVisionneuse, creerEssai, chargerGlb, mesurer } from "./visionneuse.js";
+
+const q = id => document.getElementById(id);
+const fr = n => new Intl.NumberFormat("fr-FR").format(Math.round(n)).replace(/[\u202f\u00a0]/g, " ");
+const mFr = v => v.toFixed(2).replace(".", ",");
+const pause = ms => new Promise(r => setTimeout(r, ms));
+const TACT = matchMedia("(pointer:coarse)").matches;
+const AIDE = TACT ? "Un doigt : tourner · deux doigts : zoomer" : "Glisse pour tourner · molette pour zoomer";
+const ecran = () => (location.hash || "#accueil").slice(1);
+
+// Les objets à valider du projet : de vrais fichiers 3D, mesurés à l'ouverture
+const OBJETS = [
+  { id: "amphore", nom: "Amphore", glb: l => `modeles/amphore-${l}.glb`, look: "img/look-amphore-1.png",
+    source: "Faite par Meshy d'après ton look · essai 1", tex: "1024 px · couleur, relief", cout: "42 crédits · 6 min",
+    etiquettes: ["contenant", "terre cuite", "romain"], points: [{ ok: false, texte: "Le col paraît fin vu de dos (avis de l'IA)" }], pieces: "Anses, col, panse : pour les régler ou les réutiliser à part",
+    corriger: "Ex. terre cuite plus claire, bande ocre autour du col", refaire: "Ex. plus trapue, anses plus épaisses", avis: q("v-avis").querySelector(".avis").innerHTML },
+  { id: "caisse", nom: "Caisse ferrée", glb: l => `modeles/caisse-${l}.glb`, look: "img/look-caisse-2.png",
+    source: "Faite par script, sans crédit · essai 1", tex: "Couleur unie par matériau", cout: "Gratuit · 1 min",
+    etiquettes: ["caisse", "bois", "romain"], points: [], pieces: "Planches et ferrures : pour les régler ou les réutiliser à part",
+    corriger: "Ex. ferrures plus sombres, planches plus usées", refaire: "Ex. plus haute, avec un couvercle", avis: "<b>Claude, en regardant les 5 vues :</b> les proportions et les ferrures correspondent au look. Les angles sont nets et la forme est propre ; l'usure n'est pas encore visible, ce sera à ajouter si tu veux un rendu plus vieilli." },
+];
+const LIBELLE = { garde: "gardée", corrige: "envoyée en correction", refait: "relancée", jete: "jetée" };
+const BADGE = { garde: "✓", corrige: "✎", refait: "↻", jete: "✕" };
+const FIN_LIBELLE = { garde: "Gardée", corrige: "À corriger", refait: "Relancée", jete: "Jetée" };
+
+const etat = {};            // id objet → décision
+let reponses = {};          // réponses aux 3 questions pour l'objet affiché
+let courant = 0, vue = null, jeton = 0, pointage = false, nbNotes = 0, fiche = null;
+const mesures = {};         // id objet → [LOD0, LOD1, LOD2]
+
+// ---------- écran Validation ----------
+async function demarrerValidation() {
+  if (vue) return;
+  try { vue = creerVisionneuse(q("vision")); }
+  catch { q("vision").innerHTML = '<p class="etat3d">La 3D ne peut pas s\'afficher sur cet appareil.</p>'; return; }
+  brancher(); dessinerFile(); q("aide3d").textContent = AIDE;
+  await choisir(0);
+}
+
+function dessinerFile() {
+  q("file-validation").innerHTML = OBJETS.map((o, i) =>
+    `<button data-i="${i}" title="${o.nom}" aria-label="${o.nom}"><img src="${o.look}" alt=""><i class="badge" hidden></i></button>`).join("");
+  q("file-validation").onclick = e => { const b = e.target.closest("[data-i]"); if (b) choisir(+b.dataset.i); };
+  q("b-prec").onclick = () => choisir((courant - 1 + OBJETS.length) % OBJETS.length);
+  q("b-suiv").onclick = () => choisir((courant + 1) % OBJETS.length);
+}
+function majFile() {
+  q("file-validation").querySelectorAll("button").forEach((b, i) => {
+    const d = etat[OBJETS[i].id], bd = b.querySelector(".badge");
+    b.classList.toggle("courant", i === courant); b.classList.toggle("decide", !!d);
+    bd.hidden = !d; bd.className = "badge" + (d ? " " + d : ""); bd.textContent = d ? BADGE[d] : "";
+  });
+  const restants = OBJETS.filter(o => !etat[o.id]).length;
+  q("etape-valid-n").textContent = restants ? restants + " à valider" : "Terminé";
+}
+
+async function choisir(i) {
+  const mon = ++jeton; courant = i; const o = OBJETS[i];
+  majFile(); modePointage(false); vue.effacerPastilles(); nbNotes = 0;
+  reponses = {}; document.querySelectorAll("#guide .rep button").forEach(b => b.classList.remove("actif"));
+  document.querySelectorAll("#guide .q-suite").forEach(x => x.hidden = true); majBilan();
+  q("notes").innerHTML = '<span class="petit">Astuce : « ＋ Pointer un défaut » sur la vue 3D pour montrer où ça ne va pas.</span>';
+  q("d-nom").textContent = o.nom; q("d-source").textContent = o.source; q("f-tex").textContent = o.tex; q("f-cout").textContent = o.cout;
+  q("t-pieces").textContent = o.pieces; q("t-corriger").placeholder = o.corriger; q("t-refaire").placeholder = o.refaire;
+  q("t-corriger").value = ""; q("t-refaire").value = "";
+  q("chips-garder").innerHTML = o.etiquettes.map(t => `<span class="actif">${t}</span>`).join("") + "<span>+ étiquette</span>";
+  q("v-avis").querySelector(".avis").innerHTML = o.avis;
+  q("vision").setAttribute("aria-label", o.nom + " en 3D : glisse pour tourner");
+  q("lods").querySelectorAll("button").forEach((b, k) => b.classList.toggle("actif", k === 0));
+  if (!mesures[o.id]) mesures[o.id] = await Promise.all(["lod0", "lod1", "lod2"].map(l => chargerGlb(o.glb(l)).then(mesurer)));
+  if (mon !== jeton) return;
+  const [m0] = mesures[o.id];
+  q("lods").querySelectorAll("small").forEach((s, k) => s.textContent = " · " + fr(mesures[o.id][k].triangles));
+  q("f-taille").textContent = `${mFr(m0.taille.x)} × ${mFr(m0.taille.z)} × ${mFr(m0.taille.y)} m`;
+  q("f-finesse").textContent = `${fr(m0.triangles)} triangles · 3 détails`;
+  await vue.charger(o.glb("lod0"), { recadrer: true });
+  if (mon !== jeton) return;
+  majVerifs(); majVerdict(m0);
+  await new Promise(r => requestAnimationFrame(() => requestAnimationFrame(r)));
+  if (mon !== jeton || !q("vision").clientWidth) return;
+  const noms = ["3/4", "Face", "Profil", "Dos", "Dessus"];
+  const imgs = vue.vues([[35, 72], [0, 86], [90, 86], [180, 86], [0, 8]]);
+  q("vues").innerHTML = imgs.map((u, k) => `<div><img src="${u}" alt="${noms[k]}" title="${noms[k]}"></div>`).join("");
+  const ref = q("v-ref").querySelectorAll("figure img"); ref[0].src = o.look; ref[1].src = imgs[0];
+}
+
+function majVerifs() {
+  const on = q("scene-valid").querySelector('[data-outil="reperes"]').classList.contains("actif");
+  q("verifs3d").hidden = !on; if (!on || !vue) return;
+  q("verifs3d").innerHTML = vue.verifications().map(v => `<div class="${v.info ? "info" : v.ok ? "ok" : "ko"}"><i>${v.info ? "·" : v.ok ? "✓" : "⚠"}</i><span>${v.texte}</span></div>`).join("")
+    + "<small>Sur le sol : rouge = droite, vert = haut, bleu = devant. Le point orange est le point d'ancrage.</small>";
+}
+
+function modePointage(on) {
+  pointage = on; if (vue) vue.pointage(on);
+  q("scene-valid").classList.toggle("annoter-actif", on);
+  q("annoter").textContent = on ? "Annuler" : "＋ Pointer un défaut";
+  q("aide3d").textContent = on ? (TACT ? "Touche l'objet, là où ça ne va pas" : "Clique sur l'objet, là où ça ne va pas") : AIDE;
+}
+const ouvrirSous = id => document.querySelectorAll(".sous-decision").forEach(x => x.classList.toggle("ouvert", x.id === id));
+
+function brancher() {
+  const menus = ["menu-affichage", "menu-lumiere"], pile = q("scene-valid").querySelector(".pile-outils");
+  const btn = n => pile.querySelector(`[data-outil="${n}"]`);
+  const fermer = sauf => { menus.forEach(id => { if (id !== sauf) q(id).hidden = true; }); q("b-affichage").setAttribute("aria-expanded", String(!q("menu-affichage").hidden)); btn("lumiere").classList.toggle("actif", !q("menu-lumiere").hidden); };
+
+  q("lods").addEventListener("click", async e => {
+    const b = e.target.closest("[data-lod]"); if (!b) return;
+    q("lods").querySelectorAll("button").forEach(x => x.classList.toggle("actif", x === b));
+    await vue.charger(OBJETS[courant].glb(b.dataset.lod)); majVerifs();
+  });
+  q("b-affichage").addEventListener("click", e => { e.stopPropagation(); fermer("menu-affichage"); q("menu-affichage").hidden = !q("menu-affichage").hidden; fermer(q("menu-affichage").hidden ? "" : "menu-affichage"); });
+  q("menu-affichage").addEventListener("click", e => {
+    const b = e.target.closest("[data-mode]"); if (!b) return;
+    vue.mode(b.dataset.mode); q("menu-affichage").querySelectorAll("button").forEach(x => x.classList.toggle("actif", x === b));
+    q("nom-affichage").textContent = b.querySelector("b").textContent; fermer("");
+  });
+  document.addEventListener("click", e => { if (!e.target.closest(".menu3d") && !e.target.closest(".pile-outils") && !e.target.closest("#b-affichage")) fermer(""); });
+
+  pile.addEventListener("click", e => {
+    const b = e.target.closest("[data-outil]"); if (!b) return; e.stopPropagation();
+    const n = b.dataset.outil;
+    if (n === "lumiere") { fermer("menu-lumiere"); q("menu-lumiere").hidden = !q("menu-lumiere").hidden; fermer(q("menu-lumiere").hidden ? "" : "menu-lumiere"); }
+    if (n === "reperes") { const on = !b.classList.contains("actif"); b.classList.toggle("actif", on); vue.reperes(on); majVerifs(); }
+    if (n === "personnage") { const on = !b.classList.contains("actif"); b.classList.toggle("actif", on); vue.personnage(on); q("scene-valid").classList.toggle("avec-perso", on); }
+    if (n === "tourner") { const on = !b.classList.contains("actif"); b.classList.toggle("actif", on); vue.tourner(on); }
+    if (n === "recentrer") vue.recentrer();
+  });
+  q("vision").addEventListener("arret-rotation", () => btn("tourner").classList.remove("actif"));
+
+  const lum = () => vue.lumiere({ direction: +q("l-dir").value, hauteur: +q("l-haut").value });
+  const chipsLum = () => q("menu-lumiere").querySelectorAll("[data-lum]");
+  ["l-dir", "l-haut"].forEach(id => q(id).addEventListener("input", () => { lum(); chipsLum().forEach(c => c.classList.remove("actif")); }));
+  q("menu-lumiere").addEventListener("click", e => {
+    const c = e.target.closest("[data-lum]"); if (!c) return;
+    const [d, h] = c.dataset.lum.split(",").map(Number); q("l-dir").value = d; q("l-haut").value = h; lum();
+    chipsLum().forEach(x => x.classList.toggle("actif", x === c));
+  });
+
+  q("annoter").addEventListener("click", () => modePointage(!pointage));
+  vue.surPointage = ({ n }) => {
+    nbNotes = n; if (n === 1) q("notes").innerHTML = "";
+    q("notes").insertAdjacentHTML("beforeend", `<div><b>${n}</b><input class="saisie" placeholder="Ce qui ne va pas ici…"></div>`);
+    ouvrirSous("d-corriger");
+    q("d-corriger").querySelectorAll(".facon").forEach((x, i) => x.classList.toggle("actif", i === 1));
+    modePointage(false);
+    q("notes").lastElementChild.querySelector("input").focus({ preventScroll: true });
+  };
+  vue.surPastille = n => { const inp = q("notes").children[n - 1]?.querySelector("input"); if (!inp) return; ouvrirSous("d-corriger"); inp.scrollIntoView({ block: "center", behavior: "smooth" }); inp.focus({ preventScroll: true }); };
+}
+
+
+// ---------- verdict et questions guidées ----------
+const BUDGET_TRIANGLES = 5000; // vient du style du projet dans l'app
+function majVerdict(m0) {
+  const o = OBJETS[courant], raisons = [];
+  raisons.push({ ok: true, texte: `Taille réaliste : ${mFr(m0.taille.x)} × ${mFr(m0.taille.z)} × ${mFr(m0.taille.y)} m` });
+  for (const v of vue.verifications().filter(v => !v.info)) raisons.push({ ok: v.ok, texte: v.ok ? (v.texte.startsWith("Posé") ? "Posé au sol" : "Bien centré sur son point d'ancrage") : v.texte });
+  raisons.push(m0.triangles <= BUDGET_TRIANGLES ? { ok: true, texte: `Assez léger pour un jeu : ${fr(m0.triangles)} triangles` } : { ok: false, texte: `Trop lourd pour un jeu : ${fr(m0.triangles)} triangles` });
+  raisons.push(...o.points);
+  const doute = raisons.some(r => !r.ok);
+  q("verdict").dataset.etat = doute ? "attention" : "ok";
+  q("verdict-icone").textContent = doute ? "!" : "✓";
+  q("verdict-titre").textContent = doute ? "À regarder avant de garder" : "Prêt à garder";
+  q("verdict-raisons").innerHTML = raisons.sort((a, b) => a.ok - b.ok).map(r => `<li class="${r.ok ? "" : "ko"}">${r.texte}</li>`).join("");
+}
+function majBilan() {
+  const v = Object.values(reponses), bilan = q("guide-bilan");
+  if (v.length < 3) { bilan.hidden = true; q("b-garder").classList.remove("conseille"); return; }
+  const tout = v.every(x => x === "oui");
+  bilan.hidden = false; bilan.className = "guide-bilan " + (tout ? "bon" : "doute");
+  bilan.textContent = tout ? "✓ Tout te paraît bon : tu peux le garder." : "Suis la suggestion en orange, ou garde-le quand même si ça te va.";
+  q("b-garder").classList.toggle("conseille", tout);
+}
+function repondre(b) {
+  const bloc = b.closest(".q"); reponses[bloc.dataset.q] = b.dataset.r;
+  bloc.querySelectorAll(".rep button").forEach(x => x.classList.toggle("actif", x === b));
+  bloc.querySelector(".q-suite").hidden = b.dataset.r !== "non"; majBilan();
+}
+const versScene = () => q("scene-valid").scrollIntoView({ behavior: "smooth", block: "center" });
+const basculer = nom => { const b = q("scene-valid").querySelector(`[data-outil="${nom}"]`); if (b && !b.classList.contains("actif")) b.click(); };
+function aide(k) {
+  if (k === "look") { document.querySelector('.onglets[data-groupe="vision"] [data-cible="v-ref"]').click(); q("v-ref").scrollIntoView({ behavior: "smooth", block: "center" }); }
+  if (k === "tour") { basculer("tourner"); versScene(); }
+  if (k === "taille") { basculer("personnage"); versScene(); }
+}
+function suite(k) {
+  const choisirFacon = (id, i) => q(id).querySelectorAll(".facon").forEach((x, n) => x.classList.toggle("actif", n === i));
+  if (k === "look") { ouvrirSous("d-refaire"); choisirFacon("d-refaire", 1); q("d-refaire").scrollIntoView({ behavior: "smooth", block: "center" }); }
+  if (k === "tour") { versScene(); modePointage(true); }
+  if (k === "taille") { ouvrirSous("d-corriger"); const f = q("d-corriger").querySelector('[data-facon="taille"]'); q("d-corriger").querySelectorAll(".facon").forEach(x => x.classList.toggle("actif", x === f)); q("d-corriger").scrollIntoView({ behavior: "smooth", block: "center" }); }
+}
+
+// ---------- décisions ----------
+let minuteur = null;
+function notifier(texte, annuler) {
+  q("toast-texte").textContent = texte; q("toast").hidden = false; q("toast-annuler").hidden = false;
+  q("toast-annuler").onclick = () => { q("toast").hidden = true; annuler(); };
+  clearTimeout(minuteur); minuteur = setTimeout(() => { q("toast").hidden = true; }, 7000);
+}
+const prochain = depuis => { for (let k = 1; k <= OBJETS.length; k++) { const i = (depuis + k) % OBJETS.length; if (!etat[OBJETS[i].id]) return i; } return -1; };
+
+async function decider(type) {
+  const o = OBJETS[courant]; if (etat[o.id]) return;
+  etat[o.id] = type; ouvrirSous(""); majFile();
+  notifier(`${o.nom} ${LIBELLE[type]}${type === "garde" ? " dans Camp romain" : ""}`, () => annuler(o.id));
+  const n = prochain(courant); await pause(300);
+  if (n < 0) { afficherFin(); return; }
+  await choisir(n); if (scrollY > 160) scrollTo({ top: 0, behavior: "smooth" });
+}
+function afficherFin() {
+  const sec = q("ecran-validation"); sec.classList.add("fini");
+  const n = OBJETS.length, gardes = OBJETS.filter(o => etat[o.id] === "garde").length;
+  q("fin-resume").textContent = gardes === n ? `Les ${n} objets sont dans ta bibliothèque.` : `${gardes} objet${gardes > 1 ? "s" : ""} gardé${gardes > 1 ? "s" : ""} sur ${n}. Les autres sont en cours de correction, relancés ou jetés.`;
+  q("fin-liste").innerHTML = OBJETS.map(o => `<div><img src="${o.look}" alt=""><span>${o.nom}<br><b>${FIN_LIBELLE[etat[o.id]]}</b></span></div>`).join("");
+  q("fin-validation").hidden = false;
+  const li = q("etape-validation"); li.className = "faite"; li.querySelector("span").textContent = "✓";
+  majFile(); scrollTo({ top: 0 });
+}
+async function annuler(id) {
+  delete etat[id]; q("ecran-validation").classList.remove("fini"); q("fin-validation").hidden = true;
+  const li = q("etape-validation"); li.className = "courante"; li.querySelector("span").textContent = "4";
+  await choisir(OBJETS.findIndex(o => o.id === id));
+}
+
+document.addEventListener("click", e => {
+  const d = e.target.closest("[data-decision]"); if (d && ecran() === "validation") { decider(d.dataset.decision); return; }
+  const a = e.target.closest("[data-aller]");
+  if (a) { ouvrirSous(a.dataset.aller); q("decision").scrollIntoView({ behavior: "smooth", block: "start" }); }
+  const c = e.target.closest("#chips-garder span"); if (c) c.classList.toggle("actif");
+  const r = e.target.closest("#guide .rep button"); if (r) repondre(r);
+  const ai = e.target.closest("#guide .q-aide"); if (ai) aide(ai.dataset.aide);
+  const su = e.target.closest("#guide [data-suite]"); if (su) suite(su.dataset.suite);
+});
+
+// ---------- Essai : tous les objets ensemble ----------
+const DISPO = [
+  { id: "amphore", nom: "Amphore", url: "modeles/amphore-lod0.glb", instances: [{ x: -1.6, z: -0.2, ry: 0.3 }, { x: -1.2, z: 0.15, ry: 1.2 }, { x: -1.5, z: 0.5, ry: 2.2 }, { x: 1.9, z: 0.9, ry: 0.5 }] },
+  { id: "caisse", nom: "Caisse ferrée", url: "modeles/caisse-lod0.glb", instances: [{ x: 0.1, z: 0, ry: 0.12 }, { x: 0.8, z: 0.05, ry: -0.1 }, { x: 0.45, z: 0.02, y: 0.4, ry: 0.2 }] },
+];
+let essai = null;
+async function demarrerEssai() {
+  if (essai) return;
+  try { essai = creerEssai(q("vue-essai")); } catch { q("vue-essai").innerHTML = '<p class="etat3d">La 3D ne peut pas s\'afficher sur cet appareil.</p>'; return; }
+  const actif = (g, b) => q(g).querySelectorAll("button").forEach(x => x.classList.toggle("actif", x === b));
+  q("essai-vues").addEventListener("click", e => { const b = e.target.closest("[data-vue]"); if (!b) return; actif("essai-vues", b); essai.vue(b.dataset.vue); });
+  q("essai-lum").addEventListener("click", e => { const b = e.target.closest("[data-lum]"); if (!b) return; actif("essai-lum", b); essai.lumiere(b.dataset.lum); q("scene-essai").dataset.lumiere = b.dataset.lum; });
+  essai.surSelection = meta => { q("essai-sel").hidden = !meta; if (meta) q("essai-sel-nom").textContent = meta.nom + " sélectionné"; };
+  await essai.charger(DISPO);
+  const st = essai.stats, par = Object.values(st.parType);
+  q("essai-raisons").innerHTML = [
+    `Proportions réalistes : ${par.map(o => `${o.nom.toLowerCase()} ${mFr(o.hauteur)} m`).join(", ")}, personnage 1,75 m`,
+    "Même palette : terre cuite et bois, tirées du style Rome antique stylisée",
+    `Assez léger : ${fr(st.triangles)} triangles pour ${st.objets} objets (budget de la scène : 50 000)`,
+    "Rien ne flotte et rien ne se chevauche",
+  ].map(t => `<li>${t}</li>`).join("");
+}
+const reponsesEssai = {};
+document.addEventListener("click", e => {
+  const r = e.target.closest("#guide-essai .rep button");
+  if (r) {
+    const bloc = r.closest(".q"), i = [...bloc.parentElement.querySelectorAll(".q")].indexOf(bloc); reponsesEssai[i] = r.dataset.r;
+    bloc.querySelectorAll(".rep button").forEach(x => x.classList.toggle("actif", x === r)); bloc.querySelector(".q-suite").hidden = r.dataset.r !== "non";
+    const v = Object.values(reponsesEssai), bilan = q("essai-bilan");
+    if (v.length >= 2) { const tout = v.every(x => x === "oui"); bilan.hidden = false; bilan.className = "guide-bilan " + (tout ? "bon" : "doute"); bilan.textContent = tout ? "✓ Tout te plaît : tu peux récupérer les objets pour ton jeu." : "Suis la suggestion en orange, ou récupère-les quand même si ça te va."; q("b-vers-jeu").classList.toggle("conseille", tout); }
+  }
+  const a = e.target.closest("[data-essai-aide]");
+  if (a) { const k = a.dataset.essaiAide; (k === "joueur" ? q("essai-vues").querySelector('[data-vue="joueur"]') : q("essai-lum").querySelector('[data-lum="soir"]')).click(); }
+});
+
+// ---------- Jeu : récupérer les fichiers (une app web ne peut pas écrire sur ton disque) ----------
+const DEST = {
+  godot: { nom: "Godot", emploi: ["Dézippe le pack dans le dossier de ton projet Godot, par exemple « assets/camp_romain ».", "Retourne dans Godot : les objets apparaissent dans le panneau « Système de fichiers ».", "Glisse un fichier .glb dans ta scène : l'objet arrive avec ses matériaux."] },
+  unity: { nom: "Unity", emploi: ["Une seule fois : dans « Package Manager », ajoute le paquet glTFast.", "Dézippe le pack dans le dossier « Assets » de ton projet.", "Glisse un fichier .glb dans la scène."] },
+  unreal: { nom: "Unreal", emploi: ["Dézippe le pack n'importe où sur ton ordinateur.", "Dans le « Content Browser », fais « Import » et choisis les fichiers .glb.", "Garde les options par défaut, puis glisse l'objet dans le niveau."] },
+  autre: { nom: "ton logiciel", emploi: ["Dézippe le pack.", "Les fichiers .glb sont le format standard de la 3D : les moteurs de jeu et logiciels récents savent les ouvrir.", "Importe-les depuis le menu d'import de ton logiciel. Si tu hésites, cherche « importer glTF » avec son nom."] },
+};
+let dest = "autre", jeuPret = null, paquet = null;
+const lesGardes = () => { const g = OBJETS.filter(o => etat[o.id] === "garde"); return g.length ? g : OBJETS; };
+const taille = n => n >= 1048576 ? (n / 1048576).toFixed(1).replace(".", ",") + " Mo" : Math.max(1, Math.round(n / 1024)) + " Ko";
+const LIEN = () => `${location.host}/p/camp-romain-7f3k`;
+
+async function demarrerJeu() {
+  const objets = lesGardes(), cle = objets.map(o => o.id).join();
+  if (jeuPret === cle) return;
+  const infos = await Promise.all(objets.map(async o => {
+    const g = await chargerGlb(o.glb("lod0")), nom = (g.scene.children[0]?.name || o.id).replace(/_LOD\d$/, "");
+    const fichiers = [];
+    for (const [k, l] of ["lod0", "lod1", "lod2"].entries()) {
+      try { const r = await fetch(o.glb(l)); fichiers.push({ nom: `${nom}_LOD${k}.glb`, octets: new Uint8Array(await r.arrayBuffer()) }); } catch { /* fichier absent */ }
+    }
+    return { o, nom, fichiers, mes: mesurer(g) };
+  }));
+  paquet = infos; jeuPret = cle;
+  const octets = infos.flatMap(i => i.fichiers).reduce((n, f) => n + f.octets.length, 0), nb = infos.length, nf = infos.reduce((n, i) => n + i.fichiers.length, 0) + 1;
+  q("liste-envoi").innerHTML = infos.map(i => `<div class="envoi"><img src="${i.o.look}" alt=""><div><b>${i.o.nom}</b><small><code>${i.nom}</code> · 3 niveaux de détail</small></div><small>${taille(i.fichiers.reduce((n, f) => n + f.octets.length, 0))}</small></div>`).join("")
+    + `<div class="envoi"><span class="ico-fichier">TXT</span><div><b>LISEZ-MOI.txt</b><small>Le mode d'emploi, selon ton moteur</small></div><small>1 Ko</small></div>`;
+  q("resume-envoi").textContent = `${nb} objet${nb > 1 ? "s" : ""} · ${nf} fichiers · ${taille(octets)}`;
+  const tris = infos.reduce((n, i) => n + i.mes.triangles, 0), auSol = infos.every(i => Math.abs(i.mes.boite.min.y) < 0.003);
+  q("verifs-jeu").innerHTML = [
+    `Noms conformes aux règles du projet<small>${infos.map(i => i.nom).join(" · ")}</small>`,
+    "Taille réelle : 1 unité = 1 mètre",
+    auSol ? "Tous posés au sol, point d'ancrage au pied" : "Point d'ancrage à vérifier sur certains objets",
+    `Assez légers pour le jeu<small>${fr(tris)} triangles au total</small>`,
+    "Fichiers valides : aucun défaut détecté",
+  ].map(t => `<li><span>${t}</span></li>`).join("");
+  q("lien-partage").value = LIEN(); majDest();
+}
+function majDest() {
+  const d = DEST[dest];
+  q("destinations").querySelectorAll(".dest").forEach(b => b.classList.toggle("actif", b.dataset.dest === dest));
+  q("nom-moteur").textContent = d.nom; q("mode-emploi").innerHTML = d.emploi.map(t => `<li>${t}</li>`).join("");
+}
+
+// Archive .zip minimale (sans compression), fabriquée dans le navigateur avec les vrais fichiers
+const TABLE_CRC = (() => { const t = new Uint32Array(256); for (let n = 0; n < 256; n++) { let c = n; for (let k = 0; k < 8; k++) c = c & 1 ? 0xEDB88320 ^ (c >>> 1) : c >>> 1; t[n] = c >>> 0; } return t; })();
+const crc32 = o => { let c = 0xFFFFFFFF; for (let i = 0; i < o.length; i++) c = TABLE_CRC[(c ^ o[i]) & 255] ^ (c >>> 8); return (c ^ 0xFFFFFFFF) >>> 0; };
+function fabriquerZip(fichiers) {
+  const enc = new TextEncoder(), morceaux = [], centrale = []; let decalage = 0;
+  for (const f of fichiers) {
+    const nom = enc.encode(f.nom), crc = crc32(f.octets), n = f.octets.length;
+    const loc = new DataView(new ArrayBuffer(30)); loc.setUint32(0, 0x04034b50, true); loc.setUint16(4, 20, true); loc.setUint16(6, 0x0800, true);
+    loc.setUint32(14, crc, true); loc.setUint32(18, n, true); loc.setUint32(22, n, true); loc.setUint16(26, nom.length, true);
+    morceaux.push(new Uint8Array(loc.buffer), nom, f.octets);
+    const cen = new DataView(new ArrayBuffer(46)); cen.setUint32(0, 0x02014b50, true); cen.setUint16(4, 20, true); cen.setUint16(6, 20, true); cen.setUint16(8, 0x0800, true);
+    cen.setUint32(16, crc, true); cen.setUint32(20, n, true); cen.setUint32(24, n, true); cen.setUint16(28, nom.length, true); cen.setUint32(42, decalage, true);
+    centrale.push(new Uint8Array(cen.buffer), nom); decalage += 30 + nom.length + n;
+  }
+  const taille = centrale.reduce((t, c) => t + c.length, 0), fin = new DataView(new ArrayBuffer(22));
+  fin.setUint32(0, 0x06054b50, true); fin.setUint16(8, fichiers.length, true); fin.setUint16(10, fichiers.length, true); fin.setUint32(12, taille, true); fin.setUint32(16, decalage, true);
+  return new Blob([...morceaux, ...centrale, new Uint8Array(fin.buffer)], { type: "application/zip" });
+}
+function lisezMoi() {
+  const d = DEST[dest], noms = paquet.map(i => "- " + i.o.nom + " (" + i.nom + ")").join("\n");
+  return `CAMP ROMAIN : pack d'objets 3D\n\nContenu :\n${noms}\n\nChaque objet existe en 3 niveaux de détail (LOD0 = le plus fin, LOD2 = le plus léger).\nUnité : 1 = 1 mètre. Le point d'ancrage est au pied de l'objet.\n\nPour l'utiliser dans ${d.nom} :\n${d.emploi.map((t, i) => (i + 1) + ". " + t).join("\n")}\n`;
+}
+function telecharger() {
+  const fichiers = [...paquet.flatMap(i => i.fichiers), { nom: "LISEZ-MOI.txt", octets: new TextEncoder().encode(lisezMoi()) }];
+  const blob = fabriquerZip(fichiers), a = document.createElement("a"); a.href = URL.createObjectURL(blob); a.download = "camp-romain.zip";
+  document.body.append(a); a.click(); a.remove(); setTimeout(() => URL.revokeObjectURL(a.href), 4000);
+  terminer("Pack téléchargé", `camp-romain.zip · ${fichiers.length} fichiers · ${taille(blob.size)}. Cherche-le dans tes téléchargements.`);
+}
+async function copier(texte) {
+  try { if (navigator.clipboard && window.isSecureContext) { await navigator.clipboard.writeText(texte); return; } } catch { /* refusé : on essaie l'autre méthode */ }
+  const t = document.createElement("textarea"); t.value = texte; t.style.cssText = "position:fixed;opacity:0"; document.body.append(t); t.select(); document.execCommand("copy"); t.remove();
+}
+function terminer(titre, resume) {
+  const d = DEST[dest];
+  q("fin-jeu-titre").textContent = titre; q("fin-jeu-resume").textContent = resume; q("fin-moteur").textContent = d.nom;
+  q("fin-jeu-emploi").innerHTML = d.emploi.map(t => `<li>${t}</li>`).join("");
+  q("jeu-corps").hidden = true; q("fin-jeu").hidden = false;
+  const li = q("etape-jeu"); li.className = "faite"; li.querySelector("span").textContent = "✓"; scrollTo({ top: 0 });
+}
+document.addEventListener("click", e => {
+  const b = e.target.closest("#destinations .dest"); if (b) { dest = b.dataset.dest; majDest(); }
+  if (e.target.closest("#b-zip") && paquet) telecharger();
+  if (e.target.closest("#b-lien")) copier(q("lien-partage").value).then(() => { notifier("Lien copié. Ouvre-le sur l'ordinateur où est ton jeu.", () => {}); q("toast-annuler").hidden = true; });
+  if (e.target.closest("#b-retour-jeu")) { q("fin-jeu").hidden = true; q("jeu-corps").hidden = false; }
+});
+
+// ---------- aides repliables ----------
+document.querySelectorAll(".coach").forEach(c => { if (localStorage.getItem("coach-" + c.dataset.coach)) c.hidden = true; });
+document.addEventListener("click", e => { const x = e.target.closest(".coach-x"); if (!x) return; const c = x.closest(".coach"); c.hidden = true; localStorage.setItem("coach-" + c.dataset.coach, "1"); });
+
+// ---------- fiche objet : même afficheur, sans les outils ----------
+async function demarrerFiche() {
+  if (fiche) return;
+  try { fiche = creerVisionneuse(q("vision-fiche")); await fiche.charger("modeles/caisse-lod0.glb"); }
+  catch { q("vision-fiche").innerHTML = '<p class="etat3d">La 3D ne peut pas s\'afficher sur cet appareil.</p>'; }
+}
+
+function surEcran() { const e = ecran(); if (e === "validation") demarrerValidation(); if (e === "fiche") demarrerFiche(); if (e === "essai") demarrerEssai(); if (e === "jeu") demarrerJeu(); }
+addEventListener("hashchange", () => { q("toast").hidden = true; surEcran(); }); surEcran();
+</script>
+</body>
+</html>
