@@ -9,6 +9,10 @@ par Claude Code (CLAUDE.md).
 Ordre de foi (docs/cahier-des-charges/README.md) : plan > fonctionnalités > cahier des charges >
 audit > maquette.
 
+> **28 octobre 2026 : plus aucun « choix provisoire ».** Nohé exige zéro compromis. Les entrées marquées « choix
+> provisoire » ci-dessous (S., C., V.) sont des dettes : elles sont reprises une par une dans `AUDIT-MAQUETTE.md`, où
+> chaque écart devient du travail à faire, pas une décision. Rien n'est retiré de la maquette sans l'accord de Nohé.
+
 ## Décision du 28 octobre 2026 · Nouvelle maquette
 
 **Tranché par Nohé** : la maquette v4 (`docs/maquette/`, validée le 28 octobre) remplace la maquette des 11 écrans
