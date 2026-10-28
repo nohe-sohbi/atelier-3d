@@ -33,3 +33,4 @@ Thumbs.db
 
 # Artefacts d'installation (pip/setuptools)
 build/
+web/public/comparaison/

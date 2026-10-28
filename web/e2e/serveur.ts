@@ -118,3 +118,12 @@ export async function arreter(): Promise<void> {
   rmSync(ETAT, { force: true });
   rmSync(etat.dossier, { recursive: true, force: true });
 }
+
+/** Dossier temporaire du serveur de test en cours (base, projets, config), pour y préparer des données. */
+export function dossierServeur(): string {
+  if (!existsSync(ETAT)) throw new Error("le serveur de test n'est pas lancé");
+  return (JSON.parse(readFileSync(ETAT, "utf8")) as Etat).dossier;
+}
+
+/** Python du dépôt, pour lancer les outils de préparation. */
+export { python };

@@ -1,3 +1,4 @@
+import { rmSync } from "node:fs";
 import { defineConfig } from "vitest/config";
 import react from "@vitejs/plugin-react";
 
@@ -5,7 +6,17 @@ import react from "@vitejs/plugin-react";
 const portApi = process.env.ATELIER_API_PORT ?? "8000";
 
 export default defineConfig({
-  plugins: [react()],
+  plugins: [
+    react(),
+    {
+      // La maquette (web/public/proposition) et la comparaison (web/public/comparaison) servent à construire l'app :
+      // elles ne partent jamais dans la version publiée.
+      name: "sans-outils-de-conception",
+      closeBundle() {
+        for (const dossier of ["proposition", "comparaison"]) rmSync(`dist/${dossier}`, { recursive: true, force: true });
+      },
+    },
+  ],
   server: {
     // 127.0.0.1 et pas « localhost » : là où localhost désigne d'abord ::1, Vite n'écouterait qu'en IPv6
     // et http://127.0.0.1:5173 (ouvert par dev.py, visé par les tests) ne répondrait pas.

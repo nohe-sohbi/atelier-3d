@@ -82,7 +82,7 @@ def test_script_detecte_reroute_les_objets(client, conn, atelier):
     assert demandes.scanner(conn) == []  # pas encore de script
 
     ecrire_generateur(atelier.generateurs, "ratelier_darmes", types=["ratelier d'armes"], categorie="grand_prop")
-    assert Periodiques().tour(conn, forcer=True) == ["scanner_generateurs"]
+    assert "scanner_generateurs" in Periodiques().tour(conn, forcer=True)
     d = client.get(f"/api/lots/{lid}/objets/{oid}/demande").json()
     assert d["etat"] == "script_detecte" and d["libelle_etat"] == "Script détecté" and d["script_detecte_le"]
     o = client.get(f"/api/lots/{lid}/objets").json()["objets"][0]

@@ -76,3 +76,17 @@ tests/          pytest : tests/api, tests/pipeline. Les tests qui exigent Blende
 ## Lancer et tester
 
 Voir README.md : `python dev.py`, `pytest`, `npm --prefix web test`, `npm --prefix web run test:e2e`.
+
+## Travailler à plusieurs sessions en parallèle
+
+Deux sessions de travail (ou deux personnes) sur le dépôt se gênent à quatre endroits. Règles :
+
+- **Un `git worktree` et une base par session** : `git worktree add ../atelier-3d-<jalon> -b <jalon>`, puis `ATELIER_DB`,
+  `ATELIER_LOTS` et un port web (`--port-web`) propres à la session. Jamais deux serveurs de développement sur la même base.
+- **Numéros de migration attribués par jalon** avant de commencer (plage dans ce fichier) ; jamais deux migrations du même numéro.
+- **Fichiers générés** (`web/src/test/contrat.json`, `AUDIT-MAQUETTE.md`) : ne les régénérer qu'au moment de fusionner, en
+  une fois, après avoir intégré l'autre branche.
+- **Fichiers uniques** (`A-TRANCHER.md`, `routes.tsx`, `navigation.ts`) : modifier le moins possible, en petites touches, et fusionner
+  souvent.
+- Blender ne tourne qu'une fois à la fois sur la machine : on annonce avant de lancer les tests `blender`.
+- Sauvegardes : `sauvegardes/` à côté de la base (copie avant chaque migration, copie quotidienne) ; ne pas l'envoyer sur git.

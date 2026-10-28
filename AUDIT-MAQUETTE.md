@@ -31,6 +31,11 @@ Un écran n'est « fini » que si :
    existe ;
 5. `A-TRANCHER.md` ne garde aucun « choix provisoire » pour cet écran.
 
+## Comparaison automatique
+
+`web/outils/comparer-maquette.mjs` produit les captures côte à côte et la liste des éléments absents (`web/public/comparaison/`).
+Elle remplace toute impression : on la relance à chaque écran (voir `web/outils/LISEZ-MOI.md`).
+
 ## État écran par écran
 
 Mesure : titres, boutons et champs de la maquette absents de l'app (28 octobre). Les noms de données d'exemple (Camp romain,
