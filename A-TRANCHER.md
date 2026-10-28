@@ -9,6 +9,37 @@ par Claude Code (CLAUDE.md).
 Ordre de foi (docs/cahier-des-charges/README.md) : plan > fonctionnalités > cahier des charges >
 audit > maquette.
 
+## Décisions du 28 octobre 2026 · séance J-1 (plan de reconstruction)
+
+**Tranché par Nohé**
+- L'app sera **en ligne avec connexion** (déploiement sur son infra, accès protégé par mot de passe). Les liens de partage sont
+  publics, impossibles à deviner et expirants. Connexion et mise en ligne passent avant l'écran Jeu.
+- **Fonctions absentes de la maquette** (simulé/réel et chemins des outils, état du worker et file de tâches, renommer et dupliquer un
+  projet, « Appliquer la vN », éditeur de règles de routage, « Modifier » un style, recherche globale, saisie des clés API) :
+  **toutes gardées**, intégrées à la maquette. La maquette est complétée puis validée par Nohé avant de coder.
+- **Pack et exports** : un fichier maître par objet (3 niveaux de détail et collision) ; **exports dédiés par moteur** (noms et format
+  adaptés : fichiers `_LOD0/_LOD1/_LOD2` en FBX pour Unity et Unreal, etc.). « Je ne sais pas encore » donne le fichier maître.
+- **Kit modulaire et Décor complet** : construits entièrement avec l'écran Créer (grille, pivots de module, contrôles de raccord,
+  générateurs de modules, décor qui combine objets et modules).
+- **Pièces et zones pointées** pour les objets IA : à construire vraiment, après une recherche rapportée à Nohé.
+- **Plafond Claude atteint** : l'action est refusée avec la raison, jamais de bascule silencieuse en simulé.
+- **Licence de publication** : CC0 par défaut. **Notification** page fermée : notification du navigateur une fois l'app en ligne (la
+  cloche d'ici là). **Variante** : un autre exemplaire fabriqué depuis un autre look (coût multiplié).
+
+**Décidé par Claude pour fermer une contradiction de la maquette (à signaler à Nohé, veto possible)**
+- Moteur par défaut : « Je ne sais pas encore » (aucun défaut propre à Nohé).
+- Filtre de style « Réalistes » renommé **« Semi-réalistes »** (le style le dit ainsi dans le serveur).
+- Le texte « Chaque projet suit 4 étapes » devient **6 étapes**.
+- « Gérer » (Réglages) pointe vers la page Générateurs.
+- Favoris et Archivés ajoutés à la Bibliothèque (cahier des charges, `02-audit-fonctionnel.md`) ; emplacements dessinés avec la
+  maquette complétée.
+- La règle 4 du README de la maquette (« jamais de format à choisir ») est amendée : le choix du logiciel adapte les fichiers du pack.
+
+**Maquette à compléter avant de coder** (travail de conception, validation de Nohé) : emplacements des fonctions gardées ci-dessus,
+Générateurs et banc d'essai, fenêtre « Publier… » en trois temps, comparaison A/B de versions, étapes 1 et 3 de « Nouveau style »,
+formulaires de Réglages (clés, chemins, réveil du PC), parcours Kit modulaire et Décor complet, favoris, archives et notes, exports par
+moteur.
+
 > **28 octobre 2026 : plus aucun « choix provisoire ».** Nohé exige zéro compromis. Les entrées marquées « choix
 > provisoire » ci-dessous (S., C., V.) sont des dettes : elles sont reprises une par une dans `AUDIT-MAQUETTE.md`, où
 > chaque écart devient du travail à faire, pas une décision. Rien n'est retiré de la maquette sans l'accord de Nohé.
