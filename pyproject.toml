@@ -18,6 +18,7 @@ dependencies = [
   "trimesh>=4.4",
   "numpy>=1.26",
   "pillow>=10",
+  "certifi>=2026.10.19",
 ]
 
 [project.optional-dependencies]
