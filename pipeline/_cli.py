@@ -1,5 +1,6 @@
 """Petits outils partagés par l'app et les scripts Blender (sans bpy, sans PyYAML) : racine du dépôt,
 arguments après `--`, JSON, commit courant."""
+
 from __future__ import annotations
 
 import json
@@ -18,7 +19,7 @@ def args_apres_double_tiret(argv: list[str] | None = None) -> list[str]:
     """Les arguments situés après `--` (convention Blender : `blender -b -P script.py -- args`)."""
     argv = list(sys.argv if argv is None else argv)
     if "--" in argv:
-        return argv[argv.index("--") + 1:]
+        return argv[argv.index("--") + 1 :]
     return argv[1:]
 
 
@@ -42,7 +43,9 @@ def commit_courant(court: bool = True) -> str:
     """Hash du commit HEAD du dépôt, ou 'inconnu' si git ne répond pas."""
     try:
         args = ["git", "rev-parse", "--short", "HEAD"] if court else ["git", "rev-parse", "HEAD"]
-        r = subprocess.run(args, cwd=racine_projet(), capture_output=True, text=True, timeout=10, check=False)
+        r = subprocess.run(
+            args, cwd=racine_projet(), capture_output=True, text=True, timeout=10, check=False
+        )
         if r.returncode == 0 and r.stdout.strip():
             return r.stdout.strip()
     except (OSError, subprocess.SubprocessError):

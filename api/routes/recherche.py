@@ -1,4 +1,5 @@
 """Recherche globale (barre du haut) sur la table FTS5 `recherche`."""
+
 from __future__ import annotations
 
 import re
@@ -26,17 +27,29 @@ def requete_fts(q: str) -> str:
 
 
 @router.get("/recherche")
-def rechercher(conn: Db, q: str = Query("", max_length=200),
-               limit: int = Query(20, ge=1, le=100)) -> dict:
+def rechercher(
+    conn: Db, q: str = Query("", max_length=200), limit: int = Query(20, ge=1, le=100)
+) -> dict:
     requete = requete_fts(q)
     if not requete:
         return {"resultats": []}
-    rows = db.toutes(conn, """
+    rows = db.toutes(
+        conn,
+        """
         SELECT type, ref_id, nom, lot FROM recherche WHERE recherche MATCH ? ORDER BY rank LIMIT ?""",
-        (requete, limit))
+        (requete, limit),
+    )
     resultats = []
     for r in rows:
-        titre = r["nom"].rsplit(" ", 1)[0] if r["type"] == "asset" else r["nom"]  # l'id est collé en dernier
-        resultats.append({"type": r["type"], "id": r["ref_id"], "titre": titre,
-                          "lien": LIENS.get(r["type"], lambda rid: "/")(r["ref_id"])})
+        titre = (
+            r["nom"].rsplit(" ", 1)[0] if r["type"] == "asset" else r["nom"]
+        )  # l'id est collé en dernier
+        resultats.append(
+            {
+                "type": r["type"],
+                "id": r["ref_id"],
+                "titre": titre,
+                "lien": LIENS.get(r["type"], lambda rid: "/")(r["ref_id"]),
+            }
+        )
     return {"resultats": resultats}

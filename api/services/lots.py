@@ -8,6 +8,7 @@ Six étapes pour l'utilisateur (maquette v4) : Objets, Look, Fabrication, Valida
 décidés, le projet passe à l'Essai (5), puis au Jeu (6) une fois l'essai accepté, puis il est Terminé (7) une fois
 le pack récupéré.
 """
+
 from __future__ import annotations
 
 import json
@@ -19,11 +20,27 @@ from api.adapters.meshy.base import CREDITS_3D, CREDITS_IMAGE, IMAGES_REFERENCE_
 from api.services import evenements
 from api.services.routage import VOIES_SANS_FABRICATION
 
-RANG = {"brief": 1, "references": 2, "generation": 3, "finition": 3, "tests": 3, "rendus": 3, "revue": 4,
-        "garde": 5, "rejete": 5, "archive": 5}
+RANG = {
+    "brief": 1,
+    "references": 2,
+    "generation": 3,
+    "finition": 3,
+    "tests": 3,
+    "rendus": 3,
+    "revue": 4,
+    "garde": 5,
+    "rejete": 5,
+    "archive": 5,
+}
 ETAPES = ("brief", "references", "generation", "revue", "essai", "jeu")
-LIBELLES_ETAPES = {"brief": "Objets", "references": "Look", "generation": "Fabrication", "revue": "Validation",
-                   "essai": "Essai", "jeu": "Jeu"}
+LIBELLES_ETAPES = {
+    "brief": "Objets",
+    "references": "Look",
+    "generation": "Fabrication",
+    "revue": "Validation",
+    "essai": "Essai",
+    "jeu": "Jeu",
+}
 TERMINE = len(ETAPES) + 1  # 7
 GROUPES = ("tous", "en_cours", "termines", "brouillons")
 CREDITS_PAR_OBJET_IA = CREDITS_3D + CREDITS_IMAGE * IMAGES_REFERENCE_PAR_OBJET  # 30 + 4 × 3 = 42
@@ -39,6 +56,7 @@ class BriefIncomplet(ValueError):
 
 # --- lecture ---------------------------------------------------------------------
 
+
 def _ligne(conn: sqlite3.Connection, lot_id: int) -> dict:
     r = db.une(conn, "SELECT * FROM lots WHERE id = ?", (lot_id,))
     if r is None:
@@ -50,8 +68,12 @@ def objets_du_lot(conn: sqlite3.Connection, lot_id: int) -> list[dict]:
     rows = db.toutes(conn, "SELECT * FROM objets WHERE lot_id = ? ORDER BY ordre, id", (lot_id,))
     for r in rows:
         r["dimensions"] = json.loads(r.pop("dimensions_json") or "null")
-        r["pieces"] = db.toutes(conn, "SELECT id, ordre, nom, nature, type_objet, voie, generateur, etape FROM pieces "
-                                      "WHERE objet_id = ? ORDER BY ordre, id", (r["id"],))
+        r["pieces"] = db.toutes(
+            conn,
+            "SELECT id, ordre, nom, nature, type_objet, voie, generateur, etape FROM pieces "
+            "WHERE objet_id = ? ORDER BY ordre, id",
+            (r["id"],),
+        )
         r["materiaux"] = json.loads(r.pop("materiaux_json") or "[]")
         r["parametres"] = json.loads(r.pop("parametres_json") or "[]")
         r.pop("pieces_json", None)
@@ -85,12 +107,27 @@ def _compter(objets: list[dict]) -> dict:
         "total": len([o for o in objets if not o["retire"]]),
         "fabriques": len(fab),
         "reutilises": len([o for o in objets if not o["retire"] and o["voie"] == "reutilise"]),
-        "hors_perimetre": len([o for o in objets if not o["retire"] and o["voie"] == "hors_perimetre"]),
+        "hors_perimetre": len(
+            [o for o in objets if not o["retire"] and o["voie"] == "hors_perimetre"]
+        ),
         "a_creer": len([o for o in fab if o["voie"] == "a_creer"]),
-        "references_a_choisir": len([o for o in fab if o["etape"] == "references" and o["voie"] != "cc0"
-                                     and o.get("reference_id") is None]),
-        "references_choisies": len([o for o in fab if o["voie"] != "cc0" and (
-            o.get("reference_id") is not None or RANG.get(o["etape"], 1) > 2)]),
+        "references_a_choisir": len(
+            [
+                o
+                for o in fab
+                if o["etape"] == "references"
+                and o["voie"] != "cc0"
+                and o.get("reference_id") is None
+            ]
+        ),
+        "references_choisies": len(
+            [
+                o
+                for o in fab
+                if o["voie"] != "cc0"
+                and (o.get("reference_id") is not None or RANG.get(o["etape"], 1) > 2)
+            ]
+        ),
         "cc0": len([o for o in fab if o["voie"] == "cc0"]),
         "en_generation": len([o for o in fab if RANG.get(o["etape"], 1) == 3]),
         "prets_revue": len([o for o in fab if o["etape"] == "revue"]),
@@ -113,24 +150,62 @@ def situation(lot: dict, objets: list[dict]) -> dict:
         detail = "liste à valider" if c["total"] else "aucun objet pour l'instant"
         s = ("Brouillon", "idle", detail, f"/lots/{lid}/brief", "Reprendre")
     elif etape == 2:
-        detail = (_pluriel(c["references_a_choisir"], "look à choisir", "looks à choisir")
-                  if c["references_a_choisir"] else "looks choisis : lance la fabrication")
+        detail = (
+            _pluriel(c["references_a_choisir"], "look à choisir", "looks à choisir")
+            if c["references_a_choisir"]
+            else "looks choisis : lance la fabrication"
+        )
         s = ("À toi", "warn", detail, f"/lots/{lid}/references", "Reprendre")
     elif etape == 3:
-        s = ("En fabrication", "run", f"{c['fabriques'] - c['en_generation']} sur {c['fabriques']} fabriqués",
-             f"/lots/{lid}/generation", "Suivre")
+        s = (
+            "En fabrication",
+            "run",
+            f"{c['fabriques'] - c['en_generation']} sur {c['fabriques']} fabriqués",
+            f"/lots/{lid}/generation",
+            "Suivre",
+        )
     elif etape == 4:
-        s = ("À valider", "accent", _pluriel(c["prets_revue"], "objet à regarder", "objets à regarder"), f"/lots/{lid}/revue", "Valider")
+        s = (
+            "À valider",
+            "accent",
+            _pluriel(c["prets_revue"], "objet à regarder", "objets à regarder"),
+            f"/lots/{lid}/revue",
+            "Valider",
+        )
     elif etape == 5:
-        s = ("Essai", "accent", "regarde tes objets ensemble avant de les récupérer", f"/lots/{lid}/essai", "Essayer")
+        s = (
+            "Essai",
+            "accent",
+            "regarde tes objets ensemble avant de les récupérer",
+            f"/lots/{lid}/essai",
+            "Essayer",
+        )
     elif etape == 6:
         s = ("Jeu", "accent", "récupère le pack pour ton jeu", f"/lots/{lid}/jeu", "Récupérer")
     else:
         rejets = "aucun jeté" if c["rejetes"] == 0 else _pluriel(c["rejetes"], "jeté", "jetés")
-        s = ("Terminé", "good", f"{_pluriel(c['gardes'], 'gardé', 'gardés')}, {rejets}", f"/bibliotheque?lot={lid}", "Voir les objets")
+        s = (
+            "Terminé",
+            "good",
+            f"{_pluriel(c['gardes'], 'gardé', 'gardés')}, {rejets}",
+            f"/bibliotheque?lot={lid}",
+            "Voir les objets",
+        )
     statut, ton, detail, lien, action = s
-    return {"etape": etape, "libelle_etape": "Terminé" if etape == TERMINE else f"Étape {etape} sur {len(ETAPES)} · {LIBELLES_ETAPES[ETAPES[etape - 1]]}",
-            "statut": statut, "ton": ton, "detail": detail, "lien": lien, "action": action, "compteurs": c}
+    return {
+        "etape": etape,
+        "libelle_etape": (
+            "Terminé"
+            if etape == TERMINE
+            else f"Étape {etape} sur {len(ETAPES)} · {LIBELLES_ETAPES[ETAPES[etape - 1]]}"
+        ),
+        "statut": statut,
+        "ton": ton,
+        "detail": detail,
+        "lien": lien,
+        "action": action,
+        "compteurs": c,
+    }
 
 
 def ligne_etat(lot: dict, objets: list[dict], etape_courante: str) -> str:
@@ -151,7 +226,20 @@ def ligne_etat(lot: dict, objets: list[dict], etape_courante: str) -> str:
     return f"{n} · {_pluriel(c['gardes'], 'gardé', 'gardés')} · {c['prets_revue']} à décider · {_pluriel(c['reutilises'], 'réutilisé', 'réutilisés')}"
 
 
-MOIS = ["janv.", "févr.", "mars", "avr.", "mai", "juin", "juil.", "août", "sept.", "oct.", "nov.", "déc."]
+MOIS = [
+    "janv.",
+    "févr.",
+    "mars",
+    "avr.",
+    "mai",
+    "juin",
+    "juil.",
+    "août",
+    "sept.",
+    "oct.",
+    "nov.",
+    "déc.",
+]
 
 
 def _date_courte(iso: str) -> str:
@@ -165,7 +253,9 @@ def _date_courte(iso: str) -> str:
 def _style(conn: sqlite3.Connection, style_id: int | None) -> dict | None:
     if style_id is None:
         return None
-    r = db.une(conn, "SELECT id, code, nom, version, racine_id FROM styles WHERE id = ?", (style_id,))
+    r = db.une(
+        conn, "SELECT id, code, nom, version, racine_id FROM styles WHERE id = ?", (style_id,)
+    )
     return dict(r) if r else None
 
 
@@ -173,16 +263,32 @@ def resume(conn: sqlite3.Connection, lot: dict) -> dict:
     objets = objets_du_lot(conn, lot["id"])
     sit = situation(lot, objets)
     style = _style(conn, lot["style_id"])
-    return {"id": lot["id"], "nom": lot["nom"], "theme": lot["theme"], "nb_objets": sit["compteurs"]["total"],
-            "style": style, "etat": lot["etat"], "cree_le": lot["cree_le"], "maj_le": lot["maj_le"], **sit}
+    return {
+        "id": lot["id"],
+        "nom": lot["nom"],
+        "theme": lot["theme"],
+        "nb_objets": sit["compteurs"]["total"],
+        "style": style,
+        "etat": lot["etat"],
+        "cree_le": lot["cree_le"],
+        "maj_le": lot["maj_le"],
+        **sit,
+    }
 
 
 def groupe_de(etat: str) -> str:
-    return {"brouillon": "brouillons", "en_cours": "en_cours", "termine": "termines", "archive": "termines"}.get(etat, "brouillons")
+    return {
+        "brouillon": "brouillons",
+        "en_cours": "en_cours",
+        "termine": "termines",
+        "archive": "termines",
+    }.get(etat, "brouillons")
 
 
 def lister(conn: sqlite3.Connection, groupe: str = "tous") -> dict:
-    lots = [resume(conn, r) for r in db.toutes(conn, "SELECT * FROM lots ORDER BY maj_le DESC, id DESC")]
+    lots = [
+        resume(conn, r) for r in db.toutes(conn, "SELECT * FROM lots ORDER BY maj_le DESC, id DESC")
+    ]
     compteurs = {g: 0 for g in GROUPES}
     compteurs["tous"] = len(lots)
     for lot in lots:
@@ -199,25 +305,53 @@ def en_tete(conn: sqlite3.Connection, lot_id: int, etape_courante: str = "brief"
     style = _style(conn, lot["style_id"])
     version_plus_recente = None
     if style:
-        r = db.une(conn, "SELECT id, code, version FROM styles WHERE racine_id = ? AND version > ? AND etat = 'valide' "
-                         "ORDER BY version DESC LIMIT 1", (style["racine_id"], style["version"]))
+        r = db.une(
+            conn,
+            "SELECT id, code, version FROM styles WHERE racine_id = ? AND version > ? AND etat = 'valide' "
+            "ORDER BY version DESC LIMIT 1",
+            (style["racine_id"], style["version"]),
+        )
         version_plus_recente = dict(r) if r else None
     etapes = []
     for i, cle in enumerate(ETAPES, start=1):
         c = sit["compteurs"]
         # La Validation s'ouvre dès qu'un objet est prêt à être regardé, même si d'autres sont encore en fabrication.
         un_objet_pret = cle == "revue" and (c["prets_revue"] + c["gardes"] + c["rejetes"]) > 0
-        etapes.append({"cle": cle, "libelle": LIBELLES_ETAPES[cle], "numero": i, "lien": f"/lots/{lot_id}/{cle}",
-                       "atteinte": True if sit["etape"] >= TERMINE else i <= max(sit["etape"], 1) or un_objet_pret,
-                       "faite": i < sit["etape"]})
-    return {"id": lot_id, "nom": lot["nom"], "theme": lot["theme"], "besoin": lot["besoin"], "style": style,
-            "style_plus_recent": version_plus_recente, "etat": lot["etat"], "cree_le": lot["cree_le"], "maj_le": lot["maj_le"],
-            "duplique_de_id": lot["duplique_de_id"], "credits_prevus": lot["credits_prevus"],
-            "proposition_tache_id": lot["proposition_tache_id"], "nom_propose": lot["nom_propose"],
-            "etape_courante": sit["etape"], "etapes": etapes, "ligne_etat": ligne_etat(lot, objets, etape_courante), **sit}
+        etapes.append(
+            {
+                "cle": cle,
+                "libelle": LIBELLES_ETAPES[cle],
+                "numero": i,
+                "lien": f"/lots/{lot_id}/{cle}",
+                "atteinte": (
+                    True if sit["etape"] >= TERMINE else i <= max(sit["etape"], 1) or un_objet_pret
+                ),
+                "faite": i < sit["etape"],
+            }
+        )
+    return {
+        "id": lot_id,
+        "nom": lot["nom"],
+        "theme": lot["theme"],
+        "besoin": lot["besoin"],
+        "style": style,
+        "style_plus_recent": version_plus_recente,
+        "etat": lot["etat"],
+        "cree_le": lot["cree_le"],
+        "maj_le": lot["maj_le"],
+        "duplique_de_id": lot["duplique_de_id"],
+        "credits_prevus": lot["credits_prevus"],
+        "proposition_tache_id": lot["proposition_tache_id"],
+        "nom_propose": lot["nom_propose"],
+        "etape_courante": sit["etape"],
+        "etapes": etapes,
+        "ligne_etat": ligne_etat(lot, objets, etape_courante),
+        **sit,
+    }
 
 
 # --- écriture ----------------------------------------------------------------------
+
 
 def _touch(conn: sqlite3.Connection, lot_id: int) -> None:
     conn.execute("UPDATE lots SET maj_le = ? WHERE id = ?", (db.maintenant(), lot_id))
@@ -235,23 +369,43 @@ def synchroniser_etat(conn: sqlite3.Connection, lot_id: int) -> str:
 
 
 def style_par_defaut(conn: sqlite3.Connection) -> int | None:
-    r = db.une(conn, "SELECT id FROM styles WHERE etat = 'valide' ORDER BY id LIMIT 1") or db.une(conn, "SELECT id FROM styles ORDER BY id LIMIT 1")
+    r = db.une(conn, "SELECT id FROM styles WHERE etat = 'valide' ORDER BY id LIMIT 1") or db.une(
+        conn, "SELECT id FROM styles ORDER BY id LIMIT 1"
+    )
     return r["id"] if r else None
 
 
-def creer(conn: sqlite3.Connection, nom: str = "", theme: str = "", besoin: str = "", style_id: int | None = None) -> dict:
+def creer(
+    conn: sqlite3.Connection,
+    nom: str = "",
+    theme: str = "",
+    besoin: str = "",
+    style_id: int | None = None,
+) -> dict:
     """Un lot vide, au Brief, avec son dossier lots/<id>/ (audit : « Nouveau lot crée un lot vide »)."""
     maintenant = db.maintenant()
     with db.transaction(conn):
-        lot_id = db.inserer(conn, "lots", {
-            "nom": nom.strip(), "theme": theme.strip(), "besoin": besoin.strip(), "direction": "",
-            "style_id": style_id if style_id is not None else style_par_defaut(conn),
-            "etat": "brouillon", "cree_le": maintenant, "maj_le": maintenant, "dossier": "",
-        })
+        lot_id = db.inserer(
+            conn,
+            "lots",
+            {
+                "nom": nom.strip(),
+                "theme": theme.strip(),
+                "besoin": besoin.strip(),
+                "direction": "",
+                "style_id": style_id if style_id is not None else style_par_defaut(conn),
+                "etat": "brouillon",
+                "cree_le": maintenant,
+                "maj_le": maintenant,
+                "dossier": "",
+            },
+        )
         dossier = chemins.dossier_lots() / str(lot_id)
         dossier.mkdir(parents=True, exist_ok=True)
         conn.execute("UPDATE lots SET dossier = ? WHERE id = ?", (f"lots/{lot_id}", lot_id))
-        evenements.ecrire(conn, "lot_cree", f"Lot {nom.strip() or lot_id} créé", niveau="info", lot_id=lot_id)
+        evenements.ecrire(
+            conn, "lot_cree", f"Lot {nom.strip() or lot_id} créé", niveau="info", lot_id=lot_id
+        )
     return en_tete(conn, lot_id)
 
 
@@ -265,7 +419,10 @@ def modifier(conn: sqlite3.Connection, lot_id: int, champs: dict) -> dict:
             continue
         if k == "style_id" and db.une(conn, "SELECT 1 FROM styles WHERE id = ?", (v,)) is None:
             raise ValueError(f"style {v} introuvable")
-        conn.execute(f"UPDATE lots SET {k} = ? WHERE id = ?", (v.strip() if isinstance(v, str) else v, lot_id))
+        conn.execute(
+            f"UPDATE lots SET {k} = ? WHERE id = ?",
+            (v.strip() if isinstance(v, str) else v, lot_id),
+        )
     _touch(conn, lot_id)
     return en_tete(conn, lot_id)
 
@@ -276,34 +433,83 @@ def dupliquer(conn: sqlite3.Connection, lot_id: int) -> dict:
     objets = objets_du_lot(conn, lot_id)
     maintenant = db.maintenant()
     with db.transaction(conn):
-        nouveau = db.inserer(conn, "lots", {
-            "nom": f"{lot['nom']} (copie)" if lot["nom"] else "", "theme": lot["theme"], "besoin": lot["besoin"],
-            "direction": lot["direction"], "style_id": lot["style_id"], "etat": "brouillon", "cree_le": maintenant,
-            "maj_le": maintenant, "dossier": "", "duplique_de_id": lot_id, "nom_propose": lot["nom_propose"],
-        })
+        nouveau = db.inserer(
+            conn,
+            "lots",
+            {
+                "nom": f"{lot['nom']} (copie)" if lot["nom"] else "",
+                "theme": lot["theme"],
+                "besoin": lot["besoin"],
+                "direction": lot["direction"],
+                "style_id": lot["style_id"],
+                "etat": "brouillon",
+                "cree_le": maintenant,
+                "maj_le": maintenant,
+                "dossier": "",
+                "duplique_de_id": lot_id,
+                "nom_propose": lot["nom_propose"],
+            },
+        )
         (chemins.dossier_lots() / str(nouveau)).mkdir(parents=True, exist_ok=True)
         conn.execute("UPDATE lots SET dossier = ? WHERE id = ?", (f"lots/{nouveau}", nouveau))
         for o in objets:
-            oid = db.inserer(conn, "objets", {
-                "lot_id": nouveau, "nom": o["nom"], "type_objet": o["type_objet"], "description": o["description"],
-                "categorie": o["categorie"], "nature": o["nature"], "dimensions_json": json.dumps(o["dimensions"]),
-                "voie": o["voie"], "voie_forcee": 1 if o["voie_forcee"] else 0, "raison_voie": o["raison_voie"],
-                "regle_id": o["regle_id"], "generateur": o["generateur"], "etape": "brief", "retire": 1 if o["retire"] else 0,
-                "reutilise_asset_id": o["reutilise_asset_id"], "symetrique": o["symetrique"], "famille": o["famille"],
-                "materiaux_json": json.dumps(o["materiaux"], ensure_ascii=False),
-                "parametres_json": json.dumps(o["parametres"], ensure_ascii=False), "cc0_ref": o["cc0_ref"], "ordre": o["ordre"],
-            })
+            oid = db.inserer(
+                conn,
+                "objets",
+                {
+                    "lot_id": nouveau,
+                    "nom": o["nom"],
+                    "type_objet": o["type_objet"],
+                    "description": o["description"],
+                    "categorie": o["categorie"],
+                    "nature": o["nature"],
+                    "dimensions_json": json.dumps(o["dimensions"]),
+                    "voie": o["voie"],
+                    "voie_forcee": 1 if o["voie_forcee"] else 0,
+                    "raison_voie": o["raison_voie"],
+                    "regle_id": o["regle_id"],
+                    "generateur": o["generateur"],
+                    "etape": "brief",
+                    "retire": 1 if o["retire"] else 0,
+                    "reutilise_asset_id": o["reutilise_asset_id"],
+                    "symetrique": o["symetrique"],
+                    "famille": o["famille"],
+                    "materiaux_json": json.dumps(o["materiaux"], ensure_ascii=False),
+                    "parametres_json": json.dumps(o["parametres"], ensure_ascii=False),
+                    "cc0_ref": o["cc0_ref"],
+                    "ordre": o["ordre"],
+                },
+            )
             for p in o["pieces"]:
-                db.inserer(conn, "pieces", {"objet_id": oid, "ordre": p["ordre"], "nom": p["nom"], "nature": p["nature"],
-                                            "type_objet": p["type_objet"], "voie": p["voie"], "generateur": p["generateur"],
-                                            "etape": "brief"})
-        evenements.ecrire(conn, "lot_duplique", f"Lot {lot['nom'] or lot_id} dupliqué", niveau="info", lot_id=nouveau)
+                db.inserer(
+                    conn,
+                    "pieces",
+                    {
+                        "objet_id": oid,
+                        "ordre": p["ordre"],
+                        "nom": p["nom"],
+                        "nature": p["nature"],
+                        "type_objet": p["type_objet"],
+                        "voie": p["voie"],
+                        "generateur": p["generateur"],
+                        "etape": "brief",
+                    },
+                )
+        evenements.ecrire(
+            conn,
+            "lot_duplique",
+            f"Lot {lot['nom'] or lot_id} dupliqué",
+            niveau="info",
+            lot_id=nouveau,
+        )
     return en_tete(conn, nouveau)
 
 
 def estimation_credits(objets: list[dict]) -> int:
     """Voie IA ou mixte : 3D texturée + 4 images de référence. Code : variantes Blender gratuites (correction 1)."""
-    return sum(CREDITS_PAR_OBJET_IA for o in objets if not o["retire"] and o["voie"] in ("ia", "mixte"))
+    return sum(
+        CREDITS_PAR_OBJET_IA for o in objets if not o["retire"] and o["voie"] in ("ia", "mixte")
+    )
 
 
 def resume_brief(objets: list[dict]) -> dict:
@@ -320,8 +526,13 @@ def resume_brief(objets: list[dict]) -> dict:
     }
 
 
-def retenir_objet(conn: sqlite3.Connection, lot_id: int, objet_id: int, retenu: bool | None = None,
-                  voie: str | None = None) -> dict:
+def retenir_objet(
+    conn: sqlite3.Connection,
+    lot_id: int,
+    objet_id: int,
+    retenu: bool | None = None,
+    voie: str | None = None,
+) -> dict:
     """Case à cocher (retire l'objet du lot) et choix manuel de la voie (« Passer en voie IA »)."""
     o = db.une(conn, "SELECT * FROM objets WHERE id = ? AND lot_id = ?", (objet_id, lot_id))
     if o is None:
@@ -331,8 +542,15 @@ def retenir_objet(conn: sqlite3.Connection, lot_id: int, objet_id: int, retenu: 
     if voie is not None:
         if voie not in ("ia", "code", "a_creer"):
             raise ValueError("voie choisie à la main : ia, code ou a_creer")
-        conn.execute("UPDATE objets SET voie = ?, voie_forcee = 1, raison_voie = ?, generateur = ? WHERE id = ?",
-                     (voie, "Voie choisie à la main", "meshy" if voie == "ia" else o["generateur"] if voie == "code" else None, objet_id))
+        conn.execute(
+            "UPDATE objets SET voie = ?, voie_forcee = 1, raison_voie = ?, generateur = ? WHERE id = ?",
+            (
+                voie,
+                "Voie choisie à la main",
+                "meshy" if voie == "ia" else o["generateur"] if voie == "code" else None,
+                objet_id,
+            ),
+        )
     _touch(conn, lot_id)
     synchroniser_etat(conn, lot_id)
     return next(x for x in objets_du_lot(conn, lot_id) if x["id"] == objet_id)
@@ -345,11 +563,16 @@ def valider_brief(conn: sqlite3.Connection, lot_id: int) -> dict:
     objets = objets_du_lot(conn, lot_id)
     retenus = [o for o in objets if not o["retire"]]
     if not retenus:
-        raise BriefIncomplet("aucun objet retenu : demande une liste à Claude et coche ce que tu veux fabriquer")
+        raise BriefIncomplet(
+            "aucun objet retenu : demande une liste à Claude et coche ce que tu veux fabriquer"
+        )
     a_creer = [o["nom"] for o in retenus if o["voie"] == "a_creer"]
     if a_creer:
-        raise BriefIncomplet("générateur à écrire avant de lancer : " + ", ".join(a_creer)
-                             + " (prépare la demande pour Claude Code, ou passe l'objet en voie IA)")
+        raise BriefIncomplet(
+            "générateur à écrire avant de lancer : "
+            + ", ".join(a_creer)
+            + " (prépare la demande pour Claude Code, ou passe l'objet en voie IA)"
+        )
     with db.transaction(conn):
         for o in retenus:
             if o["voie"] == "hors_perimetre":
@@ -358,11 +581,21 @@ def valider_brief(conn: sqlite3.Connection, lot_id: int) -> dict:
                 conn.execute("UPDATE objets SET etape = 'garde' WHERE id = ?", (o["id"],))
             elif o["etape"] == "brief":
                 conn.execute("UPDATE objets SET etape = 'references' WHERE id = ?", (o["id"],))
-                conn.execute("UPDATE pieces SET etape = 'references' WHERE objet_id = ?", (o["id"],))
-        conn.execute("UPDATE lots SET credits_prevus = ? WHERE id = ?", (estimation_credits(objets), lot_id))
+                conn.execute(
+                    "UPDATE pieces SET etape = 'references' WHERE objet_id = ?", (o["id"],)
+                )
+        conn.execute(
+            "UPDATE lots SET credits_prevus = ? WHERE id = ?", (estimation_credits(objets), lot_id)
+        )
         _touch(conn, lot_id)
-        evenements.ecrire(conn, "brief_valide", f"Brief validé : {lot['nom'] or lot_id}",
-                          f"{len(retenus)} objets retenus.", niveau="info", lot_id=lot_id)
+        evenements.ecrire(
+            conn,
+            "brief_valide",
+            f"Brief validé : {lot['nom'] or lot_id}",
+            f"{len(retenus)} objets retenus.",
+            niveau="info",
+            lot_id=lot_id,
+        )
     synchroniser_etat(conn, lot_id)
     return en_tete(conn, lot_id, "references")
 
@@ -372,9 +605,15 @@ def estimation_appliquer_style(conn: sqlite3.Connection, lot_id: int, style_id: 
     _ligne(conn, lot_id)
     if db.une(conn, "SELECT 1 FROM styles WHERE id = ?", (style_id,)) is None:
         raise ValueError(f"style {style_id} introuvable")
-    objets = [o for o in objets_du_lot(conn, lot_id) if not o["retire"] and RANG.get(o["etape"], 1) >= 3]
+    objets = [
+        o for o in objets_du_lot(conn, lot_id) if not o["retire"] and RANG.get(o["etape"], 1) >= 3
+    ]
     code = [o["nom"] for o in objets if o["voie"] == "code"]
     ia = [o["nom"] for o in objets if o["voie"] in ("ia", "mixte")]
-    return {"objets_code": code, "objets_ia": ia, "credits": len(ia) * CREDITS_3D,
-            "lancement_possible": False,
-            "raison": "Refaire les objets arrive avec la fabrication (étapes 5 et 7 du plan)"}
+    return {
+        "objets_code": code,
+        "objets_ia": ia,
+        "credits": len(ia) * CREDITS_3D,
+        "lancement_possible": False,
+        "raison": "Refaire les objets arrive avec la fabrication (étapes 5 et 7 du plan)",
+    }

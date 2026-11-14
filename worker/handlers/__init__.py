@@ -1,4 +1,5 @@
 """Registre des handlers : chaque module worker/handlers/<nom>.py expose TYPE et run(tache, ctx)."""
+
 from __future__ import annotations
 
 import importlib

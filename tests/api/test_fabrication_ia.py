@@ -1,4 +1,5 @@
 """Fabrication par IA (étape 7) : l'image choisie part à Meshy (simulé), l'objet 3D suit la chaîne commune jusqu'à la revue."""
+
 import json
 
 import pytest
@@ -43,7 +44,10 @@ def _objet_ia_choisi(client, cfg):
     assert client.post(f"/api/lots/{lot['id']}/valider-brief").status_code == 200
     _worker_tourne(cfg)
     o = client.get(f"/api/lots/{lot['id']}/references").json()["objets"][0]
-    client.put(f"/api/lots/{lot['id']}/objets/{o['id']}/reference", json={"proposition_id": o["propositions"][1]["id"]})
+    client.put(
+        f"/api/lots/{lot['id']}/objets/{o['id']}/reference",
+        json={"proposition_id": o["propositions"][1]["id"]},
+    )
     return lot["id"], o["id"]
 
 
@@ -68,10 +72,17 @@ def test_lancer_envoie_l_image_choisie_a_meshy_avec_le_budget_du_style(client, c
     assert t["type"] == "generer_ia" and t["file"] == "meshy"
     essai = db.une(conn, "SELECT * FROM essais WHERE objet_id = ?", (oid,))
     options = json.loads(essai["params_json"])
-    assert options["should_remesh"] is True and options["topology"] == "triangle" and options["enable_pbr"] is True
+    assert (
+        options["should_remesh"] is True
+        and options["topology"] == "triangle"
+        and options["enable_pbr"] is True
+    )
     objet = db.une(conn, "SELECT categorie FROM objets WHERE id = ?", (oid,))
     from api.services import styles
-    assert options["target_polycount"] == styles.charger_style("rome-stylise-v0").budget(objet["categorie"])
+
+    assert options["target_polycount"] == styles.charger_style("rome-stylise-v0").budget(
+        objet["categorie"]
+    )
     # Sans Blender (config de test) : l'objet 3D arrive de Meshy, la finition échoue avec un motif clair.
     _worker_tourne(cfg)
     meshy = get_meshy(cfg).etat.charger()["taches"]
@@ -80,17 +91,34 @@ def test_lancer_envoie_l_image_choisie_a_meshy_avec_le_budget_du_style(client, c
     assert envoi["entree"]["options"] == options
     essai = db.une(conn, "SELECT * FROM essais WHERE objet_id = ?", (oid,))
     source = json.loads(essai["source_json"])
-    assert source["glb"].endswith(".glb") and (fabrication.dossier_essai(essai) / source["glb"]).is_file()
-    assert essai["cout_credits"] == 30 and essai["etat"] == "echec" and "Blender introuvable" in essai["erreur"]
+    assert (
+        source["glb"].endswith(".glb")
+        and (fabrication.dossier_essai(essai) / source["glb"]).is_file()
+    )
+    assert (
+        essai["cout_credits"] == 30
+        and essai["etat"] == "echec"
+        and "Blender introuvable" in essai["erreur"]
+    )
     cout = db.une(conn, "SELECT * FROM couts WHERE type = 'generation_3d'")
     assert cout["credits"] == 30 and cout["simule"] and cout["lot_id"] == lid
     g = client.get(f"/api/lots/{lid}/generation").json()
     o = next(x for x in g["objets"] if x["id"] == oid)
-    assert o["statut"].startswith("Échec à l'étape Génération") and o["peut_fabriquer"] and o["peut_rechoisir"]
-    assert {t["libelle"] for t in g["taches"]} >= {"Objet 3D par IA (Meshy)", "Finition d'un objet IA (Blender)"}
+    assert (
+        o["statut"].startswith("Échec à l'étape Génération")
+        and o["peut_fabriquer"]
+        and o["peut_rechoisir"]
+    )
+    assert {t["libelle"] for t in g["taches"]} >= {
+        "Objet 3D par IA (Meshy)",
+        "Finition d'un objet IA (Blender)",
+    }
     # Refaire : un nouvel essai, une nouvelle génération Meshy.
     r = client.post(f"/api/lots/{lid}/fabriquer", json={"objet_id": oid})
-    assert r.status_code == 202 and taches.lire_tache(conn, r.json()["taches"][0])["type"] == "generer_ia"
+    assert (
+        r.status_code == 202
+        and taches.lire_tache(conn, r.json()["taches"][0])["type"] == "generer_ia"
+    )
     assert db.une(conn, "SELECT COUNT(*) AS n FROM essais WHERE objet_id = ?", (oid,))["n"] == 2
 
 
@@ -108,14 +136,27 @@ def test_reprise_sans_payer_deux_fois(client, conn, cfg):
     _prendre(conn, tid)
     arrets = iter([False, True])  # le worker s'arrête pendant l'attente de Meshy
     with pytest.raises(InterruptedError):
-        fabrication_ia.executer_generation(conn, meshy, cfg, {"essai_id": essai_id}, tache_id=tid,
-                                           arret=lambda: next(arrets, True), attente_s=0)
+        fabrication_ia.executer_generation(
+            conn,
+            meshy,
+            cfg,
+            {"essai_id": essai_id},
+            tache_id=tid,
+            arret=lambda: next(arrets, True),
+            attente_s=0,
+        )
     restants = meshy.solde()["restants"]
-    r = fabrication_ia.executer_generation(conn, meshy, cfg, {"essai_id": essai_id}, tache_id=tid, attente_s=0)
-    assert meshy.solde()["restants"] == restants  # la reprise relit la tâche Meshy, elle n'en paie pas une autre
+    r = fabrication_ia.executer_generation(
+        conn, meshy, cfg, {"essai_id": essai_id}, tache_id=tid, attente_s=0
+    )
+    assert (
+        meshy.solde()["restants"] == restants
+    )  # la reprise relit la tâche Meshy, elle n'en paie pas une autre
     assert sum(1 for x in meshy.etat.charger()["taches"].values() if x["genre"] == "3d") == 1
     # Refaire la tâche ne double ni le coût ni la finition.
-    r2 = fabrication_ia.executer_generation(conn, meshy, cfg, {"essai_id": essai_id}, tache_id=tid, attente_s=0)
+    r2 = fabrication_ia.executer_generation(
+        conn, meshy, cfg, {"essai_id": essai_id}, tache_id=tid, attente_s=0
+    )
     assert r2["finition"] == r["finition"]
     assert db.une(conn, "SELECT COUNT(*) AS n FROM couts WHERE type = 'generation_3d'")["n"] == 1
 
@@ -132,8 +173,14 @@ def test_meshy_refuse_l_essai_echoue_sans_relance(client, conn, cfg, monkeypatch
     tid = client.post(f"/api/lots/{lid}/lancer").json()["taches"][0]
     _prendre(conn, tid)
     with pytest.raises(taches.TacheDefinitive):
-        fabrication_ia.executer_generation(conn, get_meshy(cfg), cfg, taches.lire_tache(conn, tid)["params"], tache_id=tid,
-                                           attente_s=0)
+        fabrication_ia.executer_generation(
+            conn,
+            get_meshy(cfg),
+            cfg,
+            taches.lire_tache(conn, tid)["params"],
+            tache_id=tid,
+            attente_s=0,
+        )
     essai = db.une(conn, "SELECT * FROM essais WHERE objet_id = ?", (oid,))
     assert essai["etat"] == "echec" and "crédits Meshy insuffisants" in essai["erreur"]
 
@@ -147,16 +194,22 @@ def test_relance_automatique_trois_fois_au_plus(client, conn, cfg):
         conn.execute("UPDATE taches SET etat = 'annulee' WHERE etat = 'en_attente'")
         conn.commit()
         try:
-            r = fabrication._echec_qualite(conn, cfg, essai, True, "contrôles en échec : Maillage fermé", {"controles": []})
+            r = fabrication._echec_qualite(
+                conn, cfg, essai, True, "contrôles en échec : Maillage fermé", {"controles": []}
+            )
         except taches.TacheDefinitive as e:
             assert "après 3 relances automatiques" in str(e)
             break
         suites.append(r["relance"])
-        essai = db.une(conn, "SELECT * FROM essais WHERE objet_id = ? ORDER BY numero DESC LIMIT 1", (oid,))
+        essai = db.une(
+            conn, "SELECT * FROM essais WHERE objet_id = ? ORDER BY numero DESC LIMIT 1", (oid,)
+        )
     assert len(suites) == 3  # 1 essai + 3 relances (Réglages : relances automatiques = 3)
     g = client.get(f"/api/lots/{lid}/generation").json()
     assert g["tuiles"]["relances"] >= 3
-    assert db.une(conn, "SELECT COUNT(*) AS n FROM evenements WHERE type = 'relance_auto'")["n"] == 3
+    assert (
+        db.une(conn, "SELECT COUNT(*) AS n FROM evenements WHERE type = 'relance_auto'")["n"] == 3
+    )
 
 
 @pytest.mark.blender
@@ -164,18 +217,30 @@ def test_l_image_devient_un_objet_pret_pour_la_revue(client, conn, cfg_blender):
     lid, oid = _objet_ia_choisi(client, cfg_blender)
     client.post(f"/api/lots/{lid}/lancer")
     _worker_tourne(cfg_blender, timeout=300)
-    essai = db.une(conn, "SELECT * FROM essais WHERE objet_id = ? ORDER BY numero DESC LIMIT 1", (oid,))
+    essai = db.une(
+        conn, "SELECT * FROM essais WHERE objet_id = ? ORDER BY numero DESC LIMIT 1", (oid,)
+    )
     assert essai["etat"] == "pret", essai["erreur"]
     asset = db.une(conn, "SELECT * FROM assets WHERE objet_id = ?", (oid,))
     assert asset["statut"] == "revue" and asset["voie"] == "ia"
     dossier = fabrication.dossier_essai(essai) / "asset"
     meta = json.loads((dossier / "meta.json").read_text(encoding="utf-8"))
-    assert meta["voie"] == "A" and meta["sources"][0]["licence"] == "Meshy-Pro" and meta["outils_ia"]["geometrie"]
+    assert (
+        meta["voie"] == "A"
+        and meta["sources"][0]["licence"] == "Meshy-Pro"
+        and meta["outils_ia"]["geometrie"]
+    )
     assert meta["parametres"]["reference"]["genre"] == "image" and meta["licence"] is None
     interne = json.loads((dossier / "rapport_interne.json").read_text(encoding="utf-8"))
     assert interne["normalisation"]["reparation"]["debris_retires"] == 1  # le débris du GLB simulé
-    assert interne["textures"] and interne["textures"][0]["px"] == 1024  # 2K de Meshy ramené à la taille du style
-    rapport = json.loads(db.une(conn, "SELECT rapport_tests_json FROM essais WHERE id = ?", (essai["id"],))["rapport_tests_json"])
+    assert (
+        interne["textures"] and interne["textures"][0]["px"] == 1024
+    )  # 2K de Meshy ramené à la taille du style
+    rapport = json.loads(
+        db.une(conn, "SELECT rapport_tests_json FROM essais WHERE id = ?", (essai["id"],))[
+            "rapport_tests_json"
+        ]
+    )
     assert rapport["bloquants_ok"] is True
     dims = next(c for c in rapport["controles"] if c["nom"] == "Dimensions")
     assert dims["ok"] and "proportions à juger en revue" in dims["detail"]

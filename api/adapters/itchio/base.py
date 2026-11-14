@@ -1,4 +1,5 @@
 """Interface itch.io (butler) : vérifier l'outil et pousser un pack."""
+
 from __future__ import annotations
 
 from abc import ABC, abstractmethod

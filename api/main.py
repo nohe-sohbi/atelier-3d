@@ -4,6 +4,7 @@
 - Si web/dist/index.html existe, l'interface construite est servie à / avec repli SPA.
 - Erreurs en JSON : {"erreur": "...", "detail": ...}.
 """
+
 from __future__ import annotations
 
 import importlib
@@ -44,6 +45,7 @@ async def _cycle_de_vie(app: FastAPI):
     conn = db.connexion()
     try:
         from api.services import styles
+
         styles.importer_dossier(conn)
     finally:
         conn.close()
@@ -51,22 +53,37 @@ async def _cycle_de_vie(app: FastAPI):
 
 
 def create_app() -> FastAPI:
-    app = FastAPI(title="Atelier 3D", version=VERSION, lifespan=_cycle_de_vie,
-                  docs_url="/api/docs", openapi_url="/api/openapi.json", redoc_url=None)
-    app.add_middleware(CORSMiddleware, allow_origins=ORIGINES, allow_credentials=True,
-                       allow_methods=["*"], allow_headers=["*"])
+    app = FastAPI(
+        title="Atelier 3D",
+        version=VERSION,
+        lifespan=_cycle_de_vie,
+        docs_url="/api/docs",
+        openapi_url="/api/openapi.json",
+        redoc_url=None,
+    )
+    app.add_middleware(
+        CORSMiddleware,
+        allow_origins=ORIGINES,
+        allow_credentials=True,
+        allow_methods=["*"],
+        allow_headers=["*"],
+    )
     for routeur in decouvrir_routeurs():
         app.include_router(routeur, prefix="/api")
     # Le plan demande « une route /sante qui répond ok » : la même route, aussi hors de /api.
     from api.routes import sante as route_sante
+
     app.include_router(route_sante.router)
 
     # Enregistré sur la classe de Starlette : c'est elle qui est levée pour une route inconnue (404)
     # ou une méthode refusée (405) ; fastapi.HTTPException en hérite, donc tout passe ici.
     @app.exception_handler(StarletteHTTPException)
     async def _http(request: Request, exc: StarletteHTTPException):
-        return JSONResponse({"erreur": str(exc.detail), "detail": None}, status_code=exc.status_code,
-                            headers=exc.headers)
+        return JSONResponse(
+            {"erreur": str(exc.detail), "detail": None},
+            status_code=exc.status_code,
+            headers=exc.headers,
+        )
 
     @app.exception_handler(RequestValidationError)
     async def _validation(request: Request, exc: RequestValidationError):
@@ -78,8 +95,13 @@ def create_app() -> FastAPI:
     async def _interne(request: Request, exc: Exception):
         log.exception("erreur interne sur %s", request.url.path)
         # Le détail reste dans le journal : un message d'exception peut contenir un chemin ou un extrait de fichier.
-        return JSONResponse({"erreur": f"Erreur interne ({type(exc).__name__}) : voir le journal de l'API",
-                             "detail": None}, status_code=500)
+        return JSONResponse(
+            {
+                "erreur": f"Erreur interne ({type(exc).__name__}) : voir le journal de l'API",
+                "detail": None,
+            },
+            status_code=500,
+        )
 
     dist = chemins.dossier_web_dist()
     index = dist / "index.html"
@@ -90,15 +112,24 @@ def create_app() -> FastAPI:
         @app.get("/{chemin:path}", include_in_schema=False)
         async def spa(chemin: str):
             if chemin == "api" or chemin.startswith("api/"):
-                raise HTTPException(404, "Not Found")  # même réponse qu'en développement (sans web/dist)
+                raise HTTPException(
+                    404, "Not Found"
+                )  # même réponse qu'en développement (sans web/dist)
             fichier = (dist / chemin).resolve() if chemin else index
             if chemin and fichier.is_file() and dist.resolve() in fichier.parents:
                 return FileResponse(fichier)
             return FileResponse(index)
+
     else:
+
         @app.get("/", include_in_schema=False)
         async def racine():
-            return {"application": "Atelier 3D", "version": VERSION,
-                    "message": "Interface non construite : lance `python dev.py` (Vite sur http://127.0.0.1:5173) "
-                               "ou `npm --prefix web run build`.", "api": "/api/sante"}
+            return {
+                "application": "Atelier 3D",
+                "version": VERSION,
+                "message": "Interface non construite : lance `python dev.py` (Vite sur http://127.0.0.1:5173) "
+                "ou `npm --prefix web run build`.",
+                "api": "/api/sante",
+            }
+
     return app

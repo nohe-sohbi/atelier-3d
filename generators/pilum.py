@@ -4,6 +4,7 @@ Un seul maillage fermé en loft de sections polaires le long de Z : sabot (fer),
 (bois), lest pyramidal ou en boule (bronze), fine tige de fer et pointe. Symétrique en X (et Y).
 Pivot à la poignée : milieu de la hampe.
 """
+
 from __future__ import annotations
 
 import math
@@ -21,18 +22,49 @@ MANIFESTE = {
     "symetrique": "X",
     "pieces_declarees": 1,
     "parametres": {
-        "longueur_m": {"type": "float", "defaut": 2.0, "min": 1.6, "max": 2.4, "style_dim": "z",
-                       "aide": "Longueur totale (par défaut : style)"},
-        "largeur_m": {"type": "float", "defaut": 0.06, "min": 0.04, "max": 0.09, "style_dim": "x",
-                      "aide": "Largeur du lest = largeur hors tout (par défaut : style)"},
-        "diametre_hampe_m": {"type": "float", "defaut": 0.028, "min": 0.02, "max": 0.04,
-                             "aide": "Diamètre de la hampe en bois"},
-        "longueur_fer_m": {"type": "float", "defaut": 0.60, "min": 0.4, "max": 0.9,
-                           "aide": "Longueur de la tige de fer, pointe comprise"},
-        "lest": {"type": "choix", "defaut": "pyramide", "choix": ["pyramide", "boule"],
-                 "aide": "Forme du lest en bronze entre hampe et fer"},
-        "segments": {"type": "int", "defaut": 32, "min": 16, "max": 40,
-                     "aide": "Sommets par section (arrondi au multiple de 8)"},
+        "longueur_m": {
+            "type": "float",
+            "defaut": 2.0,
+            "min": 1.6,
+            "max": 2.4,
+            "style_dim": "z",
+            "aide": "Longueur totale (par défaut : style)",
+        },
+        "largeur_m": {
+            "type": "float",
+            "defaut": 0.06,
+            "min": 0.04,
+            "max": 0.09,
+            "style_dim": "x",
+            "aide": "Largeur du lest = largeur hors tout (par défaut : style)",
+        },
+        "diametre_hampe_m": {
+            "type": "float",
+            "defaut": 0.028,
+            "min": 0.02,
+            "max": 0.04,
+            "aide": "Diamètre de la hampe en bois",
+        },
+        "longueur_fer_m": {
+            "type": "float",
+            "defaut": 0.60,
+            "min": 0.4,
+            "max": 0.9,
+            "aide": "Longueur de la tige de fer, pointe comprise",
+        },
+        "lest": {
+            "type": "choix",
+            "defaut": "pyramide",
+            "choix": ["pyramide", "boule"],
+            "aide": "Forme du lest en bronze entre hampe et fer",
+        },
+        "segments": {
+            "type": "int",
+            "defaut": 32,
+            "min": 16,
+            "max": 40,
+            "aide": "Sommets par section (arrondi au multiple de 8)",
+        },
     },
     "variantes": {
         "A": {"lest": "pyramide"},
@@ -78,8 +110,13 @@ def _sections(p: dict) -> tuple[list[tuple], dict[str, float]]:
     S.append((L - 0.09, "cercle", rf, rf))
     S.append((L - 0.075, "losange", rf * 1.9, rf * 1.9))
     S.append((L - 0.02, "losange", rf * 0.7, rf * 0.7))
-    reperes = {"z_sabot": z_sabot, "z_l0": z_l0, "z_fer0": z_fer0, "L": L,
-               "z_ligature": z_l0 * 0.82}
+    reperes = {
+        "z_sabot": z_sabot,
+        "z_l0": z_l0,
+        "z_fer0": z_fer0,
+        "L": L,
+        "z_ligature": z_l0 * 0.82,
+    }
     return S, reperes
 
 
@@ -89,8 +126,9 @@ def build(params: dict, style, seed: int = 0):
     n = max(16, n)
     sections, rep = _sections(p)
     anneaux = B.anneaux_depuis_sections(sections, n)
-    obj = B.loft(anneaux, lisser=True, nom="pilum", pole_bas=(0.0, 0.0, 0.0),
-                 pole_haut=(0.0, 0.0, rep["L"]))
+    obj = B.loft(
+        anneaux, lisser=True, nom="pilum", pole_bas=(0.0, 0.0, 0.0), pole_haut=(0.0, 0.0, rep["L"])
+    )
 
     def choix(centre, normale):
         z = centre.z

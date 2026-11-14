@@ -1,4 +1,5 @@
 """Interface ComfyUI (local, carte graphique) : lancer un workflow, suivre, récupérer les fichiers."""
+
 from __future__ import annotations
 
 from abc import ABC, abstractmethod

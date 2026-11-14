@@ -3,6 +3,7 @@
 Voie code : le générateur a déjà posé échelle et pivot, la normalisation le vérifie. Voie IA et import (étape 7) :
 `importer_glb` puis `normaliser` redressent, mettent à l'échelle et placent le pivot.
 """
+
 from __future__ import annotations
 
 import math
@@ -24,12 +25,16 @@ from pipeline._bpy import (
     supprimer_objet,
 )
 
-DIST_FUSION = 1e-4            # fusion des sommets confondus : 0,1 mm (précision numérique, pas un seuil de style)
+DIST_FUSION = (
+    1e-4  # fusion des sommets confondus : 0,1 mm (précision numérique, pas un seuil de style)
+)
 ATTRIBUTS_GARDES = {"position", "material_index", "sharp_face", "sharp_edge"}
 SUFFIXES_SECONDAIRES = ("_LOD1", "_LOD2", "_COL")
 # Voie IA et import : ce que la finition corrige seule (cahier : « échelle, petits morceaux, triangles en trop »).
-PART_DEBRIS = 0.02    # un morceau sous 2 % de la surface de l'objet est un débris : retiré
-COTES_TROU_MAX = 16   # un trou jusqu'à 16 côtés est une fissure : bouché ; plus grand, c'est une ouverture voulue
+PART_DEBRIS = 0.02  # un morceau sous 2 % de la surface de l'objet est un débris : retiré
+COTES_TROU_MAX = (
+    16  # un trou jusqu'à 16 côtés est une fissure : bouché ; plus grand, c'est une ouverture voulue
+)
 
 
 class NormalisationImpossible(RuntimeError):
@@ -51,7 +56,9 @@ def importer_glb(chemin: str | Path, nom: str | None = None) -> bpy.types.Object
     nouveaux = [o for o in bpy.data.objects if o.name not in avant]
     maillages = [o for o in nouveaux if o.type == "MESH" and len(o.data.polygons) > 0]
     if any(o.name.endswith("_LOD0") for o in maillages):
-        maillages = [o for o in maillages if not any(o.name.endswith(s) for s in SUFFIXES_SECONDAIRES)]
+        maillages = [
+            o for o in maillages if not any(o.name.endswith(s) for s in SUFFIXES_SECONDAIRES)
+        ]
     if not maillages:
         for o in nouveaux:
             supprimer_objet(o)
@@ -65,8 +72,9 @@ def importer_glb(chemin: str | Path, nom: str | None = None) -> bpy.types.Object
     obj = maillages[0]
     if len(maillages) > 1:
         selectionner(maillages, actif=obj)
-        with bpy.context.temp_override(active_object=obj, selected_objects=maillages,
-                                       selected_editable_objects=maillages):
+        with bpy.context.temp_override(
+            active_object=obj, selected_objects=maillages, selected_editable_objects=maillages
+        ):
             bpy.ops.object.join()
     for o in nouveaux:
         if o.name != obj.name and o.name in bpy.data.objects:
@@ -85,7 +93,8 @@ def _infos(infos: dict[str, Any] | None) -> dict[str, Any]:
     """Accepte un MANIFESTE de générateur ou un dict d'infos."""
     infos = dict(infos or {})
     return {
-        "dimensions_type": infos.get("dimensions_type") or infos.get("type")
+        "dimensions_type": infos.get("dimensions_type")
+        or infos.get("type")
         or (infos.get("types") or [None])[0],
         "famille": infos.get("famille"),
         "dimensions_m": infos.get("dimensions_m"),
@@ -107,34 +116,54 @@ def verifier_orientation(obj: bpy.types.Object, attendu: list[float] | None) -> 
     """Redresse l'objet si une rotation de 90° fait clairement mieux coller ses proportions
     aux dimensions réelles (objet importé Y vers le haut, ou couché). Renvoie ce qui a été fait."""
     if not attendu:
-        return "non vérifiée (pas de dimensions de référence) ; convention +Z haut / -Y face supposée"
+        return (
+            "non vérifiée (pas de dimensions de référence) ; convention +Z haut / -Y face supposée"
+        )
     att = np.asarray(attendu, dtype=float)
     ext = _extents(obj)
     if ext.min() <= 0:
         return "objet plat : orientation non vérifiable"
     candidats = {
         "identité": (Matrix.Identity(4), ext),
-        "rotation X +90° (Y était le haut)": (Matrix.Rotation(math.radians(90), 4, "X"), ext[[0, 2, 1]]),
-        "rotation Z +90° (X et Y échangés)": (Matrix.Rotation(math.radians(90), 4, "Z"), ext[[1, 0, 2]]),
+        "rotation X +90° (Y était le haut)": (
+            Matrix.Rotation(math.radians(90), 4, "X"),
+            ext[[0, 2, 1]],
+        ),
+        "rotation Z +90° (X et Y échangés)": (
+            Matrix.Rotation(math.radians(90), 4, "Z"),
+            ext[[1, 0, 2]],
+        ),
     }
     erreurs = {k: _erreur_dimensions(e, att) for k, (_, e) in candidats.items()}
     meilleur = min(erreurs, key=erreurs.get)
-    if meilleur != "identité" and erreurs[meilleur] < 0.7 * erreurs["identité"] and erreurs["identité"] > 0.1:
+    if (
+        meilleur != "identité"
+        and erreurs[meilleur] < 0.7 * erreurs["identité"]
+        and erreurs["identité"] > 0.1
+    ):
         obj.data.transform(candidats[meilleur][0])
         obj.data.update()
         return f"redressée : {meilleur}"
     return "conforme (+Z haut ; face -Y supposée par convention)"
 
 
-def mettre_a_l_echelle(obj: bpy.types.Object, attendu: list[float] | None, tolerance_pct: float,
-                       par_taille: bool = False) -> dict[str, Any]:
+def mettre_a_l_echelle(
+    obj: bpy.types.Object,
+    attendu: list[float] | None,
+    tolerance_pct: float,
+    par_taille: bool = False,
+) -> dict[str, Any]:
     """Échelle uniforme vers les dimensions réelles si l'écart dépasse la tolérance (ratio gardé).
 
     par_taille (voie IA, import) : la plus grande dimension de l'objet prend la plus grande dimension attendue ;
     les proportions restent celles de l'objet reçu (elles se jugent en revue)."""
     if not attendu:
-        return {"facteur": 1.0, "ecart_avant_pct": None, "ecart_apres_pct": None,
-                "detail": "pas de dimensions de référence"}
+        return {
+            "facteur": 1.0,
+            "ecart_avant_pct": None,
+            "ecart_apres_pct": None,
+            "detail": "pas de dimensions de référence",
+        }
     att = np.asarray(attendu, dtype=float)
     ext = _extents(obj)
     if ext.min() <= 0 and not par_taille:
@@ -147,26 +176,42 @@ def mettre_a_l_echelle(obj: bpy.types.Object, attendu: list[float] | None, toler
         if ecart_avant > 0.1:
             obj.data.transform(Matrix.Scale(facteur, 4))
             obj.data.update()
-        return {"facteur": round(facteur, 6), "ecart_avant_pct": round(ecart_avant, 2), "ecart_apres_pct": 0.0,
-                "detail": f"taille : plus grande dimension amenée à {att.max():.3f} m (x{facteur:.4f}), proportions gardées"}
+        return {
+            "facteur": round(facteur, 6),
+            "ecart_avant_pct": round(ecart_avant, 2),
+            "ecart_apres_pct": 0.0,
+            "detail": f"taille : plus grande dimension amenée à {att.max():.3f} m (x{facteur:.4f}), proportions gardées",
+        }
     ecart_avant = float((np.abs(ext / att - 1) * 100).max())
     r = att / ext
     facteur = float(math.sqrt(r.min() * r.max()))
     if ecart_avant <= tolerance_pct:
-        return {"facteur": 1.0, "ecart_avant_pct": round(ecart_avant, 2), "ecart_apres_pct": round(ecart_avant, 2),
-                "detail": "dans la tolérance, pas d'échelle appliquée"}
+        return {
+            "facteur": 1.0,
+            "ecart_avant_pct": round(ecart_avant, 2),
+            "ecart_apres_pct": round(ecart_avant, 2),
+            "detail": "dans la tolérance, pas d'échelle appliquée",
+        }
     obj.data.transform(Matrix.Scale(facteur, 4))
     obj.data.update()
     ecart_apres = float((np.abs(_extents(obj) / att - 1) * 100).max())
-    return {"facteur": round(facteur, 6), "ecart_avant_pct": round(ecart_avant, 2),
-            "ecart_apres_pct": round(ecart_apres, 2),
-            "detail": f"échelle x{facteur:.4f} appliquée (écart {ecart_avant:.1f} % -> {ecart_apres:.1f} %)"
-            + ("" if ecart_apres <= tolerance_pct else " ; proportions hors tolérance, l'échelle ne suffit pas")}
+    return {
+        "facteur": round(facteur, 6),
+        "ecart_avant_pct": round(ecart_avant, 2),
+        "ecart_apres_pct": round(ecart_apres, 2),
+        "detail": f"échelle x{facteur:.4f} appliquée (écart {ecart_avant:.1f} % -> {ecart_apres:.1f} %)"
+        + (
+            ""
+            if ecart_apres <= tolerance_pct
+            else " ; proportions hors tolérance, l'échelle ne suffit pas"
+        ),
+    }
 
 
 def placer_pivot(obj: bpy.types.Object, mode: str) -> dict[str, Any]:
     """sol_centre : origine au centre de la boîte au sol. poignee : on garde l'origine posée par
-    le générateur si elle est dans la boîte, sinon bas-centre (la poignée d'une arme tenue debout)."""
+    le générateur si elle est dans la boîte, sinon bas-centre (la poignée d'une arme tenue debout).
+    """
     mn, mx = boite(obj)
     centre = (mn + mx) / 2
     if mode == "poignee":
@@ -174,14 +219,24 @@ def placer_pivot(obj: bpy.types.Object, mode: str) -> dict[str, Any]:
         origine = np.array(obj.matrix_world.translation)
         dedans = np.all(origine >= mn - marge) and np.all(origine <= mx + marge)
         if dedans and np.allclose(origine, 0):
-            return {"mode": mode, "deplacement": [0.0, 0.0, 0.0], "detail": "origine déjà dans la boîte (poignée posée par le générateur)"}
+            return {
+                "mode": mode,
+                "deplacement": [0.0, 0.0, 0.0],
+                "detail": "origine déjà dans la boîte (poignée posée par le générateur)",
+            }
     decalage = np.array([centre[0], centre[1], mn[2]])
     obj.data.transform(Matrix.Translation(Vector((-decalage).tolist())))
     obj.data.update()
     obj.matrix_world = Matrix.Identity(4)
-    return {"mode": mode, "deplacement": [round(float(-d), 5) for d in decalage],
-            "detail": "origine placée au sol, au centre de la boîte" if mode == "sol_centre"
-            else "origine placée en bas au centre (poignée par défaut)"}
+    return {
+        "mode": mode,
+        "deplacement": [round(float(-d), 5) for d in decalage],
+        "detail": (
+            "origine placée au sol, au centre de la boîte"
+            if mode == "sol_centre"
+            else "origine placée en bas au centre (poignée par défaut)"
+        ),
+    }
 
 
 def nettoyer_maillage(obj: bpy.types.Object) -> dict[str, Any]:
@@ -218,7 +273,8 @@ def nettoyer_maillage(obj: bpy.types.Object) -> dict[str, Any]:
 
 def reparer_import(obj: bpy.types.Object) -> dict[str, Any]:
     """Voie IA et import : retire les débris (morceaux sous PART_DEBRIS de la surface) et bouche les fissures
-    (trous jusqu'à COTES_TROU_MAX côtés). Renvoie le nombre de morceaux gardés : ce sont les pièces de l'objet."""
+    (trous jusqu'à COTES_TROU_MAX côtés). Renvoie le nombre de morceaux gardés : ce sont les pièces de l'objet.
+    """
     bm = bmesh.new()
     bm.from_mesh(obj.data)
     bm.faces.ensure_lookup_table()
@@ -256,12 +312,21 @@ def reparer_import(obj: bpy.types.Object) -> dict[str, Any]:
     bm.to_mesh(obj.data)
     bm.free()
     obj.data.update()
-    return {"debris_retires": len(debris), "pieces": len(morceaux) - len(debris), "trous_bouches": bouches,
-            "detail": f"{len(debris)} débris retirés, {bouches} fissures bouchées, {len(morceaux) - len(debris)} pièce(s)"}
+    return {
+        "debris_retires": len(debris),
+        "pieces": len(morceaux) - len(debris),
+        "trous_bouches": bouches,
+        "detail": f"{len(debris)} débris retirés, {bouches} fissures bouchées, {len(morceaux) - len(debris)} pièce(s)",
+    }
 
 
-def normaliser(obj: bpy.types.Object, style: Style, infos: dict[str, Any] | None, id_asset: str,
-               voie: str = "code") -> dict[str, Any]:
+def normaliser(
+    obj: bpy.types.Object,
+    style: Style,
+    infos: dict[str, Any] | None,
+    id_asset: str,
+    voie: str = "code",
+) -> dict[str, Any]:
     """Applique les transformations, nomme, vérifie l'orientation, met à l'échelle, place le
     pivot, nettoie. Renvoie un rapport (lisible, mis dans rapport_interne.json).
 
@@ -271,17 +336,25 @@ def normaliser(obj: bpy.types.Object, style: Style, infos: dict[str, Any] | None
     if obj.type != "MESH":
         raise NormalisationImpossible(f"{obj.name} n'est pas un maillage")
     i = _infos(infos)
-    attendu = i["dimensions_m"] or (style.dimensions(i["dimensions_type"]) if i["dimensions_type"] else None)
+    attendu = i["dimensions_m"] or (
+        style.dimensions(i["dimensions_type"]) if i["dimensions_type"] else None
+    )
     appliquer_transformations(obj)
     obj.name = id_asset
     obj.data.name = id_asset
-    rapport: dict[str, Any] = {"id": id_asset, "dimensions_type": i["dimensions_type"], "famille": i["famille"]}
+    rapport: dict[str, Any] = {
+        "id": id_asset,
+        "dimensions_type": i["dimensions_type"],
+        "famille": i["famille"],
+    }
     importe = voie not in ("code", "B")
     if importe:  # réparer d'abord : un débris fausserait l'orientation et l'échelle
         rapport["nettoyage"] = nettoyer_maillage(obj)
         rapport["reparation"] = reparer_import(obj)
     rapport["orientation"] = verifier_orientation(obj, attendu)
-    rapport["echelle"] = mettre_a_l_echelle(obj, attendu, style.tolerances["dimensions_pct"], par_taille=importe)
+    rapport["echelle"] = mettre_a_l_echelle(
+        obj, attendu, style.tolerances["dimensions_pct"], par_taille=importe
+    )
     if not importe:
         rapport["nettoyage"] = nettoyer_maillage(obj)
     rapport["pivot"] = placer_pivot(obj, style.pivot_pour(i["famille"]))

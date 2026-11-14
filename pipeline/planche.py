@@ -1,4 +1,5 @@
 """Planche de contact et vignette d'un asset (Pillow, hors de Blender : son Python n'a pas Pillow)."""
+
 from __future__ import annotations
 
 from pathlib import Path
@@ -6,18 +7,28 @@ from pathlib import Path
 from PIL import Image, ImageDraw, ImageFont
 
 VUES = ("face", "dos", "profil", "trois_quarts", "dessus")
-LIBELLES = {"face": "Face", "dos": "Dos", "profil": "Profil", "trois_quarts": "Trois-quarts", "dessus": "Dessus"}
+LIBELLES = {
+    "face": "Face",
+    "dos": "Dos",
+    "profil": "Profil",
+    "trois_quarts": "Trois-quarts",
+    "dessus": "Dessus",
+}
 TAILLE_VIGNETTE = 256
 MARGE = 8
 BANDEAU = 28
-COULEUR_FOND = (245, 244, 241)   # fond clair de l'app
+COULEUR_FOND = (245, 244, 241)  # fond clair de l'app
 COULEUR_TEXTE = (29, 28, 26)
 TAILLE_TEXTE = 15
 # La police intégrée à Pillow n'a pas les lettres accentuées : une police du système qui les a, selon la machine.
 POLICES = (
-    "/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf", "/usr/share/fonts/TTF/DejaVuSans.ttf",
-    "/usr/share/fonts/truetype/liberation/LiberationSans-Regular.ttf", "C:/Windows/Fonts/segoeui.ttf",
-    "C:/Windows/Fonts/arial.ttf", "/System/Library/Fonts/Supplemental/Arial.ttf", "/Library/Fonts/Arial.ttf",
+    "/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf",
+    "/usr/share/fonts/TTF/DejaVuSans.ttf",
+    "/usr/share/fonts/truetype/liberation/LiberationSans-Regular.ttf",
+    "C:/Windows/Fonts/segoeui.ttf",
+    "C:/Windows/Fonts/arial.ttf",
+    "/System/Library/Fonts/Supplemental/Arial.ttf",
+    "/Library/Fonts/Arial.ttf",
 )
 
 

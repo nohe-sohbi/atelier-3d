@@ -1,4 +1,5 @@
 """État du worker (battement en base) : actif ou arrêté, et ce qui attend dans la file."""
+
 from __future__ import annotations
 
 from fastapi import APIRouter

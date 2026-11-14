@@ -7,6 +7,7 @@
   nommée `<id>_COL`.
 - `compter_tris(obj)`.
 """
+
 from __future__ import annotations
 
 from typing import Any
@@ -51,15 +52,20 @@ def decimer(obj: bpy.types.Object, ratio: float) -> None:
     trianguler(obj)
 
 
-def _decimer_vers(obj: bpy.types.Object, source: bpy.types.Object, cible: int, tolerance: int,
-                  au_plus: bool = False) -> int:
+def _decimer_vers(
+    obj: bpy.types.Object,
+    source: bpy.types.Object,
+    cible: int,
+    tolerance: int,
+    au_plus: bool = False,
+) -> int:
     """Décime une copie de `source` dans `obj` jusqu'à `cible` triangles (± tolérance), en
     corrigeant le ratio d'après le résultat obtenu. Renvoie le nombre de triangles final."""
     t_source = compter_tris(source)
     if t_source == 0:
         return 0
     ratio = cible / t_source
-    meilleur: tuple[int, bpy.types.Mesh | None] = (10 ** 9, None)
+    meilleur: tuple[int, bpy.types.Mesh | None] = (10**9, None)
     for _ in range(ESSAIS_DECIMATION):
         essai = copier_objet(source, obj.name + ".essai")
         decimer(essai, ratio)
@@ -90,8 +96,9 @@ def _decimer_vers(obj: bpy.types.Object, source: bpy.types.Object, cible: int, t
     return compter_tris(obj)
 
 
-def generer_lods(obj: bpy.types.Object, style: Style, categorie: str,
-                 id_asset: str | None = None) -> list[bpy.types.Object]:
+def generer_lods(
+    obj: bpy.types.Object, style: Style, categorie: str, id_asset: str | None = None
+) -> list[bpy.types.Object]:
     """[LOD0, LOD1, LOD2] : copies de `obj`, triangulées, nommées `<id>_LODn`."""
     base = id_asset or obj.name
     budget = style.budget(categorie)
@@ -119,8 +126,9 @@ def generer_lods(obj: bpy.types.Object, style: Style, categorie: str,
     return lods
 
 
-def collision(obj: bpy.types.Object, id_asset: str | None = None,
-              tris_max: int = TRIS_COLLISION_MAX) -> bpy.types.Object:
+def collision(
+    obj: bpy.types.Object, id_asset: str | None = None, tris_max: int = TRIS_COLLISION_MAX
+) -> bpy.types.Object:
     """Enveloppe convexe de `obj`, au plus `tris_max` triangles, nommée `<id>_COL`."""
     base = id_asset or obj.name.removesuffix("_LOD0")
     nom = f"{base}_COL"
@@ -154,8 +162,11 @@ def collision(obj: bpy.types.Object, id_asset: str | None = None,
 
 def _enveloppe(bm: bmesh.types.BMesh) -> None:
     res = bmesh.ops.convex_hull(bm, input=list(bm.verts), use_existing_faces=False)
-    a_supprimer = [g for g in res.get("geom_interior", []) + res.get("geom_unused", [])
-                   if isinstance(g, bmesh.types.BMVert)]
+    a_supprimer = [
+        g
+        for g in res.get("geom_interior", []) + res.get("geom_unused", [])
+        if isinstance(g, bmesh.types.BMVert)
+    ]
     if a_supprimer:
         bmesh.ops.delete(bm, geom=a_supprimer, context="VERTS")
     # faces d'origine éventuelles non membres de l'enveloppe
@@ -170,6 +181,7 @@ def _enveloppe(bm: bmesh.types.BMesh) -> None:
 
 def _boite_convexe(col: bpy.types.Object, source: bpy.types.Object) -> None:
     from pipeline._bpy import boite
+
     mn, mx = boite(source)
     bm = bmesh.new()
     bmesh.ops.create_cube(bm, size=1.0)
@@ -180,7 +192,9 @@ def _boite_convexe(col: bpy.types.Object, source: bpy.types.Object) -> None:
     trianguler(col)
 
 
-def rapport_lods(lods: list[bpy.types.Object], col: bpy.types.Object | None = None) -> dict[str, Any]:
+def rapport_lods(
+    lods: list[bpy.types.Object], col: bpy.types.Object | None = None
+) -> dict[str, Any]:
     r: dict[str, Any] = {f"tris_lod{i}": compter_tris(o) for i, o in enumerate(lods)}
     if col is not None:
         r["tris_collision"] = compter_tris(col)

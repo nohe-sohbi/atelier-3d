@@ -1,4 +1,5 @@
 """File de tâches : création, prise atomique, limites, relances, reprise, événements."""
+
 import threading
 from datetime import UTC, datetime, timedelta
 
@@ -10,8 +11,12 @@ from worker import queue as q
 
 
 def _types(conn, tache_id):
-    return [e["type"] for e in conn.execute(
-        "SELECT type FROM evenements WHERE tache_id = ? ORDER BY id", (tache_id,)).fetchall()]
+    return [
+        e["type"]
+        for e in conn.execute(
+            "SELECT type FROM evenements WHERE tache_id = ? ORDER BY id", (tache_id,)
+        ).fetchall()
+    ]
 
 
 def test_creation(conn, cfg):
@@ -30,7 +35,9 @@ def test_prise_atomique_et_priorite(conn, cfg):
     bas = q.creer_tache(conn, "a", "api", priorite=0, cfg=cfg)
     haut = q.creer_tache(conn, "a", "api", priorite=5, cfg=cfg)
     t = q.prendre_tache(conn, "api", "w1", 4)
-    assert t["id"] == haut and t["etat"] == "en_cours" and t["verrou"] == "w1" and t["tentatives"] == 1
+    assert (
+        t["id"] == haut and t["etat"] == "en_cours" and t["verrou"] == "w1" and t["tentatives"] == 1
+    )
     assert q.prendre_tache(conn, "api", "w1", 4)["id"] == bas
     assert q.prendre_tache(conn, "api", "w1", 4) is None
     assert q.prendre_tache(conn, "gpu", "w1", 1) is None
@@ -88,10 +95,21 @@ def test_relances_jusqu_au_max(conn, cfg):
     t = q.lire_tache(conn, tid)
     assert t["etat"] == "echouee" and t["fini_le"]
     assert q.prendre_tache(conn, "api", "w", 4) is None
-    assert _types(conn, tid) == ["tache_creee", "tache_debutee", "tache_relancee", "tache_debutee",
-                                 "tache_relancee", "tache_debutee", evenements.TACHE_ECHEC_FINAL]
+    assert _types(conn, tid) == [
+        "tache_creee",
+        "tache_debutee",
+        "tache_relancee",
+        "tache_debutee",
+        "tache_relancee",
+        "tache_debutee",
+        evenements.TACHE_ECHEC_FINAL,
+    ]
     final = db.une(conn, "SELECT * FROM evenements WHERE type = ?", (evenements.TACHE_ECHEC_FINAL,))
-    assert final["notification"] == 1 and "2 relances" in final["titre"] and final["niveau"] == "erreur"
+    assert (
+        final["notification"] == 1
+        and "2 relances" in final["titre"]
+        and final["niveau"] == "erreur"
+    )
     # Relance manuelle : repart de zéro.
     assert q.relancer_tache(conn, tid)["tentatives"] == 0
     assert q.prendre_tache(conn, "api", "w", 4)["id"] == tid
@@ -104,7 +122,9 @@ def test_backoff_retarde_la_reprise(conn, cfg):
     assert q.prendre_tache(conn, "api", "w", 4) is None  # pas avant 60 s
     reprise = datetime.fromisoformat(q.lire_tache(conn, tid)["reprise_le"])
     assert 55 <= (reprise - datetime.now(UTC)).total_seconds() <= 61
-    assert q.delai_backoff(1, 5) == 5 and q.delai_backoff(3, 5) == 20 and q.delai_backoff(20, 5) == 300
+    assert (
+        q.delai_backoff(1, 5) == 5 and q.delai_backoff(3, 5) == 20 and q.delai_backoff(20, 5) == 300
+    )
 
 
 def test_reprise_apres_coupure(conn, cfg):

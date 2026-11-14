@@ -1,4 +1,5 @@
 """Interface Meshy : voie IA (image → 3D) et images de référence (texte ou images → image)."""
+
 from __future__ import annotations
 
 from abc import ABC, abstractmethod

@@ -1,4 +1,5 @@
 """Fichiers servis à l'interface (planches de style, images d'inspiration…), toujours sous /api/fichiers."""
+
 from __future__ import annotations
 
 from fastapi import APIRouter, HTTPException

@@ -16,4 +16,9 @@ def sante(conn: Db, cfg: Config) -> dict:
         etat_db = "ok"
     except Exception as e:  # noqa: BLE001
         etat_db = f"erreur : {type(e).__name__}"
-    return {"statut": "ok", "version": VERSION, "blender": outils.blender_disponible(cfg), "db": etat_db}
+    return {
+        "statut": "ok",
+        "version": VERSION,
+        "blender": outils.blender_disponible(cfg),
+        "db": etat_db,
+    }

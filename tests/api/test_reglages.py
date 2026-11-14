@@ -10,7 +10,9 @@ CLES_SERVICES = {"meshy", "claude", "comfyui", "itchio"}
 def _cles_en_clair(obj) -> list:
     """Toute clé nommée exactement cle_api dans la réponse."""
     if isinstance(obj, dict):
-        return [k for k in obj if k == "cle_api"] + [c for v in obj.values() for c in _cles_en_clair(v)]
+        return [k for k in obj if k == "cle_api"] + [
+            c for v in obj.values() for c in _cles_en_clair(v)
+        ]
     if isinstance(obj, list):
         return [c for v in obj for c in _cles_en_clair(v)]
     return []
@@ -28,8 +30,14 @@ def test_get_structure(client):
     j = client.get("/api/reglages").json()
     assert set(j["services"]) == CLES_SERVICES
     m = j["services"]["meshy"]
-    assert m == {"mode": "simule", "cle_api_definie": False, "cle_api_apercu": "", "credits_mensuels": 1000,
-                 "renouvellement_jour": 1, "alerte_pct": 80}
+    assert m == {
+        "mode": "simule",
+        "cle_api_definie": False,
+        "cle_api_apercu": "",
+        "credits_mensuels": 1000,
+        "renouvellement_jour": 1,
+        "alerte_pct": 80,
+    }
     assert j["services"]["claude"]["modele"] == "claude-sonnet-5-5"
     assert j["services"]["claude"]["plafond_mensuel_usd"] == 5.0
     assert j["services"]["comfyui"] == {"mode": "simule", "url": "http://127.0.0.1:8188"}
@@ -38,9 +46,20 @@ def test_get_structure(client):
     assert j["bibliotheque"] == {"dossier": "assets", "purge_rejets_jours": 30}
     assert j["files"] == {"gpu": 1, "meshy": 3, "blender": 2, "relances_max": 3}
     assert j["notifications"] == {"app": True, "bureau": False}
-    assert j["etat"]["meshy_solde"] == {"restants": 1000, "total": 1000, "utilises": 0, "mode": "simule"}
-    assert j["etat"]["claude_depense_mois"] == {"usd": 0.0, "appels": 0, "briefs": 0, "avis": 0, "appels_simules": 0,
-                                                "sans_tarif": 0}  # suivi des coûts (étape 4) : rien dépensé
+    assert j["etat"]["meshy_solde"] == {
+        "restants": 1000,
+        "total": 1000,
+        "utilises": 0,
+        "mode": "simule",
+    }
+    assert j["etat"]["claude_depense_mois"] == {
+        "usd": 0.0,
+        "appels": 0,
+        "briefs": 0,
+        "avis": 0,
+        "appels_simules": 0,
+        "sans_tarif": 0,
+    }  # suivi des coûts (étape 4) : rien dépensé
     assert not _cles_en_clair(j)
 
 
@@ -52,7 +71,11 @@ def test_put_masque_les_cles(client, atelier):
     assert r.status_code == 200, r.text
     j = r.json()
     attendu = {k: v for k, v in corps["services"]["meshy"].items() if k != "cle_api"}
-    assert j["services"]["meshy"] == {**attendu, "cle_api_definie": True, "cle_api_apercu": "••••ab12"}
+    assert j["services"]["meshy"] == {
+        **attendu,
+        "cle_api_definie": True,
+        "cle_api_apercu": "••••ab12",
+    }
     assert not _cles_en_clair(j)
     assert "secret" not in r.text
     assert j["services"]["claude"]["cle_api_apercu"] == "••••zz99"
@@ -68,12 +91,20 @@ def test_put_cle_absente_ou_vide_inchangee_null_efface(client, atelier):
 
     sans = copy.deepcopy(corps)
     sans["services"]["itchio"].pop("cle_api")
-    assert client.put("/api/reglages", json=sans).json()["services"]["itchio"]["cle_api_definie"] is True
+    assert (
+        client.put("/api/reglages", json=sans).json()["services"]["itchio"]["cle_api_definie"]
+        is True
+    )
 
     vide = copy.deepcopy(corps)
     vide["services"]["itchio"]["cle_api"] = ""
-    assert client.put("/api/reglages", json=vide).json()["services"]["itchio"]["cle_api_definie"] is True
-    assert yaml.safe_load(atelier.config.read_text())["services"]["itchio"]["cle_api"] == "itch-1234"
+    assert (
+        client.put("/api/reglages", json=vide).json()["services"]["itchio"]["cle_api_definie"]
+        is True
+    )
+    assert (
+        yaml.safe_load(atelier.config.read_text())["services"]["itchio"]["cle_api"] == "itch-1234"
+    )
 
     nul = copy.deepcopy(corps)
     nul["services"]["itchio"]["cle_api"] = None
@@ -84,8 +115,12 @@ def test_put_cle_absente_ou_vide_inchangee_null_efface(client, atelier):
 
 def test_put_valeurs_conservees_et_relues(client, atelier):
     corps = _base(client)
-    corps["services"]["meshy"].update({"renouvellement_jour": 15, "alerte_pct": 90, "credits_mensuels": 2000})
-    corps["services"]["claude"].update({"modele": "claude-haiku-5-5", "plafond_mensuel_usd": 2.5, "mode": "reel"})
+    corps["services"]["meshy"].update(
+        {"renouvellement_jour": 15, "alerte_pct": 90, "credits_mensuels": 2000}
+    )
+    corps["services"]["claude"].update(
+        {"modele": "claude-haiku-5-5", "plafond_mensuel_usd": 2.5, "mode": "reel"}
+    )
     corps["files"].update({"gpu": 1, "meshy": 5, "blender": 1, "relances_max": 1})
     corps["notifications"]["bureau"] = True
     corps["outils"]["blender"]["chemin"] = "/opt/blender/blender"
@@ -96,9 +131,18 @@ def test_put_valeurs_conservees_et_relues(client, atelier):
         attendu = copy.deepcopy(corps[section])
         for s in attendu.values() if section == "services" else []:
             s.pop("cle_api", None)
-        assert {k: {kk: vv for kk, vv in v.items() if not kk.startswith("cle_api")} for k, v in j[section].items()} \
-            == {k: {kk: vv for kk, vv in v.items() if not kk.startswith("cle_api")} for k, v in attendu.items()} \
-            if section == "services" else j[section] == attendu
+        assert (
+            {
+                k: {kk: vv for kk, vv in v.items() if not kk.startswith("cle_api")}
+                for k, v in j[section].items()
+            }
+            == {
+                k: {kk: vv for kk, vv in v.items() if not kk.startswith("cle_api")}
+                for k, v in attendu.items()
+            }
+            if section == "services"
+            else j[section] == attendu
+        )
     # Le reste de l'app relit la config : limites de files et relances.
     cfg = cfgmod.charger()
     assert cfgmod.limites_files(cfg) == {"gpu": 1, "meshy": 5, "blender": 1, "api": 4}
@@ -121,7 +165,9 @@ def test_put_validation_422(client):
     ]
     for modif in cas:
         c = copy.deepcopy(corps)
-        c["services"]["claude"]["cle_api"] = "sk-ant-secret-zz99"  # une clé dans un corps refusé ne doit jamais ressortir
+        c["services"]["claude"][
+            "cle_api"
+        ] = "sk-ant-secret-zz99"  # une clé dans un corps refusé ne doit jamais ressortir
         modif(c)
         r = client.put("/api/reglages", json=c)
         assert r.status_code == 422, (modif, r.text)
@@ -132,14 +178,25 @@ def test_put_validation_422(client):
 
 
 def test_tester_services_simules(client):
-    attendus = {"meshy": "Connecté", "claude": "Connecté", "comfyui": "Joignable", "itchio": "Connecté",
-                "butler": "Connecté"}
+    attendus = {
+        "meshy": "Connecté",
+        "claude": "Connecté",
+        "comfyui": "Joignable",
+        "itchio": "Connecté",
+        "butler": "Connecté",
+    }
     for service, etat in attendus.items():
         j = client.post(f"/api/reglages/tester/{service}").json()
         assert j["ok"] is True and j["etat"] == etat, (service, j)
         assert j["message"] and isinstance(j["details"], dict)
-    assert client.post("/api/reglages/tester/meshy").json()["details"]["solde"] == {"restants": 1000, "total": 1000}
-    assert "claude-sonnet-5-5" in client.post("/api/reglages/tester/claude").json()["details"]["modeles"]
+    assert client.post("/api/reglages/tester/meshy").json()["details"]["solde"] == {
+        "restants": 1000,
+        "total": 1000,
+    }
+    assert (
+        "claude-sonnet-5-5"
+        in client.post("/api/reglages/tester/claude").json()["details"]["modeles"]
+    )
     assert client.post("/api/reglages/tester/comfyui").json()["details"]["vram_total_mo"] > 0
     assert client.post("/api/reglages/tester/inconnu").status_code == 422
 

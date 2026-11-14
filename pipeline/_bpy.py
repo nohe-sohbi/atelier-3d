@@ -2,6 +2,7 @@
 
 Tout ce qui est ici suppose que `bpy` est importable : ce module ne tourne que dans Blender.
 """
+
 from __future__ import annotations
 
 from collections.abc import Iterable
@@ -24,8 +25,9 @@ def lier(obj: bpy.types.Object, scene: bpy.types.Scene | None = None) -> bpy.typ
     return obj
 
 
-def selectionner(objets: Iterable[bpy.types.Object] | bpy.types.Object,
-                 actif: bpy.types.Object | None = None) -> None:
+def selectionner(
+    objets: Iterable[bpy.types.Object] | bpy.types.Object, actif: bpy.types.Object | None = None
+) -> None:
     """Sélectionne exactement ces objets ; le premier (ou `actif`) devient l'objet actif."""
     if isinstance(objets, bpy.types.Object):
         objets = [objets]

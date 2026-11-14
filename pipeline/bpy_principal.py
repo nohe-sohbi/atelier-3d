@@ -3,6 +3,7 @@
 Lit l'entrée JSON, exécute sa commande, écrit le rapport JSON : {"ok": true, ...} ou {"ok": false, "erreur": "..."}.
 Tourne dans le Python de Blender : bpy, bmesh, mathutils et numpy y sont ; PyYAML et Pillow non.
 """
+
 from __future__ import annotations
 
 import sys
@@ -10,7 +11,9 @@ import traceback
 from pathlib import Path
 from typing import Any
 
-sys.path.insert(0, str(Path(__file__).resolve().parent.parent))  # racine du dépôt : api/, pipeline/, generators/
+sys.path.insert(
+    0, str(Path(__file__).resolve().parent.parent)
+)  # racine du dépôt : api/, pipeline/, generators/
 
 from pipeline._cli import args_apres_double_tiret, ecrire_json, lire_json
 
@@ -21,6 +24,7 @@ def commande(nom: str):
     def enregistrer(fn):
         COMMANDES[nom] = fn
         return fn
+
     return enregistrer
 
 
@@ -67,7 +71,9 @@ def generer(entree: dict, style) -> dict:
     mini, maxi = P.boite(obj)
     m = module.MANIFESTE
     return {
-        "blend": str(blend), "objet": obj.name, "tris": P.compter_tris(obj),
+        "blend": str(blend),
+        "objet": obj.name,
+        "tris": P.compter_tris(obj),
         "dimensions_m": [round(float(x), 4) for x in (maxi - mini)],
         "materiaux": [mat.name for mat in obj.data.materials if mat is not None],
         "generateur": {"nom": m["nom"], "version": m["version"]},
@@ -95,7 +101,9 @@ def importer(entree: dict, style) -> dict:
     bpy.ops.wm.save_as_mainfile(filepath=str(blend))
     mini, maxi = P.boite(obj)
     return {
-        "blend": str(blend), "objet": obj.name, "tris": P.compter_tris(obj),
+        "blend": str(blend),
+        "objet": obj.name,
+        "tris": P.compter_tris(obj),
         "dimensions_m": [round(float(x), 4) for x in (maxi - mini)],
         "materiaux": [mat.name for mat in obj.data.materials if mat is not None],
         "images": sorted(i.name for i in bpy.data.images if i.size[0]),
@@ -107,8 +115,14 @@ def finir(entree: dict, style) -> dict:
     """Finition commune : entree = blend (de la génération), dossier (de l'asset), id, infos, voie."""
     from pipeline import finition
 
-    return finition.finir(entree["blend"], entree["dossier"], entree["id"], style, entree["infos"],
-                          entree.get("voie", "code"))
+    return finition.finir(
+        entree["blend"],
+        entree["dossier"],
+        entree["id"],
+        style,
+        entree["infos"],
+        entree.get("voie", "code"),
+    )
 
 
 @commande("rendre")
@@ -116,8 +130,13 @@ def rendre(entree: dict, style) -> dict:
     """Les 5 vues du LOD0 : entree = blend (de l'asset), dossier (des rendus), id, moteur (eevee | cycles)."""
     from pipeline import rendu
 
-    return rendu.rendre(entree["blend"], entree["dossier"], entree["id"], entree.get("moteur", "eevee"),
-                        int(entree.get("taille_px") or rendu.TAILLE_PX))
+    return rendu.rendre(
+        entree["blend"],
+        entree["dossier"],
+        entree["id"],
+        entree.get("moteur", "eevee"),
+        int(entree.get("taille_px") or rendu.TAILLE_PX),
+    )
 
 
 @commande("apercus")
@@ -136,16 +155,28 @@ def apercus(entree: dict, style) -> dict:
     for v in entree["variantes"]:
         P.scene_vide()
         try:
-            obj = module.build({**dict(v.get("params") or {}), "id": "apercu"}, style, int(v.get("seed", 0)))
-        except Exception as e:  # noqa: BLE001 - un jeu de paramètres refusé n'empêche pas les autres
+            obj = module.build(
+                {**dict(v.get("params") or {}), "id": "apercu"}, style, int(v.get("seed", 0))
+            )
+        except (
+            Exception
+        ) as e:  # noqa: BLE001 - un jeu de paramètres refusé n'empêche pas les autres
             resultats.append({"ok": False, "erreur": f"{type(e).__name__}: {e}"})
             continue
         if isinstance(obj, list | tuple):
             obj = obj[0]
-        rendu.apercu(obj, v["sortie"], entree.get("moteur", "eevee"), int(entree.get("taille_px") or 384))
+        rendu.apercu(
+            obj, v["sortie"], entree.get("moteur", "eevee"), int(entree.get("taille_px") or 384)
+        )
         mini, maxi = P.boite(obj)
-        resultats.append({"ok": True, "sortie": v["sortie"], "tris": P.compter_tris(obj),
-                          "dimensions_m": [round(float(x), 4) for x in (maxi - mini)]})
+        resultats.append(
+            {
+                "ok": True,
+                "sortie": v["sortie"],
+                "tris": P.compter_tris(obj),
+                "dimensions_m": [round(float(x), 4) for x in (maxi - mini)],
+            }
+        )
     return {"variantes": resultats, "moteur": entree.get("moteur", "eevee")}
 
 
@@ -158,10 +189,14 @@ def main() -> int:
         style = style_yaml.depuis_dict(entree["style"]) if entree.get("style") else None
         fn = COMMANDES.get(entree.get("commande"))
         if fn is None:
-            raise ValueError(f"commande inconnue : {entree.get('commande')!r} (connues : {', '.join(sorted(COMMANDES))})")
+            raise ValueError(
+                f"commande inconnue : {entree.get('commande')!r} (connues : {', '.join(sorted(COMMANDES))})"
+            )
         ecrire_json(chemin_sortie, {"ok": True, **fn(entree, style)})
         return 0
-    except Exception as e:  # noqa: BLE001 - tout échec part dans le rapport, avec sa pile dans le journal
+    except (
+        Exception
+    ) as e:  # noqa: BLE001 - tout échec part dans le rapport, avec sa pile dans le journal
         traceback.print_exc()
         ecrire_json(chemin_sortie, {"ok": False, "erreur": f"{type(e).__name__}: {e}"})
         return 1

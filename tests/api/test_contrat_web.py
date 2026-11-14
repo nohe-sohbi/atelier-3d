@@ -1,4 +1,5 @@
 """Le contrat interface/API figé dans web/src/test/contrat.json est à jour."""
+
 import json
 
 from tests.api.contrat_web import CHEMIN_CONTRAT, generer
@@ -8,7 +9,9 @@ def test_contrat_web_a_jour():
     assert CHEMIN_CONTRAT.exists(), "régénère avec : python -m tests.api.contrat_web --ecrire"
     attendu = json.loads(CHEMIN_CONTRAT.read_text(encoding="utf-8"))
     obtenu = generer()
-    assert obtenu == attendu, "le contrat a changé : régénère avec `python -m tests.api.contrat_web --ecrire`"
+    assert (
+        obtenu == attendu
+    ), "le contrat a changé : régénère avec `python -m tests.api.contrat_web --ecrire`"
 
 
 def test_contrat_couvre_la_cloche_et_le_menu():

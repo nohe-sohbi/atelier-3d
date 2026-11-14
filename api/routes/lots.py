@@ -1,4 +1,5 @@
 """Écrans Lots et Brief : lots, objets proposés, voies, demande pour Claude Code, validation du brief."""
+
 from __future__ import annotations
 
 from typing import Literal
@@ -55,7 +56,11 @@ def _erreurs(fn, *args, **kwargs):
         return fn(*args, **kwargs)
     except lots_svc.LotIntrouvable as e:
         raise HTTPException(404, str(e)) from e
-    except (lots_svc.BriefIncomplet, validation.DecisionImpossible, references.ReferenceImpossible) as e:
+    except (
+        lots_svc.BriefIncomplet,
+        validation.DecisionImpossible,
+        references.ReferenceImpossible,
+    ) as e:
         raise HTTPException(409, str(e)) from e
     except ValueError as e:
         raise HTTPException(422, str(e)) from e
@@ -98,17 +103,26 @@ def _objets(conn, lot_id: int) -> dict:
     tache = None
     if lot["proposition_tache_id"]:
         from api.services import taches
+
         try:
             t = taches.lire_tache(conn, lot["proposition_tache_id"])
             tache = {"id": t["id"], "etat": t["etat"], "erreur": t["erreur"]}
         except taches.TacheIntrouvable:
             tache = None
     # La liste affichée vient de la dernière proposition : simulée si son appel à Claude l'était.
-    derniere = conn.execute("SELECT simule FROM couts WHERE service = 'claude' AND type = 'brief' AND lot_id = ? "
-                            "ORDER BY id DESC LIMIT 1", (lot_id,)).fetchone()
+    derniere = conn.execute(
+        "SELECT simule FROM couts WHERE service = 'claude' AND type = 'brief' AND lot_id = ? "
+        "ORDER BY id DESC LIMIT 1",
+        (lot_id,),
+    ).fetchone()
     simule = bool(derniere and derniere["simule"])
-    return {"lot_id": lot_id, "objets": objets, "resume": lots_svc.resume_brief(objets), "proposition": tache,
-            "simule": bool(simule) and bool(objets)}
+    return {
+        "lot_id": lot_id,
+        "objets": objets,
+        "resume": lots_svc.resume_brief(objets),
+        "proposition": tache,
+        "simule": bool(simule) and bool(objets),
+    }
 
 
 @router.get("/{lot_id}/objets")
@@ -145,7 +159,14 @@ def fabriquer(lot_id: int, corps: FabricationIn, conn: Db, cfg: Config) -> dict:
     """« Refaire » un objet code de Génération : un nouvel essai avec sa référence choisie (le lancement du lot se fait
     depuis les Références)."""
     try:
-        o = next((x for x in _erreurs(lots_svc.objets_du_lot, conn, lot_id) if x["id"] == corps.objet_id), None)
+        o = next(
+            (
+                x
+                for x in _erreurs(lots_svc.objets_du_lot, conn, lot_id)
+                if x["id"] == corps.objet_id
+            ),
+            None,
+        )
         if o is not None and o["voie"] == "ia":
             return {"taches": [_erreurs(fabrication_ia.lancer, conn, cfg, lot_id, corps.objet_id)]}
         return {"taches": _erreurs(fabrication.lancer, conn, cfg, lot_id, corps.objet_id)}
@@ -172,5 +193,14 @@ def valider(lot_id: int, conn: Db) -> dict:
 @router.post("/{lot_id}/objets/{objet_id}/decision")
 def decision(lot_id: int, objet_id: int, corps: DecisionIn, conn: Db, cfg: Config) -> dict:
     """Garder, jeter, refaire, corriger (ou annuler la dernière décision). Renvoie l'objet relu."""
-    return _erreurs(validation.decider, conn, cfg, lot_id, objet_id, corps.decision, motif=corps.motif, notes=corps.notes,
-                    texte=corps.texte)
+    return _erreurs(
+        validation.decider,
+        conn,
+        cfg,
+        lot_id,
+        objet_id,
+        corps.decision,
+        motif=corps.motif,
+        notes=corps.notes,
+        texte=corps.texte,
+    )

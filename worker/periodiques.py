@@ -4,6 +4,7 @@
   « à créer » passent en voie code et un événement le dit.
 - sauvegarde_quotidienne (1 h) : copie de la base dans sauvegardes/ si la dernière a plus de 20 h.
 """
+
 from __future__ import annotations
 
 import logging
@@ -15,11 +16,13 @@ log = logging.getLogger("worker.periodiques")
 
 def scanner_generateurs(conn) -> list[str]:
     from api.services import demandes
+
     return demandes.scanner(conn)
 
 
 def sauvegarde_quotidienne(conn) -> None:
     from api import db
+
     db.sauvegarde_quotidienne(conn)
 
 
@@ -32,7 +35,9 @@ PERIODIQUES: dict[str, tuple[float, Callable]] = {
 class Periodiques:
     """Exécute chaque travail quand sa période est écoulée ; une erreur est journalisée, jamais propagée."""
 
-    def __init__(self, travaux: dict[str, tuple[float, Callable]] | None = None, horloge=time.monotonic) -> None:
+    def __init__(
+        self, travaux: dict[str, tuple[float, Callable]] | None = None, horloge=time.monotonic
+    ) -> None:
         self.travaux = travaux if travaux is not None else PERIODIQUES
         self._horloge = horloge
         self._derniers: dict[str, float] = {}

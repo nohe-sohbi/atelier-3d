@@ -8,6 +8,7 @@
   (les handlers consultent ctx.arret_demande()) ou repassent en attente.
 - Travaux périodiques hors file (worker/periodiques.py) : exécutés à chaque tour quand leur période est écoulée.
 """
+
 from __future__ import annotations
 
 import argparse
@@ -64,7 +65,12 @@ class Contexte:
 
     @property
     def adaptateurs(self) -> dict:
-        return {"meshy": self.meshy, "claude": self.claude, "comfyui": self.comfyui, "itchio": self.itchio}
+        return {
+            "meshy": self.meshy,
+            "claude": self.claude,
+            "comfyui": self.comfyui,
+            "itchio": self.itchio,
+        }
 
     def progression(self, pct: float, texte: str = "") -> None:
         taches.progression(self.db, self.tache["id"], pct, texte)
@@ -108,8 +114,16 @@ class Worker:
         self._signe_de_vie(force=True)
         reprises = taches.reprendre_apres_coupure(self._conn, self.verrou, delai_s=0)
         if reprises:
-            log.warning("reprise après coupure : %d tâche(s) remise(s) en attente %s", len(reprises), reprises)
-        log.info("worker %s prêt ; handlers : %s", self.verrou, ", ".join(sorted(self.handlers)) or "aucun")
+            log.warning(
+                "reprise après coupure : %d tâche(s) remise(s) en attente %s",
+                len(reprises),
+                reprises,
+            )
+        log.info(
+            "worker %s prêt ; handlers : %s",
+            self.verrou,
+            ", ".join(sorted(self.handlers)) or "aucun",
+        )
         return reprises
 
     def boucle(self) -> None:
@@ -210,7 +224,9 @@ class Worker:
                 resultat = handler(t, ctx)
                 if not isinstance(resultat, dict):
                     resultat = {"resultat": resultat}
-                resultat.setdefault("duree_s", round((datetime.now(UTC) - debut).total_seconds(), 2))
+                resultat.setdefault(
+                    "duree_s", round((datetime.now(UTC) - debut).total_seconds(), 2)
+                )
                 taches.terminer_tache(conn, t["id"], resultat)
                 log.info("tâche %s (%s) terminée", t["id"], t["type"])
             except InterruptedError as e:
@@ -234,8 +250,11 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--tick", type=float, default=0.5, help="pause entre deux tours (s)")
     parser.add_argument("--verbose", "-v", action="store_true")
     args = parser.parse_args(argv)
-    logging.basicConfig(level=logging.DEBUG if args.verbose else logging.INFO,
-                        format="%(asctime)s %(levelname)s %(name)s : %(message)s", datefmt="%H:%M:%S")
+    logging.basicConfig(
+        level=logging.DEBUG if args.verbose else logging.INFO,
+        format="%(asctime)s %(levelname)s %(name)s : %(message)s",
+        datefmt="%H:%M:%S",
+    )
     worker = Worker(tick_s=args.tick)
 
     def _signal(signum, frame):
