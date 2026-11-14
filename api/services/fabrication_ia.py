@@ -10,6 +10,7 @@ Deux tâches par essai, chacune dans sa file :
 
 Un contrôle bloquant en échec relance un nouvel essai, 3 fois au plus (Réglages : relances automatiques).
 """
+
 from __future__ import annotations
 
 import json
@@ -35,22 +36,44 @@ ETAPES_RELANCABLES = ("generation", "finition", "tests", "rendus")
 def options_meshy(style, categorie: str) -> dict[str, Any]:
     """Ce qu'on demande à Meshy : objet texturé (PBR, 2K, le moins cher qui soit texturé), remaillé en triangles au
     budget du style pour la catégorie (la finition n'a presque rien à réduire)."""
-    return {"ai_model": "latest", "should_texture": True, "enable_pbr": True, "texture_resolution": "2k",
-            "should_remesh": True, "topology": "triangle", "target_polycount": int(style.budget(categorie))}
+    return {
+        "ai_model": "latest",
+        "should_texture": True,
+        "enable_pbr": True,
+        "texture_resolution": "2k",
+        "should_remesh": True,
+        "topology": "triangle",
+        "target_polycount": int(style.budget(categorie)),
+    }
 
 
 def _reference(conn: sqlite3.Connection, o: dict) -> dict | None:
     if o.get("reference_id") is None:
         return None
-    p = db.une(conn, "SELECT * FROM propositions WHERE id = ? AND objet_id = ?", (o["reference_id"], o["id"]))
+    p = db.une(
+        conn,
+        "SELECT * FROM propositions WHERE id = ? AND objet_id = ?",
+        (o["reference_id"], o["id"]),
+    )
     if p is None or p["genre"] not in ("image", "perso"):
         return None
-    return {"proposition_id": p["id"], "genre": p["genre"], "fichier": p["fichier"], "simule": bool(p["simule"])}
+    return {
+        "proposition_id": p["id"],
+        "genre": p["genre"],
+        "fichier": p["fichier"],
+        "simule": bool(p["simule"]),
+    }
 
 
 def _tache_active(conn: sqlite3.Connection, objet_id: int) -> bool:
-    return db.une(conn, "SELECT 1 FROM taches WHERE objet_id = ? AND type IN (?, ?) AND etat IN ('en_attente', 'en_cours')",
-                  (objet_id, TYPE_GENERATION, TYPE_FINITION)) is not None
+    return (
+        db.une(
+            conn,
+            "SELECT 1 FROM taches WHERE objet_id = ? AND type IN (?, ?) AND etat IN ('en_attente', 'en_cours')",
+            (objet_id, TYPE_GENERATION, TYPE_FINITION),
+        )
+        is not None
+    )
 
 
 def motif_refus(conn: sqlite3.Connection, o: dict) -> str | None:
@@ -68,7 +91,9 @@ def motif_refus(conn: sqlite3.Connection, o: dict) -> str | None:
     return None
 
 
-def lancer(conn: sqlite3.Connection, cfg: dict, lot_id: int, objet_id: int, relance_de: int | None = None) -> int:
+def lancer(
+    conn: sqlite3.Connection, cfg: dict, lot_id: int, objet_id: int, relance_de: int | None = None
+) -> int:
     """Un essai et sa tâche Meshy pour un objet IA ; renvoie l'id de la tâche."""
     lot = lots_svc._ligne(conn, lot_id)
     o = next((x for x in lots_svc.objets_du_lot(conn, lot_id) if x["id"] == objet_id), None)
@@ -77,19 +102,43 @@ def lancer(conn: sqlite3.Connection, cfg: dict, lot_id: int, objet_id: int, rela
     motif = motif_refus(conn, o)
     if motif:
         raise fabrication.FabricationImpossible(motif)
-    style = styles_svc.charger_style(db.une(conn, "SELECT code FROM styles WHERE id = ?", (lot["style_id"],))["code"])
-    numero = 1 + int(db.une(conn, "SELECT COALESCE(MAX(numero), 0) AS n FROM essais WHERE objet_id = ?", (objet_id,))["n"])
+    style = styles_svc.charger_style(
+        db.une(conn, "SELECT code FROM styles WHERE id = ?", (lot["style_id"],))["code"]
+    )
+    numero = 1 + int(
+        db.une(
+            conn, "SELECT COALESCE(MAX(numero), 0) AS n FROM essais WHERE objet_id = ?", (objet_id,)
+        )["n"]
+    )
     source = {"reference": _reference(conn, o), "relance_de": relance_de}
     with db.transaction(conn):
-        essai_id = db.inserer(conn, "essais", {
-            "objet_id": objet_id, "numero": numero, "generateur": "meshy",
-            "params_json": json.dumps(options_meshy(style, o["categorie"] or "prop_moyen"), ensure_ascii=False),
-            "source_json": json.dumps(source, ensure_ascii=False), "etat": "en_attente",
-            "dossier": f"{lot_id}/{objet_id}/essai-{numero}"})
+        essai_id = db.inserer(
+            conn,
+            "essais",
+            {
+                "objet_id": objet_id,
+                "numero": numero,
+                "generateur": "meshy",
+                "params_json": json.dumps(
+                    options_meshy(style, o["categorie"] or "prop_moyen"), ensure_ascii=False
+                ),
+                "source_json": json.dumps(source, ensure_ascii=False),
+                "etat": "en_attente",
+                "dossier": f"{lot_id}/{objet_id}/essai-{numero}",
+            },
+        )
         conn.execute("UPDATE objets SET etape = 'generation' WHERE id = ?", (objet_id,))
         conn.execute("UPDATE pieces SET etape = 'generation' WHERE objet_id = ?", (objet_id,))
-    tid = taches.creer_tache(conn, TYPE_GENERATION, "meshy", {"essai_id": essai_id}, lot_id=lot_id, objet_id=objet_id,
-                             essai_id=essai_id, cfg=cfg)
+    tid = taches.creer_tache(
+        conn,
+        TYPE_GENERATION,
+        "meshy",
+        {"essai_id": essai_id},
+        lot_id=lot_id,
+        objet_id=objet_id,
+        essai_id=essai_id,
+        cfg=cfg,
+    )
     lots_svc.synchroniser_etat(conn, lot_id)
     conn.commit()
     return tid
@@ -98,11 +147,21 @@ def lancer(conn: sqlite3.Connection, cfg: dict, lot_id: int, objet_id: int, rela
 def relancer_auto(conn: sqlite3.Connection, cfg: dict, essai: dict, motif: str) -> int | None:
     """Un nouvel essai après un contrôle en échec, s'il reste des relances ; None sinon."""
     objet = db.une(conn, "SELECT * FROM objets WHERE id = ?", (essai["objet_id"],))
-    n = int(db.une(conn, "SELECT COUNT(*) AS n FROM essais WHERE objet_id = ?", (objet["id"],))["n"])
+    n = int(
+        db.une(conn, "SELECT COUNT(*) AS n FROM essais WHERE objet_id = ?", (objet["id"],))["n"]
+    )
     if n >= 1 + cfgmod.relances_max(cfg):
         return None
-    evenements.ecrire(conn, "relance_auto", f"Relance automatique : {objet['nom']}", motif[:500], niveau="alerte",
-                      lien=f"/lots/{objet['lot_id']}/generation", lot_id=objet["lot_id"], objet_id=objet["id"])
+    evenements.ecrire(
+        conn,
+        "relance_auto",
+        f"Relance automatique : {objet['nom']}",
+        motif[:500],
+        niveau="alerte",
+        lien=f"/lots/{objet['lot_id']}/generation",
+        lot_id=objet["lot_id"],
+        objet_id=objet["id"],
+    )
     return lancer(conn, cfg, objet["lot_id"], objet["id"], relance_de=essai["id"])
 
 
@@ -113,8 +172,17 @@ def _erreur_meshy(etat: dict) -> str:
     return str(e or etat.get("status"))
 
 
-def executer_generation(conn: sqlite3.Connection, meshy, cfg: dict, params: dict, tache_id: int | None = None,
-                        progression=None, arret=None, attente_s: float = 3.0, max_lectures: int = 1200) -> dict:
+def executer_generation(
+    conn: sqlite3.Connection,
+    meshy,
+    cfg: dict,
+    params: dict,
+    tache_id: int | None = None,
+    progression=None,
+    arret=None,
+    attente_s: float = 3.0,
+    max_lectures: int = 1200,
+) -> dict:
     """Corps de la tâche `generer_ia` (file Meshy) : image → objet 3D, GLB téléchargé, finition mise en file."""
     essai = db.une(conn, "SELECT * FROM essais WHERE id = ?", (int(params["essai_id"]),))
     if essai is None:
@@ -122,9 +190,13 @@ def executer_generation(conn: sqlite3.Connection, meshy, cfg: dict, params: dict
     objet = db.une(conn, "SELECT * FROM objets WHERE id = ?", (essai["objet_id"],))
     source = json.loads(essai["source_json"] or "{}")
     reference = source.get("reference") or {}
-    image = references_svc.dossier_references(objet["lot_id"], objet["id"]) / str(reference.get("fichier") or "")
+    image = references_svc.dossier_references(objet["lot_id"], objet["id"]) / str(
+        reference.get("fichier") or ""
+    )
     if not reference.get("fichier") or not image.is_file():
-        raise fabrication._echec(conn, essai, "image de référence introuvable : choisis-en une autre aux Références")
+        raise fabrication._echec(
+            conn, essai, "image de référence introuvable : choisis-en une autre aux Références"
+        )
     simule = getattr(meshy, "mode", "") == "simule"
     service = "Meshy simulé" if simule else "Meshy"
     reprise = taches.lire_reprise(conn, tache_id) if tache_id is not None else {}
@@ -138,8 +210,10 @@ def executer_generation(conn: sqlite3.Connection, meshy, cfg: dict, params: dict
         if progression:
             progression(pct, f"{service} : {texte}")
 
-    conn.execute("UPDATE essais SET etat = 'generation', debute_le = COALESCE(debute_le, ?) WHERE id = ?",
-                 (db.maintenant(), essai["id"]))
+    conn.execute(
+        "UPDATE essais SET etat = 'generation', debute_le = COALESCE(debute_le, ?) WHERE id = ?",
+        (db.maintenant(), essai["id"]),
+    )
     conn.commit()
     meshy_id = reprise.get("meshy_id")
     if not meshy_id:
@@ -160,7 +234,10 @@ def executer_generation(conn: sqlite3.Connection, meshy, cfg: dict, params: dict
         if statut in ("FAILED", "CANCELED"):
             noter(meshy_id=None)  # Meshy rembourse un échec ; la relance de la file en redemande un
             raise RuntimeError(f"{service} n'a pas pu faire l'objet : {_erreur_meshy(etat)}")
-        avancer(5 + 0.85 * float(etat.get("progress") or 0), f"objet 3D · {int(etat.get('progress') or 0)} %")
+        avancer(
+            5 + 0.85 * float(etat.get("progress") or 0),
+            f"objet 3D · {int(etat.get('progress') or 0)} %",
+        )
         time.sleep(attente_s)
     else:
         raise RuntimeError(f"{service} ne finit pas (délai dépassé)")
@@ -171,17 +248,46 @@ def executer_generation(conn: sqlite3.Connection, meshy, cfg: dict, params: dict
     with db.transaction(conn):
         if tache_id is not None:
             conn.execute("DELETE FROM couts WHERE tache_id = ? AND service = 'meshy'", (tache_id,))
-        couts.enregistrer(conn, "meshy", "generation_3d", simule=simule, credits=credits, lot_id=objet["lot_id"],
-                          tache_id=tache_id, detail={"objet_id": objet["id"], "essai_id": essai["id"], "meshy": meshy_id})
-        source.update({"glb": str(glb.relative_to(fabrication.dossier_essai(essai))), "meshy_id": meshy_id,
-                       "simule": simule})
-        conn.execute("UPDATE essais SET source_json = ?, cout_credits = ? WHERE id = ?",
-                     (json.dumps(source, ensure_ascii=False), credits, essai["id"]))
+        couts.enregistrer(
+            conn,
+            "meshy",
+            "generation_3d",
+            simule=simule,
+            credits=credits,
+            lot_id=objet["lot_id"],
+            tache_id=tache_id,
+            detail={"objet_id": objet["id"], "essai_id": essai["id"], "meshy": meshy_id},
+        )
+        source.update(
+            {
+                "glb": str(glb.relative_to(fabrication.dossier_essai(essai))),
+                "meshy_id": meshy_id,
+                "simule": simule,
+            }
+        )
+        conn.execute(
+            "UPDATE essais SET source_json = ?, cout_credits = ? WHERE id = ?",
+            (json.dumps(source, ensure_ascii=False), credits, essai["id"]),
+        )
     avancer(95, "objet 3D reçu")
     suite = reprise.get("finition_tache")
     if not suite:
-        suite = taches.creer_tache(conn, TYPE_FINITION, "blender", {"essai_id": essai["id"]}, lot_id=objet["lot_id"],
-                                   objet_id=objet["id"], essai_id=essai["id"], cfg=cfg)
+        suite = taches.creer_tache(
+            conn,
+            TYPE_FINITION,
+            "blender",
+            {"essai_id": essai["id"]},
+            lot_id=objet["lot_id"],
+            objet_id=objet["id"],
+            essai_id=essai["id"],
+            cfg=cfg,
+        )
         noter(finition_tache=suite)
     avancer(100, "objet 3D reçu, finition en file")
-    return {"essai": essai["id"], "meshy": meshy_id, "credits": credits, "simule": simule, "finition": suite}
+    return {
+        "essai": essai["id"],
+        "meshy": meshy_id,
+        "credits": credits,
+        "simule": simule,
+        "finition": suite,
+    }

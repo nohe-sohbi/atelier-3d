@@ -2,6 +2,7 @@
 
 Module sans dépendance : importable par dev.py avant que tout soit installé.
 """
+
 from __future__ import annotations
 
 

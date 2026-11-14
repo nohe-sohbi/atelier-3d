@@ -7,6 +7,7 @@ Ce module ne dépend pas de bpy : il tourne dans l'API, le worker, les tests et 
 n'a pas PyYAML : l'app y passe le style déjà lu, en JSON (`depuis_dict`), et `yaml` n'est importé que pour lire
 ou écrire le fichier.
 """
+
 from __future__ import annotations
 
 import re
@@ -15,13 +16,28 @@ from pathlib import Path
 from typing import Any
 
 CHAMPS_OBLIGATOIRES = (
-    "style", "theme", "version", "direction", "units", "conventions", "texel_density_px_per_m",
-    "palette", "materiaux", "budgets_tris", "lod_ratios", "tolerances", "dimensions_m",
+    "style",
+    "theme",
+    "version",
+    "direction",
+    "units",
+    "conventions",
+    "texel_density_px_per_m",
+    "palette",
+    "materiaux",
+    "budgets_tris",
+    "lod_ratios",
+    "tolerances",
+    "dimensions_m",
 )
 CATEGORIES = ("petit_prop", "prop_moyen", "grand_prop", "module_archi")
 # Libellés d'écran des catégories de budget (la maquette) ; un style peut les redéfinir (`libelles_categories`).
-LIBELLES_CATEGORIES = {"petit_prop": "Petit objet", "prop_moyen": "Objet moyen", "grand_prop": "Grand objet",
-                       "module_archi": "Module d'architecture"}
+LIBELLES_CATEGORIES = {
+    "petit_prop": "Petit objet",
+    "prop_moyen": "Objet moyen",
+    "grand_prop": "Grand objet",
+    "module_archi": "Module d'architecture",
+}
 _HEX = re.compile(r"^#[0-9A-Fa-f]{6}$")
 
 
@@ -124,14 +140,23 @@ class Style:
         out = []
         for p in self.brut.get("planche") or []:
             if isinstance(p, dict):
-                out.append({"fichier": str(p.get("fichier", "")), "objet": str(p.get("objet", "")),
-                            "simule": bool(p.get("simule", False))})
+                out.append(
+                    {
+                        "fichier": str(p.get("fichier", "")),
+                        "objet": str(p.get("objet", "")),
+                        "simule": bool(p.get("simule", False)),
+                    }
+                )
             else:
                 out.append({"fichier": str(p), "objet": "", "simule": False})
         return out
 
     def libelle_categorie(self, categorie: str) -> str:
-        return str(self.brut.get("libelles_categories", {}).get(categorie, LIBELLES_CATEGORIES.get(categorie, categorie)))
+        return str(
+            self.brut.get("libelles_categories", {}).get(
+                categorie, LIBELLES_CATEGORIES.get(categorie, categorie)
+            )
+        )
 
     # --- helpers ---------------------------------------------------------
     def budget(self, categorie: str) -> int:
@@ -152,7 +177,7 @@ class Style:
             hexa = self.palette.get(nom)
             if hexa is None:
                 raise StyleInvalide(f"couleur inconnue dans la palette : {nom}")
-            srgb = tuple(int(hexa[i:i + 2], 16) / 255.0 for i in (1, 3, 5))
+            srgb = tuple(int(hexa[i : i + 2], 16) / 255.0 for i in (1, 3, 5))
             self._rgb[nom] = tuple(
                 c / 12.92 if c <= 0.04045 else ((c + 0.055) / 1.055) ** 2.4 for c in srgb
             )
@@ -248,7 +273,9 @@ def ecrire(brut: dict[str, Any], chemin: str | Path) -> Path:
     chemin.parent.mkdir(parents=True, exist_ok=True)
     tmp = chemin.with_suffix(".yaml.tmp")
     with tmp.open("w", encoding="utf-8") as f:
-        f.write("# Moodboard exécutable : ce fichier est la seule source des couleurs, matériaux, budgets et tolérances.\n")
+        f.write(
+            "# Moodboard exécutable : ce fichier est la seule source des couleurs, matériaux, budgets et tolérances.\n"
+        )
         yaml.safe_dump(brut, f, allow_unicode=True, sort_keys=False)
     tmp.replace(chemin)
     return chemin

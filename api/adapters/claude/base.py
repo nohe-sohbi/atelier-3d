@@ -2,6 +2,7 @@
 
 L'usage renvoyé : {"tokens_entree": int, "tokens_sortie": int, "modele": str}.
 """
+
 from __future__ import annotations
 
 from abc import ABC, abstractmethod

@@ -8,6 +8,7 @@
   par le plus proche de la palette (ou on lève si `strict`).
   voie ia / cc0 : on garde les textures cuites mais on renomme et range les images.
 """
+
 from __future__ import annotations
 
 from pathlib import Path
@@ -19,10 +20,14 @@ import numpy as np
 from api.services.style_yaml import Style, StyleInvalide
 from pipeline._bpy import principled
 
-PROP_STYLE = "style_materiau"   # propriété custom posée sur un matériau du style
+PROP_STYLE = "style_materiau"  # propriété custom posée sur un matériau du style
 ROLES_IMAGE = {
-    "Base Color": "BaseColor", "Normal": "Normal", "Roughness": "Roughness",
-    "Metallic": "Metallic", "Emission Color": "Emission", "Alpha": "Alpha",
+    "Base Color": "BaseColor",
+    "Normal": "Normal",
+    "Roughness": "Roughness",
+    "Metallic": "Metallic",
+    "Emission Color": "Emission",
+    "Alpha": "Alpha",
 }
 
 
@@ -44,8 +49,9 @@ def _materiau_local(style: Style, nom: str) -> bpy.types.Material:
     bsdf = principled(mat)
     if bsdf is None:
         bsdf = mat.node_tree.nodes.new("ShaderNodeBsdfPrincipled")
-        sortie = next((n for n in mat.node_tree.nodes if n.type == "OUTPUT_MATERIAL"), None) \
-            or mat.node_tree.nodes.new("ShaderNodeOutputMaterial")
+        sortie = next(
+            (n for n in mat.node_tree.nodes if n.type == "OUTPUT_MATERIAL"), None
+        ) or mat.node_tree.nodes.new("ShaderNodeOutputMaterial")
         mat.node_tree.links.new(bsdf.outputs["BSDF"], sortie.inputs["Surface"])
     r, g, b = params["rgb"]
     bsdf.inputs["Base Color"].default_value = (r, g, b, 1.0)
@@ -95,7 +101,9 @@ def couleur_de_base(mat: bpy.types.Material) -> tuple[float, float, float] | Non
     return None
 
 
-def plus_proche_du_style(style: Style, rgb: tuple[float, float, float], metallic: float | None = None) -> str:
+def plus_proche_du_style(
+    style: Style, rgb: tuple[float, float, float], metallic: float | None = None
+) -> str:
     """Le matériau du style dont la couleur (RGB linéaire) est la plus proche."""
     cible = np.asarray(rgb, dtype=float)
     meilleur, distance = None, float("inf")
@@ -114,9 +122,15 @@ def plus_proche_du_style(style: Style, rgb: tuple[float, float, float], metallic
 # ---------------------------------------------------------------------------
 # Application à un objet
 # ---------------------------------------------------------------------------
-def appliquer_style(obj: bpy.types.Object, style: Style, voie: str = "code", id_asset: str | None = None,
-                    dossier_textures: str | Path | None = None, strict: bool = False,
-                    taille_max: int | None = None) -> dict[str, Any]:
+def appliquer_style(
+    obj: bpy.types.Object,
+    style: Style,
+    voie: str = "code",
+    id_asset: str | None = None,
+    dossier_textures: str | Path | None = None,
+    strict: bool = False,
+    taille_max: int | None = None,
+) -> dict[str, Any]:
     """Voie code : remplace tout matériau hors style par le plus proche de la palette (ou lève si strict).
     Voie ia / cc0 : garde les textures, renomme matériaux et images, les ramène à la taille du style
     (`taille_max`, en pixels), range les images."""
@@ -127,7 +141,9 @@ def appliquer_style(obj: bpy.types.Object, style: Style, voie: str = "code", id_
 
 def _appliquer_voie_code(obj: bpy.types.Object, style: Style, strict: bool) -> dict[str, Any]:
     if not obj.material_slots:
-        raise MateriauHorsStyle(f"{obj.name} n'a aucun matériau : un générateur doit assigner ceux du style")
+        raise MateriauHorsStyle(
+            f"{obj.name} n'a aucun matériau : un générateur doit assigner ceux du style"
+        )
     gardes, remplaces = [], []
     for slot in obj.material_slots:
         mat = slot.material
@@ -136,7 +152,8 @@ def _appliquer_voie_code(obj: bpy.types.Object, style: Style, strict: bool) -> d
             rgb = couleur_de_base(mat) if mat is not None else None
             if rgb is None or strict:
                 raise MateriauHorsStyle(
-                    f"matériau {mat.name if mat else '(vide)'} hors style sur {obj.name}")
+                    f"matériau {mat.name if mat else '(vide)'} hors style sur {obj.name}"
+                )
             bsdf = principled(mat)
             metallic = float(bsdf.inputs["Metallic"].default_value) if bsdf else None
             nom = plus_proche_du_style(style, rgb, metallic)
@@ -144,12 +161,17 @@ def _appliquer_voie_code(obj: bpy.types.Object, style: Style, strict: bool) -> d
         else:
             gardes.append(nom)
         slot.material = materiau_style(style, nom)
-    return {"voie": "code", "materiaux": [s.material.name for s in obj.material_slots],
-            "gardes": gardes, "remplaces": remplaces}
+    return {
+        "voie": "code",
+        "materiaux": [s.material.name for s in obj.material_slots],
+        "gardes": gardes,
+        "remplaces": remplaces,
+    }
 
 
-def _ranger_textures(obj: bpy.types.Object, id_asset: str, dossier: str | Path | None,
-                     taille_max: int | None = None) -> dict[str, Any]:
+def _ranger_textures(
+    obj: bpy.types.Object, id_asset: str, dossier: str | Path | None, taille_max: int | None = None
+) -> dict[str, Any]:
     images: list[dict[str, Any]] = []
     reduites: set[str] = set()
     dossier = Path(dossier) if dossier else None
@@ -186,9 +208,19 @@ def _ranger_textures(obj: bpy.types.Object, id_asset: str, dossier: str | Path |
                 except RuntimeError as e:  # image sans pixels (lien cassé) : on le signale
                     images.append({"image": img.name, "role": role, "erreur": str(e)})
                     continue
-            images.append({"image": img.name, "role": role, "px": int(img.size[0]) if img.size[0] else None,
-                           "fichier": str(dossier / f"{nouveau_nom}.png") if dossier else img.filepath})
-    return {"voie": "ia", "materiaux": [s.material.name for s in obj.material_slots if s.material], "images": images}
+            images.append(
+                {
+                    "image": img.name,
+                    "role": role,
+                    "px": int(img.size[0]) if img.size[0] else None,
+                    "fichier": str(dossier / f"{nouveau_nom}.png") if dossier else img.filepath,
+                }
+            )
+    return {
+        "voie": "ia",
+        "materiaux": [s.material.name for s in obj.material_slots if s.material],
+        "images": images,
+    }
 
 
 def _role_image(noeud: bpy.types.Node, bsdf, mat: bpy.types.Material) -> str:

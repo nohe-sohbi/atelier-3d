@@ -5,6 +5,7 @@ L'app écrit la demande (style, dimensions, budget, matériaux, intention) ; Cla
 MANIFESTE valide, les objets « à créer » de ce type sont re-routés (voie code) et un événement le dit.
 Les tests du script (finition, Blender) arrivent aux étapes 5 et 11 : l'état le dit tel quel.
 """
+
 from __future__ import annotations
 
 import re
@@ -18,7 +19,11 @@ from api.services import styles as styles_svc
 
 DOSSIER_DEMANDES = "demandes"
 ETATS = ("a_ecrire", "ecrite", "script_detecte")
-LIBELLES_ETATS = {"a_ecrire": "Pas encore écrite", "ecrite": "Écrite dans le dépôt", "script_detecte": "Script détecté"}
+LIBELLES_ETATS = {
+    "a_ecrire": "Pas encore écrite",
+    "ecrite": "Écrite dans le dépôt",
+    "script_detecte": "Script détecté",
+}
 _NOM = re.compile(r"^[a-z0-9]+(?:_[a-z0-9]+)*$")
 
 
@@ -58,7 +63,9 @@ def texte_dimensions(d: dict | None) -> str:
 def markdown(lot: dict, objet: dict, style: style_yaml.Style, code_style: str) -> str:
     cat = objet.get("categorie") or "prop_moyen"
     budget = style.budgets_tris.get(cat)
-    materiaux = [m for m in objet.get("materiaux") or [] if m in style.materiaux] or list(style.materiaux)[:2]
+    materiaux = [m for m in objet.get("materiaux") or [] if m in style.materiaux] or list(
+        style.materiaux
+    )[:2]
     pivot = style.pivot_pour(objet.get("famille"))
     parametres = objet.get("parametres") or ["hauteur", "largeur", "usure"]
     lignes = [
@@ -86,12 +93,18 @@ def markdown(lot: dict, objet: dict, style: style_yaml.Style, code_style: str) -
 
 def texte_a_coller(type_objet: str) -> str:
     nom = nom_module(type_objet)
-    return (f"Lis generators/demandes/{nom}.md et écris generators/{nom}.py en suivant generators/CONTRAT.md. "
-            "Lance les tests de finition avant de rendre la main.")
+    return (
+        f"Lis generators/demandes/{nom}.md et écris generators/{nom}.py en suivant generators/CONTRAT.md. "
+        "Lance les tests de finition avant de rendre la main."
+    )
 
 
 def _ligne(conn: sqlite3.Connection, type_objet: str) -> dict | None:
-    return db.une(conn, "SELECT * FROM demandes_generateurs WHERE type_objet = ?", (generateurs_registre.normaliser_type(type_objet),))
+    return db.une(
+        conn,
+        "SELECT * FROM demandes_generateurs WHERE type_objet = ?",
+        (generateurs_registre.normaliser_type(type_objet),),
+    )
 
 
 def etat(conn: sqlite3.Connection, lot_id: int, objet_id: int) -> dict:
@@ -110,12 +123,22 @@ def etat(conn: sqlite3.Connection, lot_id: int, objet_id: int) -> dict:
     if e != "script_detecte" and generateurs_registre.trouver_pour_type(objet["type_objet"]):
         e = "script_detecte"
     return {
-        "lot_id": lot_id, "objet_id": objet_id, "objet": objet["nom"], "type_objet": objet["type_objet"],
-        "chemin_md": chemin_relatif(objet["type_objet"]), "script_attendu": f"generators/{nom}.py",
-        "markdown": markdown(lot, objet, style, style_row["code"]), "texte_a_coller": texte_a_coller(objet["type_objet"]),
-        "etat": e, "libelle_etat": LIBELLES_ETATS[e],
-        "ecrite_le": ligne["ecrite_le"] if ligne else None, "script_detecte_le": ligne["script_detecte_le"] if ligne else None,
-        "tests": {"disponibles": False, "raison": "Les tests du script (finition, Blender) arrivent à l'étape 5 du plan"},
+        "lot_id": lot_id,
+        "objet_id": objet_id,
+        "objet": objet["nom"],
+        "type_objet": objet["type_objet"],
+        "chemin_md": chemin_relatif(objet["type_objet"]),
+        "script_attendu": f"generators/{nom}.py",
+        "markdown": markdown(lot, objet, style, style_row["code"]),
+        "texte_a_coller": texte_a_coller(objet["type_objet"]),
+        "etat": e,
+        "libelle_etat": LIBELLES_ETATS[e],
+        "ecrite_le": ligne["ecrite_le"] if ligne else None,
+        "script_detecte_le": ligne["script_detecte_le"] if ligne else None,
+        "tests": {
+            "disponibles": False,
+            "raison": "Les tests du script (finition, Blender) arrivent à l'étape 5 du plan",
+        },
         "voie_objet": objet["voie"],
     }
 
@@ -132,16 +155,35 @@ def ecrire(conn: sqlite3.Connection, lot_id: int, objet_id: int) -> dict:
     nouvel_etat = "script_detecte" if info["etat"] == "script_detecte" else "ecrite"
     with db.transaction(conn):
         if ligne is None:
-            db.inserer(conn, "demandes_generateurs", {
-                "type_objet": info["type_objet"], "lot_id": lot_id, "objet_id": objet_id, "chemin_md": info["chemin_md"],
-                "ecrite_le": maintenant, "etat": nouvel_etat})
+            db.inserer(
+                conn,
+                "demandes_generateurs",
+                {
+                    "type_objet": info["type_objet"],
+                    "lot_id": lot_id,
+                    "objet_id": objet_id,
+                    "chemin_md": info["chemin_md"],
+                    "ecrite_le": maintenant,
+                    "etat": nouvel_etat,
+                },
+            )
         else:
-            conn.execute("UPDATE demandes_generateurs SET lot_id = ?, objet_id = ?, chemin_md = ?, ecrite_le = COALESCE(ecrite_le, ?), "
-                         "etat = CASE WHEN etat = 'script_detecte' THEN etat ELSE ? END WHERE id = ?",
-                         (lot_id, objet_id, info["chemin_md"], maintenant, nouvel_etat, ligne["id"]))
+            conn.execute(
+                "UPDATE demandes_generateurs SET lot_id = ?, objet_id = ?, chemin_md = ?, ecrite_le = COALESCE(ecrite_le, ?), "
+                "etat = CASE WHEN etat = 'script_detecte' THEN etat ELSE ? END WHERE id = ?",
+                (lot_id, objet_id, info["chemin_md"], maintenant, nouvel_etat, ligne["id"]),
+            )
         if ligne is None or ligne["ecrite_le"] is None:
-            evenements.ecrire(conn, "demande_ecrite", f"Demande pour Claude Code écrite : {info['objet']}",
-                              info["chemin_md"], niveau="info", lien=f"/lots/{lot_id}/brief", lot_id=lot_id, objet_id=objet_id)
+            evenements.ecrire(
+                conn,
+                "demande_ecrite",
+                f"Demande pour Claude Code écrite : {info['objet']}",
+                info["chemin_md"],
+                niveau="info",
+                lien=f"/lots/{lot_id}/brief",
+                lot_id=lot_id,
+                objet_id=objet_id,
+            )
     return etat(conn, lot_id, objet_id)
 
 
@@ -162,15 +204,28 @@ def scanner(conn: sqlite3.Connection) -> list[str]:
         g = generateurs_registre.trouver_pour_type(d["type_objet"], generateurs)
         if not g:
             continue
-        conn.execute("UPDATE demandes_generateurs SET etat = 'script_detecte', script_detecte_le = ?, generateur = ? WHERE id = ?",
-                     (db.maintenant(), g, d["id"]))
-        evenements.ecrire(conn, "script_detecte", f"Script détecté : generators/{g}.py",
-                          f"Les objets « {d['type_objet']} » à créer passent en voie code.", niveau="succes",
-                          lien=f"/lots/{d['lot_id']}/brief" if d["lot_id"] else "/generateurs", lot_id=d["lot_id"], objet_id=d["objet_id"])
+        conn.execute(
+            "UPDATE demandes_generateurs SET etat = 'script_detecte', script_detecte_le = ?, generateur = ? WHERE id = ?",
+            (db.maintenant(), g, d["id"]),
+        )
+        evenements.ecrire(
+            conn,
+            "script_detecte",
+            f"Script détecté : generators/{g}.py",
+            f"Les objets « {d['type_objet']} » à créer passent en voie code.",
+            niveau="succes",
+            lien=f"/lots/{d['lot_id']}/brief" if d["lot_id"] else "/generateurs",
+            lot_id=d["lot_id"],
+            objet_id=d["objet_id"],
+        )
         detectes.append(g)
     conn.commit()
     if detectes:
         from api.services import brief
-        for lot in db.toutes(conn, "SELECT DISTINCT lot_id FROM objets WHERE etape = 'brief' AND voie IN ('a_creer', 'mixte') AND voie_forcee = 0"):
+
+        for lot in db.toutes(
+            conn,
+            "SELECT DISTINCT lot_id FROM objets WHERE etape = 'brief' AND voie IN ('a_creer', 'mixte') AND voie_forcee = 0",
+        ):
             brief.rerouter_lot(conn, lot["lot_id"], generateurs)
     return detectes

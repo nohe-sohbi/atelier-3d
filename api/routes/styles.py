@@ -1,4 +1,5 @@
 """Écran Styles : lister, créer, modifier, versionner un style ; planche de référence ; validation."""
+
 from __future__ import annotations
 
 from typing import Annotated, Literal
@@ -74,8 +75,11 @@ def lister(conn: Db) -> dict:
 def estimation_planche(cfg: Config) -> dict:
     """Tarif de l'adaptateur Meshy (réel ou simulé) : l'interface n'affiche que ces chiffres."""
     meshy = get_meshy(cfg)
-    return {"credits_par_image": meshy.credits_image, "images_max": styles.NB_IMAGES_PLANCHE,
-            "simule": meshy.mode == "simule"}
+    return {
+        "credits_par_image": meshy.credits_image,
+        "images_max": styles.NB_IMAGES_PLANCHE,
+        "simule": meshy.mode == "simule",
+    }
 
 
 @router.get("/{style_id}")
@@ -137,7 +141,9 @@ async def palette_depuis_images(fichiers: Annotated[list[UploadFile], File()]) -
 
 
 @router.post("/{style_id}/inspirations", status_code=201)
-async def inspirations(style_id: int, conn: Db, fichiers: Annotated[list[UploadFile], File()]) -> dict:
+async def inspirations(
+    style_id: int, conn: Db, fichiers: Annotated[list[UploadFile], File()]
+) -> dict:
     noms: list[str] = []
     for f in fichiers:
         contenu = await f.read()

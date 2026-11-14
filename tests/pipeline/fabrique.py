@@ -1,4 +1,5 @@
 """Dossiers d'assets fabriqués avec trimesh, sans Blender, pour tester les contrôles (repris de l'archive)."""
+
 from __future__ import annotations
 
 import json
@@ -19,11 +20,22 @@ APP_VERS_GLTF = np.linalg.inv(GLTF_VERS_APP)
 
 def png_minimal(chemin: Path, taille: int = 4) -> Path:
     """Un PNG RGB valide, sans Pillow (rendus simulés)."""
+
     def chunk(tag: bytes, data: bytes) -> bytes:
-        return struct.pack(">I", len(data)) + tag + data + struct.pack(">I", zlib.crc32(tag + data) & 0xFFFFFFFF)
+        return (
+            struct.pack(">I", len(data))
+            + tag
+            + data
+            + struct.pack(">I", zlib.crc32(tag + data) & 0xFFFFFFFF)
+        )
+
     raw = b"".join(b"\x00" + bytes([120, 120, 120] * taille) for _ in range(taille))
-    donnees = b"\x89PNG\r\n\x1a\n" + chunk(b"IHDR", struct.pack(">IIBBBBB", taille, taille, 8, 2, 0, 0, 0)) \
-        + chunk(b"IDAT", zlib.compress(raw)) + chunk(b"IEND", b"")
+    donnees = (
+        b"\x89PNG\r\n\x1a\n"
+        + chunk(b"IHDR", struct.pack(">IIBBBBB", taille, taille, 8, 2, 0, 0, 0))
+        + chunk(b"IDAT", zlib.compress(raw))
+        + chunk(b"IEND", b"")
+    )
     chemin.parent.mkdir(parents=True, exist_ok=True)
     chemin.write_bytes(donnees)
     return chemin
@@ -60,14 +72,27 @@ def boite(extents=(0.6, 0.4, 0.4)) -> trimesh.Trimesh:
     return m
 
 
-def dossier_asset(racine: Path, id_asset: str, lod0: trimesh.Trimesh, lod1=None, lod2=None, col=None, uv=None,
-                  texture_px: int | None = 1024, fbx: bool = True, rendus: bool = True, meta: dict | None = None) -> Path:
+def dossier_asset(
+    racine: Path,
+    id_asset: str,
+    lod0: trimesh.Trimesh,
+    lod1=None,
+    lod2=None,
+    col=None,
+    uv=None,
+    texture_px: int | None = 1024,
+    fbx: bool = True,
+    rendus: bool = True,
+    meta: dict | None = None,
+) -> Path:
     """<racine>/<id>/ : GLB (LOD0/1/2/COL, en convention glTF : Y en haut), FBX factice, rendus, meta.json.
     Les maillages sont donnés dans la convention de l'app (Z en haut)."""
     from PIL import Image
 
     dossier = racine / id_asset
-    shutil.rmtree(dossier, ignore_errors=True)  # un dossier neuf : rien ne reste d'un appel précédent
+    shutil.rmtree(
+        dossier, ignore_errors=True
+    )  # un dossier neuf : rien ne reste d'un appel précédent
     dossier.mkdir(parents=True)
     lod0 = lod0.copy()
     if uv is None:
@@ -90,14 +115,23 @@ def dossier_asset(racine: Path, id_asset: str, lod0: trimesh.Trimesh, lod1=None,
         for v in ("face", "dos", "profil", "trois_quarts", "dessus", "vignette", "planche"):
             png_minimal(dossier / "rendus" / f"{v}.png")
     if meta is not None:
-        (dossier / "meta.json").write_text(json.dumps(meta, ensure_ascii=False, indent=2), encoding="utf-8")
+        (dossier / "meta.json").write_text(
+            json.dumps(meta, ensure_ascii=False, indent=2), encoding="utf-8"
+        )
     return dossier
 
 
 def validateur_factice(dossier: Path, erreurs: int = 0) -> str:
     """Un faux glTF-Validator : avec -o, écrit un rapport JSON sur sa sortie (comme le vrai)."""
-    rapport = json.dumps({"issues": {"numErrors": erreurs, "numWarnings": 0,
-                                     "messages": [{"severity": 0, "message": "erreur factice"}] * erreurs}})
+    rapport = json.dumps(
+        {
+            "issues": {
+                "numErrors": erreurs,
+                "numWarnings": 0,
+                "messages": [{"severity": 0, "message": "erreur factice"}] * erreurs,
+            }
+        }
+    )
     script = dossier / "gltf_validator_factice.py"
     script.write_text(f"print({rapport!r})\n", encoding="utf-8")
     if os.name == "nt":

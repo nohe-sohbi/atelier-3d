@@ -1,4 +1,5 @@
 """Palette tirée des images d'inspiration (Nouveau style) : couleurs dominantes nommées, fond ignoré, 8 à 12."""
+
 import io
 
 import numpy as np
@@ -18,16 +19,29 @@ def _image(couleurs, fond=(255, 255, 255), format_="PNG") -> bytes:
 
 
 def _proche(hexa: str, rgb) -> bool:
-    return float(np.linalg.norm(palette.lab(palette._rgb(hexa)) - palette.lab(np.array(rgb, dtype=float)))) < 4
+    return (
+        float(
+            np.linalg.norm(
+                palette.lab(palette._rgb(hexa)) - palette.lab(np.array(rgb, dtype=float))
+            )
+        )
+        < 4
+    )
 
 
 def test_les_couleurs_des_images_sans_leur_fond_nommees_et_au_moins_8():
     vraies = [(181, 88, 46), (140, 106, 47), (107, 45, 76), (91, 94, 99), (232, 227, 216)]
-    p = palette.depuis_images([_image(vraies[:3], format_="JPEG"), _image(vraies[3:], fond=(250, 250, 250))])
+    p = palette.depuis_images(
+        [_image(vraies[:3], format_="JPEG"), _image(vraies[3:], fond=(250, 250, 250))]
+    )
     assert palette.MIN_COULEURS <= len(p) <= palette.MAX_COULEURS
-    for rgb in vraies:  # chaque vraie couleur est là, même la très claire posée sur un fond presque blanc
+    for (
+        rgb
+    ) in vraies:  # chaque vraie couleur est là, même la très claire posée sur un fond presque blanc
         assert any(_proche(c["hex"], rgb) for c in p), rgb
-    assert not any(_proche(c["hex"], (255, 255, 255)) or _proche(c["hex"], (250, 250, 250)) for c in p)  # pas le fond
+    assert not any(
+        _proche(c["hex"], (255, 255, 255)) or _proche(c["hex"], (250, 250, 250)) for c in p
+    )  # pas le fond
     noms = [c["nom"] for c in p]
     assert len(set(noms)) == len(noms)
     assert {"terre cuite", "bronze", "fer", "marbre"} <= set(noms)  # le nom courant le plus proche
@@ -39,8 +53,15 @@ def test_une_image_toute_unie_garde_sa_couleur():
 
 
 def test_route_palette(client):
-    r = client.post("/api/styles/palette", files=[("fichiers", ("a.png", _image([(181, 88, 46)]), "image/png")),
-                                                 ("fichiers", ("b.jpg", _image([(107, 45, 76)], format_="JPEG"), "image/jpeg"))])
+    r = client.post(
+        "/api/styles/palette",
+        files=[
+            ("fichiers", ("a.png", _image([(181, 88, 46)]), "image/png")),
+            ("fichiers", ("b.jpg", _image([(107, 45, 76)], format_="JPEG"), "image/jpeg")),
+        ],
+    )
     assert r.status_code == 200 and r.json()["images"] == 2 and len(r.json()["palette"]) >= 8
-    r = client.post("/api/styles/palette", files=[("fichiers", ("notes.png", b"pas une image", "image/png"))])
+    r = client.post(
+        "/api/styles/palette", files=[("fichiers", ("notes.png", b"pas une image", "image/png"))]
+    )
     assert r.status_code == 422 and "pas lisible" in r.json()["erreur"]

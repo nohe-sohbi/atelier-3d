@@ -4,6 +4,7 @@ Chaque vue est cadrée sur la sphère englobante de l'objet : un petit et un gra
 même façon. EEVEE par défaut (rapide sur la carte graphique) ; Cycles sur le processeur quand EEVEE n'a pas de
 carte graphique utilisable. La planche de contact et la vignette sont assemblées hors de Blender (pipeline/planche.py).
 """
+
 from __future__ import annotations
 
 import math
@@ -30,7 +31,10 @@ FOND = (0.62, 0.62, 0.60, 1.0)  # gris neutre de la planche de revue (pas une co
 
 def _lumieres(scene: bpy.types.Scene) -> None:
     """Éclairage fixe pour tous les assets : une lumière principale, un contre-jour, un fond gris."""
-    for nom, rotation, energie in (("principale", (0.9, 0.15, -0.6), 3.5), ("contre", (2.3, 0.0, 2.6), 1.2)):
+    for nom, rotation, energie in (
+        ("principale", (0.9, 0.15, -0.6), 3.5),
+        ("contre", (2.3, 0.0, 2.6), 1.2),
+    ):
         soleil = bpy.data.objects.new(nom, bpy.data.lights.new(nom, "SUN"))
         soleil.rotation_euler = rotation
         soleil.data.energy = energie
@@ -56,8 +60,13 @@ def _moteur(scene: bpy.types.Scene, moteur: str, taille_px: int) -> None:
     scene.render.image_settings.file_format = "PNG"
 
 
-def _photographier(scene: bpy.types.Scene, obj: bpy.types.Object, sorties: dict[str, Path], moteur: str,
-                   taille_px: int) -> None:
+def _photographier(
+    scene: bpy.types.Scene,
+    obj: bpy.types.Object,
+    sorties: dict[str, Path],
+    moteur: str,
+    taille_px: int,
+) -> None:
     """Lumières, moteur et caméra cadrée sur la sphère englobante de `obj`, puis une image par vue demandée."""
     _lumieres(scene)
     _moteur(scene, moteur, taille_px)
@@ -80,8 +89,13 @@ def _photographier(scene: bpy.types.Scene, obj: bpy.types.Object, sorties: dict[
         bpy.ops.render.render(write_still=True)
 
 
-def rendre(blend: str | Path, dossier: str | Path, id_asset: str, moteur: str = "eevee",
-           taille_px: int = TAILLE_PX) -> dict[str, Any]:
+def rendre(
+    blend: str | Path,
+    dossier: str | Path,
+    id_asset: str,
+    moteur: str = "eevee",
+    taille_px: int = TAILLE_PX,
+) -> dict[str, Any]:
     bpy.ops.wm.open_mainfile(filepath=str(blend))
     scene = bpy.context.scene
     lod0 = bpy.data.objects.get(f"{id_asset}_LOD0")
@@ -94,8 +108,13 @@ def rendre(blend: str | Path, dossier: str | Path, id_asset: str, moteur: str = 
     return {"moteur": moteur, "vues": {nom: f"{nom}.png" for nom in VUES}, "taille_px": taille_px}
 
 
-def apercu(obj: bpy.types.Object, fichier: str | Path, moteur: str = "eevee", taille_px: int = 384,
-           vue: str = "trois_quarts") -> None:
+def apercu(
+    obj: bpy.types.Object,
+    fichier: str | Path,
+    moteur: str = "eevee",
+    taille_px: int = 384,
+    vue: str = "trois_quarts",
+) -> None:
     """Une seule vue de l'objet tel que le générateur l'a construit (variantes des Références)."""
     scene = bpy.context.scene
     for o in scene.objects:

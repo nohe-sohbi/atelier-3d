@@ -1,4 +1,3 @@
-
 import pytest
 
 from api import config as cfgmod
@@ -18,6 +17,7 @@ def test_meshy_simule_solde_et_3d(atelier, cfg, tmp_path):
     glb = m.telecharger(tid, tmp_path / "sortie")
     assert glb.exists() and glb.suffix == ".glb" and glb.read_bytes()[:4] == b"glTF"
     import trimesh
+
     scene = trimesh.load(glb)
     assert len(scene.geometry) == 1
     # Solde conservé sur disque : un nouvel adaptateur relit le même état.
@@ -29,7 +29,9 @@ def test_meshy_simule_deterministe_et_images(atelier, cfg, tmp_path):
     a = get_meshy(cfg, tmp_path / "a")
     b = get_meshy(cfg, tmp_path / "b")
     assert a.image_vers_3d("x.png") == b.image_vers_3d("x.png")
-    assert a.image_vers_image("un scutum", "x.png", 4) == b.image_vers_image("un scutum", "x.png", 4)
+    assert a.image_vers_image("un scutum", "x.png", 4) == b.image_vers_image(
+        "un scutum", "x.png", 4
+    )
     assert a.solde()["restants"] == 1000 - 30 - 12
     tid = a.image_vers_image("un casque", None, 2)
     with pytest.raises(RuntimeError):
@@ -44,15 +46,37 @@ def test_meshy_simule_deterministe_et_images(atelier, cfg, tmp_path):
 
 def test_claude_simule_json_et_usage(cfg):
     c = get_claude(cfg)
-    schema = {"type": "object", "properties": {
-        "objets": {"type": "array", "minItems": 3, "items": {"type": "object", "properties": {
-            "nom": {"type": "string"}, "voie": {"enum": ["code", "ia"]}, "tris": {"type": "integer"},
-            "ok": {"type": "boolean"}}}},
-        "resume": {"type": "string"}}}
+    schema = {
+        "type": "object",
+        "properties": {
+            "objets": {
+                "type": "array",
+                "minItems": 3,
+                "items": {
+                    "type": "object",
+                    "properties": {
+                        "nom": {"type": "string"},
+                        "voie": {"enum": ["code", "ia"]},
+                        "tris": {"type": "integer"},
+                        "ok": {"type": "boolean"},
+                    },
+                },
+            },
+            "resume": {"type": "string"},
+        },
+    }
     rep, usage = c.completer_json("Tu listes des objets.", "Un forum romain", schema)
-    assert len(rep["objets"]) == 3 and rep["objets"][0]["voie"] == "code" and rep["objets"][0]["ok"] is True
+    assert (
+        len(rep["objets"]) == 3
+        and rep["objets"][0]["voie"] == "code"
+        and rep["objets"][0]["ok"] is True
+    )
     assert isinstance(rep["resume"], str)
-    assert usage["tokens_entree"] > 0 and usage["tokens_sortie"] > 0 and usage["modele"] == "claude-sonnet-5-5"
+    assert (
+        usage["tokens_entree"] > 0
+        and usage["tokens_sortie"] > 0
+        and usage["modele"] == "claude-sonnet-5-5"
+    )
     assert c.completer_json("a", "b", schema)[0] == rep  # déterministe
     avis, usage2 = c.avis_rendus(["face.png", "trois-quarts.png"], "Scutum, style ROM")
     assert "2 rendus" in avis and usage2["tokens_entree"] > usage["tokens_entree"]
@@ -87,12 +111,24 @@ def test_itchio_simule(cfg, tmp_path, atelier):
 def test_mode_reel_choisit_les_adaptateurs_reels(cfg):
     for s in ("meshy", "claude", "comfyui", "itchio"):
         cfg["services"][s]["mode"] = "reel"
-    assert get_meshy(cfg).mode == get_claude(cfg).mode == get_comfyui(cfg).mode == get_itchio(cfg).mode == "reel"
-    assert get_meshy(cfg).tester_connexion()["ok"] is False  # pas de clé → refus propre, sans réseau
+    assert (
+        get_meshy(cfg).mode
+        == get_claude(cfg).mode
+        == get_comfyui(cfg).mode
+        == get_itchio(cfg).mode
+        == "reel"
+    )
+    assert (
+        get_meshy(cfg).tester_connexion()["ok"] is False
+    )  # pas de clé → refus propre, sans réseau
     assert get_claude(cfg).tester_connexion()["ok"] is False
     cfg["butler"]["chemin"] = "/nulle/part/butler"
     assert get_itchio(cfg).tester_butler()["etat"] == "Introuvable"
 
 
 def test_apercu_cle():
-    assert cfgmod.apercu_cle("") == "" and cfgmod.apercu_cle("ab") == "••••" and cfgmod.apercu_cle("sk-ant-1234") == "••••1234"
+    assert (
+        cfgmod.apercu_cle("") == ""
+        and cfgmod.apercu_cle("ab") == "••••"
+        and cfgmod.apercu_cle("sk-ant-1234") == "••••1234"
+    )

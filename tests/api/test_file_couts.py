@@ -1,4 +1,5 @@
 """Étape 4 : suivi des coûts (A6), battement du worker, écran Génération, journal d'une tâche."""
+
 import json
 from datetime import UTC, datetime, timedelta
 
@@ -17,6 +18,7 @@ BESOIN = "Des contenants, du mobilier et un peu de décor."
 
 class ClaudeReelFactice(ClaudeSimule):
     """Répond comme le simulateur, mais se présente comme l'API réelle : ses appels coûtent."""
+
     mode = "reel"
 
     def __init__(self, cfg, appels=None):
@@ -43,22 +45,37 @@ def _lot(client, **corps):
 
 # --- coûts de l'API Claude ------------------------------------------------------------------------
 
+
 def test_brief_simule_ne_coute_rien_et_le_dit(client, conn, cfg):
     lot = _lot(client)
     client.post(f"/api/lots/{lot['id']}/proposition")
     _worker_tourne(cfg)
     c = conn.execute("SELECT * FROM couts").fetchone()
-    assert (c["service"], c["type"], c["lot_id"], c["simule"], c["usd"]) == ("claude", "brief", lot["id"], 1, 0)
+    assert (c["service"], c["type"], c["lot_id"], c["simule"], c["usd"]) == (
+        "claude",
+        "brief",
+        lot["id"],
+        1,
+        0,
+    )
     assert c["tokens_entree"] > 0
-    assert couts.depense_claude_mois(conn) == {"usd": 0.0, "appels": 0, "briefs": 0, "avis": 0, "appels_simules": 1,
-                                               "sans_tarif": 0}
+    assert couts.depense_claude_mois(conn) == {
+        "usd": 0.0,
+        "appels": 0,
+        "briefs": 0,
+        "avis": 0,
+        "appels_simules": 1,
+        "sans_tarif": 0,
+    }
 
 
 def test_brief_reel_coute_d_apres_les_tarifs(client, conn, cfg):
     lot = _lot(client)
     brief.executer_proposition(conn, ClaudeReelFactice(cfg), {"lot_id": lot["id"]}, cfg=cfg)
     c = conn.execute("SELECT * FROM couts").fetchone()
-    attendu = round((c["tokens_entree"] * 2.0 + c["tokens_sortie"] * 10.0) / 1_000_000, 6)  # Sonnet 5.5
+    attendu = round(
+        (c["tokens_entree"] * 2.0 + c["tokens_sortie"] * 10.0) / 1_000_000, 6
+    )  # Sonnet 5.5
     assert c["simule"] == 0 and c["usd"] == pytest.approx(attendu) and attendu > 0
     d = couts.depense_claude_mois(conn)
     assert d["appels"] == 1 and d["briefs"] == 1 and d["usd"] == pytest.approx(round(attendu, 4))
@@ -77,7 +94,9 @@ def test_plafond_atteint_echec_definitif_sans_appel(client, conn, cfg):
     couts.enregistrer(conn, "claude", "brief", simule=False, usd=1.2, lot_id=lot["id"])
     appels = []
     with pytest.raises(TacheDefinitive, match="plafond mensuel"):
-        brief.executer_proposition(conn, ClaudeReelFactice(cfg, appels), {"lot_id": lot["id"]}, cfg=cfg)
+        brief.executer_proposition(
+            conn, ClaudeReelFactice(cfg, appels), {"lot_id": lot["id"]}, cfg=cfg
+        )
     assert appels == []
     # Le simulateur ne dépense rien : le plafond ne le bloque pas.
     brief.executer_proposition(conn, ClaudeSimule(cfg), {"lot_id": lot["id"]}, cfg=cfg)
@@ -91,8 +110,10 @@ def test_migration_030_reprend_les_couts_deja_ecrits(atelier, monkeypatch):
     try:
         db.appliquer_migrations(c)
         c.execute("INSERT INTO lots(nom, theme, cree_le, maj_le) VALUES ('L', 'T', 'x', 'x')")
-        c.execute("INSERT INTO couts(date, service, detail) VALUES ('2026-10-18T08:00:00Z', 'claude', ?)",
-                  (json.dumps({"type": "brief", "lot_id": 1, "simule": True}),))
+        c.execute(
+            "INSERT INTO couts(date, service, detail) VALUES ('2026-10-18T08:00:00Z', 'claude', ?)",
+            (json.dumps({"type": "brief", "lot_id": 1, "simule": True}),),
+        )
         monkeypatch.setattr(db, "lister_migrations", lambda: tout)
         assert db.appliquer_migrations(c) == [30, 50, 60]
         r = c.execute("SELECT type, lot_id, simule FROM couts").fetchone()
@@ -103,10 +124,14 @@ def test_migration_030_reprend_les_couts_deja_ecrits(atelier, monkeypatch):
 
 # --- crédits Meshy de la planche ---------------------------------------------------------------------
 
+
 def test_planche_note_ses_credits_meshy_sans_doublon(client, conn, cfg):
     pilote = client.get("/api/styles").json()["styles"][0]
     palette = {c["nom"]: c["hex"] for c in pilote["palette"]}
-    sid = client.post("/api/styles", json={"nom": "Avec coûts", "palette": palette, "budgets_depuis": pilote["id"]}).json()["id"]
+    sid = client.post(
+        "/api/styles",
+        json={"nom": "Avec coûts", "palette": palette, "budgets_depuis": pilote["id"]},
+    ).json()["id"]
     tid = client.post(f"/api/styles/{sid}/planche").json()["tache_id"]
     params = taches.lire_tache(conn, tid)["params"]
     meshy = get_meshy(cfg)
@@ -119,6 +144,7 @@ def test_planche_note_ses_credits_meshy_sans_doublon(client, conn, cfg):
 
 # --- battement du worker ------------------------------------------------------------------------------
 
+
 def test_le_worker_dit_qu_il_tourne_puis_qu_il_s_arrete(atelier, conn, cfg, client):
     assert client.get("/api/worker").json()["actif"] is False  # jamais lancé
     w = Worker(verrou="w-test", tick_s=0.05, charger_config=lambda: cfg)
@@ -130,12 +156,22 @@ def test_le_worker_dit_qu_il_tourne_puis_qu_il_s_arrete(atelier, conn, cfg, clie
 
 
 def test_un_battement_ancien_veut_dire_arrete(conn):
-    vieux = (datetime.now(UTC) - timedelta(minutes=5)).replace(microsecond=0).isoformat().replace("+00:00", "Z")
-    conn.execute("INSERT INTO workers(verrou, demarre_le, battu_le) VALUES ('coupe', ?, ?)", (vieux, vieux))
-    assert workers.etat(conn)["actif"] is False  # coupure : aucune sortie propre, mais plus de battement
+    vieux = (
+        (datetime.now(UTC) - timedelta(minutes=5))
+        .replace(microsecond=0)
+        .isoformat()
+        .replace("+00:00", "Z")
+    )
+    conn.execute(
+        "INSERT INTO workers(verrou, demarre_le, battu_le) VALUES ('coupe', ?, ?)", (vieux, vieux)
+    )
+    assert (
+        workers.etat(conn)["actif"] is False
+    )  # coupure : aucune sortie propre, mais plus de battement
 
 
 # --- écran Génération --------------------------------------------------------------------------------
+
 
 def _lot_valide(client, cfg):
     lot = _lot(client)
@@ -154,7 +190,10 @@ def test_generation_avant_la_fabrication(client, conn, cfg):
     g = client.get(f"/api/lots/{lid}/generation").json()
     f = g["fabrication"]  # objets simulés passés en voie IA : ni mixte ni import à attendre
     assert f["autres_voies"] == 0 and "étape 7" in f["raison_ia"]
-    assert all(not o["peut_fabriquer"] and "choisis d'abord sa référence" in o["motif"] for o in g["objets"])
+    assert all(
+        not o["peut_fabriquer"] and "choisis d'abord sa référence" in o["motif"]
+        for o in g["objets"]
+    )
     assert g["objets"] and all(o["statut"].startswith("Attend sa référence") for o in g["objets"])
     assert all([p["etat"] for p in o["etapes"]] == ["a_faire"] * 4 for o in g["objets"])
     # « Générer les références » : une tâche d'images de référence par objet, après la proposition de la liste.
@@ -162,8 +201,15 @@ def test_generation_avant_la_fabrication(client, conn, cfg):
     assert types[-1] == "proposer_liste" and types[:-1] == ["references_images"] * len(g["objets"])
     assert g["taches"][-1]["etat"] == "terminee" and g["taches"][-1]["peut_relancer"] is False
     lot = client.get(f"/api/lots/{lid}").json()
-    assert g["tuiles"] == {"prets_revue": 0, "fabriques": len(g["objets"]), "en_cours": 0, "relances": 0,
-                           "credits_utilises": 0, "credits_simules": False, "credits_prevus": lot["credits_prevus"]}
+    assert g["tuiles"] == {
+        "prets_revue": 0,
+        "fabriques": len(g["objets"]),
+        "en_cours": 0,
+        "relances": 0,
+        "credits_utilises": 0,
+        "credits_simules": False,
+        "credits_prevus": lot["credits_prevus"],
+    }
     assert [x["nom"] for x in g["generateurs"]] == ["Générateurs par code", "Meshy", "ComfyUI"]
     assert g["generateurs"][1]["etat"] == "Simulé" and g["generateurs"][0]["etat"] == "Aucun script"
 
@@ -175,15 +221,29 @@ def test_generation_suit_les_etapes_les_relances_et_les_credits(client, conn, cf
         conn.execute("UPDATE objets SET etape = ? WHERE id = ?", (etape, oid))
     # Une tâche du lot qui a échoué deux fois avant de passer, et 60 crédits Meshy simulés.
     tid = taches.creer_tache(conn, "echec", "api", {}, lot_id=lid, cfg=cfg)
-    conn.execute("UPDATE taches SET tentatives = 3, etat = 'echouee', erreur = 'RuntimeError: panne' WHERE id = ?", (tid,))
+    conn.execute(
+        "UPDATE taches SET tentatives = 3, etat = 'echouee', erreur = 'RuntimeError: panne' WHERE id = ?",
+        (tid,),
+    )
     couts.enregistrer(conn, "meshy", "generation", simule=True, credits=60, lot_id=lid)
     g = client.get(f"/api/lots/{lid}/generation").json()
     par_id = {o["id"]: o for o in g["objets"]}
-    assert [p["etat"] for p in par_id[ids[0]]["etapes"]] == ["fait", "en_cours", "a_faire", "a_faire"]
+    assert [p["etat"] for p in par_id[ids[0]]["etapes"]] == [
+        "fait",
+        "en_cours",
+        "a_faire",
+        "a_faire",
+    ]
     assert par_id[ids[1]]["statut"] == "Prêt à valider" and par_id[ids[1]]["pct"] == 100
     t = g["tuiles"]
     # En cours : l'objet en finition ; celui à « generation » sans essai est un objet IA qui attend l'étape 7.
-    assert (t["prets_revue"], t["en_cours"], t["relances"], t["credits_utilises"], t["credits_simules"]) == (1, 1, 2, 60, True)
+    assert (
+        t["prets_revue"],
+        t["en_cours"],
+        t["relances"],
+        t["credits_utilises"],
+        t["credits_simules"],
+    ) == (1, 1, 2, 60, True)
     echec = next(x for x in g["taches"] if x["id"] == tid)
     assert echec["peut_relancer"] is True and echec["erreur"] == "RuntimeError: panne"
 
@@ -196,8 +256,14 @@ def test_taches_recentes_pour_reglages(client, conn, cfg):
     r = client.get("/api/worker/taches").json()
     assert r["worker"]["actif"] is False and r["worker"]["en_attente"] == 2
     contextes = {t["type"]: t["contexte"] for t in r["taches"]}
-    assert contextes["planche_style"] == {"libelle": "Style rome-stylise-v0", "lien": "/styles?style=rome-stylise-v0"}
-    assert contextes["proposer_liste"] == {"libelle": f"Lot n° {lid}", "lien": f"/lots/{lid}/generation"}  # lot sans nom
+    assert contextes["planche_style"] == {
+        "libelle": "Style rome-stylise-v0",
+        "lien": "/styles?style=rome-stylise-v0",
+    }
+    assert contextes["proposer_liste"] == {
+        "libelle": f"Lot n° {lid}",
+        "lien": f"/lots/{lid}/generation",
+    }  # lot sans nom
 
 
 def test_journal_d_une_tache(client, conn, cfg):
@@ -206,7 +272,11 @@ def test_journal_d_une_tache(client, conn, cfg):
     _worker_tourne(cfg)
     j = client.get(f"/api/taches/{tid}/journal").json()
     types = [e["type"] for e in j["evenements"]]
-    assert types[0] == "tache_creee" and "tache_terminee" in types and types.index("tache_debutee") < types.index("tache_terminee")
+    assert (
+        types[0] == "tache_creee"
+        and "tache_terminee" in types
+        and types.index("tache_debutee") < types.index("tache_terminee")
+    )
     assert client.get("/api/taches/999/journal").status_code == 404
 
 
@@ -223,7 +293,11 @@ def test_le_reglage_des_files_est_dans_la_vue(client, cfg, atelier):
 
 def test_alerte_credits_meshy_une_fois_par_mois(client, conn, cfg, atelier):
     from api.services import credits
-    ecrire_config(atelier.config, lambda c: c["services"]["meshy"].update({"credits_mensuels": 100, "alerte_pct": 80}))
+
+    ecrire_config(
+        atelier.config,
+        lambda c: c["services"]["meshy"].update({"credits_mensuels": 100, "alerte_pct": 80}),
+    )
     meshy = get_meshy(__import__("api.config", fromlist=["charger"]).charger())
     meshy.image_vers_3d("a.png")  # 30 crédits : 30 %
     credits.oublier_cache()

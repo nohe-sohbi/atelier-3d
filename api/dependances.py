@@ -1,4 +1,5 @@
 """Dépendances FastAPI : connexion SQLite par requête, config relue à chaque requête."""
+
 from __future__ import annotations
 
 import sqlite3

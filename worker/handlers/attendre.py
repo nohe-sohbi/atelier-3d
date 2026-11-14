@@ -1,4 +1,5 @@
 """Handler de test : dort params.secondes (par pas, avec progression) puis renvoie {"ok": true}."""
+
 from __future__ import annotations
 
 import time

@@ -2,6 +2,7 @@
 
 `get_<service>(config)` renvoie l'adaptateur selon services.<service>.mode (simule par défaut).
 """
+
 from __future__ import annotations
 
 from api.adapters.claude import get_claude

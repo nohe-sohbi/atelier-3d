@@ -1,4 +1,5 @@
 """Écran Références d'un lot : propositions par objet, choix, consigne, image donnée, lancement de la génération."""
+
 from __future__ import annotations
 
 from typing import Annotated
@@ -63,9 +64,13 @@ def consigne(lot_id: int, objet_id: int, corps: ConsigneIn, conn: Db) -> dict:
 
 
 @router.post("/{lot_id}/objets/{objet_id}/image", status_code=201)
-async def image(lot_id: int, objet_id: int, conn: Db, fichier: Annotated[UploadFile, File()]) -> dict:
+async def image(
+    lot_id: int, objet_id: int, conn: Db, fichier: Annotated[UploadFile, File()]
+) -> dict:
     contenu = await fichier.read()
-    return _erreurs(references.ajouter_image, conn, lot_id, objet_id, fichier.filename or "image", contenu)
+    return _erreurs(
+        references.ajouter_image, conn, lot_id, objet_id, fichier.filename or "image", contenu
+    )
 
 
 @router.post("/{lot_id}/objets/{objet_id}/rouvrir")

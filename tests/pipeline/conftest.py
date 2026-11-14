@@ -1,4 +1,5 @@
 """Fixtures de la fabrication : un Blender réel quand la machine en a un (tests marqués `blender`)."""
+
 from __future__ import annotations
 
 import pytest

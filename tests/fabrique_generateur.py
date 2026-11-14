@@ -1,4 +1,5 @@
 """Un générateur code factice (MANIFESTE valide, build sans Blender) écrit dans un dossier de test."""
+
 from __future__ import annotations
 
 from pathlib import Path
@@ -19,18 +20,34 @@ def build(params, style, seed=0):
 '''
 
 
-def ecrire_generateur(dossier: Path, nom: str = "caisse", types: list[str] | None = None,
-                      categorie: str = "petit_prop", titre: str | None = None) -> Path:
+def ecrire_generateur(
+    dossier: Path,
+    nom: str = "caisse",
+    types: list[str] | None = None,
+    categorie: str = "petit_prop",
+    titre: str | None = None,
+) -> Path:
     dossier.mkdir(parents=True, exist_ok=True)
     chemin = dossier / f"{nom}.py"
-    chemin.write_text(SOURCE.format(nom=nom, titre=titre or nom.capitalize(), types=repr(types or [nom]),
-                                    categorie=categorie), encoding="utf-8")
+    chemin.write_text(
+        SOURCE.format(
+            nom=nom,
+            titre=titre or nom.capitalize(),
+            types=repr(types or [nom]),
+            categorie=categorie,
+        ),
+        encoding="utf-8",
+    )
     return chemin
 
 
 def ecrire_generateur_invalide(dossier: Path, nom: str = "bancal") -> Path:
     dossier.mkdir(parents=True, exist_ok=True)
     chemin = dossier / f"{nom}.py"
-    chemin.write_text('MANIFESTE = {"nom": "' + nom + '", "titre": "Bancal"}\n\ndef build(params, style, seed=0):\n    return None\n',
-                      encoding="utf-8")
+    chemin.write_text(
+        'MANIFESTE = {"nom": "'
+        + nom
+        + '", "titre": "Bancal"}\n\ndef build(params, style, seed=0):\n    return None\n',
+        encoding="utf-8",
+    )
     return chemin

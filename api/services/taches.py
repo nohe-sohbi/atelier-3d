@@ -10,6 +10,7 @@ Utilisée par l'API (routes) et par le worker (worker/queue.py la réexporte).
 - Au démarrage du worker, les tâches `en_cours` au verrou périmé repassent `en_attente`.
 - Chaque changement d'état écrit un événement.
 """
+
 from __future__ import annotations
 
 import json
@@ -34,7 +35,8 @@ class TacheIntrouvable(LookupError):
 
 class TacheDefinitive(RuntimeError):
     """Erreur qui ne vaut aucune relance : outil absent (Blender), clé manquante, plafond atteint,
-    crédits insuffisants, étape du plan pas encore construite. La tâche passe tout de suite en échec."""
+    crédits insuffisants, étape du plan pas encore construite. La tâche passe tout de suite en échec.
+    """
 
 
 class TransitionInterdite(ValueError):
@@ -61,8 +63,13 @@ def lire_tache(conn: sqlite3.Connection, tache_id: int) -> dict:
     return t
 
 
-def lister_taches(conn: sqlite3.Connection, etat: str | None = None, lot_id: int | None = None,
-                  file: str | None = None, limit: int = 200) -> list[dict]:
+def lister_taches(
+    conn: sqlite3.Connection,
+    etat: str | None = None,
+    lot_id: int | None = None,
+    file: str | None = None,
+    limit: int = 200,
+) -> list[dict]:
     clauses, params = [], []
     if etat:
         clauses.append("etat = ?")
@@ -99,19 +106,40 @@ def creer_tache(
     if max_tentatives is None:
         max_tentatives = 1 + cfgmod.relances_max(cfg if cfg is not None else cfgmod.charger())
     with db.transaction(conn):
-        tache_id = db.inserer(conn, "taches", {
-            "type": type, "file": file, "etat": "en_attente",
-            "params_json": json.dumps(params or {}, ensure_ascii=False),
-            "tentatives": 0, "max_tentatives": max(1, int(max_tentatives)), "priorite": int(priorite),
-            "lot_id": lot_id, "objet_id": objet_id, "essai_id": essai_id, "cree_le": db.maintenant(),
-        })
-        evenements.ecrire(conn, "tache_creee", f"Tâche {type} créée", f"File {file}.",
-                          niveau="debug", lot_id=lot_id, objet_id=objet_id, tache_id=tache_id)
+        tache_id = db.inserer(
+            conn,
+            "taches",
+            {
+                "type": type,
+                "file": file,
+                "etat": "en_attente",
+                "params_json": json.dumps(params or {}, ensure_ascii=False),
+                "tentatives": 0,
+                "max_tentatives": max(1, int(max_tentatives)),
+                "priorite": int(priorite),
+                "lot_id": lot_id,
+                "objet_id": objet_id,
+                "essai_id": essai_id,
+                "cree_le": db.maintenant(),
+            },
+        )
+        evenements.ecrire(
+            conn,
+            "tache_creee",
+            f"Tâche {type} créée",
+            f"File {file}.",
+            niveau="debug",
+            lot_id=lot_id,
+            objet_id=objet_id,
+            tache_id=tache_id,
+        )
     return tache_id
 
 
 def compter_en_cours(conn: sqlite3.Connection, file: str) -> int:
-    r = db.une(conn, "SELECT COUNT(*) AS n FROM taches WHERE file = ? AND etat = 'en_cours'", (file,))
+    r = db.une(
+        conn, "SELECT COUNT(*) AS n FROM taches WHERE file = ? AND etat = 'en_cours'", (file,)
+    )
     return int(r["n"])
 
 
@@ -121,22 +149,36 @@ def prendre_tache(conn: sqlite3.Connection, file: str, verrou: str, limite: int)
     with db.transaction(conn):
         if compter_en_cours(conn, file) >= max(0, int(limite)):
             return None
-        row = db.une(conn, """
+        row = db.une(
+            conn,
+            """
             SELECT id FROM taches
             WHERE etat = 'en_attente' AND file = ? AND (reprise_le IS NULL OR reprise_le <= ?)
-            ORDER BY priorite DESC, id LIMIT 1""", (file, maintenant))
+            ORDER BY priorite DESC, id LIMIT 1""",
+            (file, maintenant),
+        )
         if row is None:
             return None
-        cur = conn.execute("""
+        cur = conn.execute(
+            """
             UPDATE taches SET etat = 'en_cours', verrou = ?, verrou_le = ?, debute_le = ?,
                    tentatives = tentatives + 1, erreur = NULL, reprise_le = NULL
-            WHERE id = ? AND etat = 'en_attente'""", (verrou, maintenant, maintenant, row["id"]))
+            WHERE id = ? AND etat = 'en_attente'""",
+            (verrou, maintenant, maintenant, row["id"]),
+        )
         if cur.rowcount != 1:
             return None
         t = lire_tache(conn, row["id"])
-        evenements.ecrire(conn, "tache_debutee", f"Tâche {t['type']} démarrée",
-                          f"Tentative {t['tentatives']} sur {t['max_tentatives']}.", niveau="debug",
-                          lot_id=t["lot_id"], objet_id=t["objet_id"], tache_id=t["id"])
+        evenements.ecrire(
+            conn,
+            "tache_debutee",
+            f"Tâche {t['type']} démarrée",
+            f"Tentative {t['tentatives']} sur {t['max_tentatives']}.",
+            niveau="debug",
+            lot_id=t["lot_id"],
+            objet_id=t["objet_id"],
+            tache_id=t["id"],
+        )
     return t
 
 
@@ -144,8 +186,10 @@ def rafraichir_verrou(conn: sqlite3.Connection, tache_ids: list[int], verrou: st
     if not tache_ids:
         return
     marques = ",".join("?" for _ in tache_ids)
-    conn.execute(f"UPDATE taches SET verrou_le = ? WHERE verrou = ? AND etat = 'en_cours' AND id IN ({marques})",
-                 (db.maintenant(), verrou, *tache_ids))
+    conn.execute(
+        f"UPDATE taches SET verrou_le = ? WHERE verrou = ? AND etat = 'en_cours' AND id IN ({marques})",
+        (db.maintenant(), verrou, *tache_ids),
+    )
 
 
 def progression(conn: sqlite3.Connection, tache_id: int, pct: float, texte: str = "") -> None:
@@ -154,27 +198,41 @@ def progression(conn: sqlite3.Connection, tache_id: int, pct: float, texte: str 
         t = lire_tache(conn, tache_id)
         resultat = t["resultat"] if isinstance(t["resultat"], dict) else {}
         resultat["progression"] = {"pct": max(0, min(100, round(float(pct), 1))), "texte": texte}
-        conn.execute("UPDATE taches SET resultat_json = ?, verrou_le = ? WHERE id = ?",
-                     (json.dumps(resultat, ensure_ascii=False), db.maintenant(), tache_id))
-        evenements.ecrire(conn, "tache_progression", f"{t['type']} : {texte or ''}".strip(" :"),
-                          f"{resultat['progression']['pct']:.0f} %", niveau="debug",
-                          lot_id=t["lot_id"], objet_id=t["objet_id"], tache_id=tache_id)
+        conn.execute(
+            "UPDATE taches SET resultat_json = ?, verrou_le = ? WHERE id = ?",
+            (json.dumps(resultat, ensure_ascii=False), db.maintenant(), tache_id),
+        )
+        evenements.ecrire(
+            conn,
+            "tache_progression",
+            f"{t['type']} : {texte or ''}".strip(" :"),
+            f"{resultat['progression']['pct']:.0f} %",
+            niveau="debug",
+            lot_id=t["lot_id"],
+            objet_id=t["objet_id"],
+            tache_id=tache_id,
+        )
 
 
 def noter_reprise(conn: sqlite3.Connection, tache_id: int, reprise: dict) -> None:
     """Garde dans resultat_json.reprise de quoi reprendre sans refaire ce qui est déjà payé (ids de tâches
-    Meshy lancées, par exemple). Survit à une coupure, à un arrêt du worker et à une relance à la main."""
+    Meshy lancées, par exemple). Survit à une coupure, à un arrêt du worker et à une relance à la main.
+    """
     with db.transaction(conn):
         t = lire_tache(conn, tache_id)
         resultat = t["resultat"] if isinstance(t["resultat"], dict) else {}
         resultat["reprise"] = reprise
-        conn.execute("UPDATE taches SET resultat_json = ? WHERE id = ?",
-                     (json.dumps(resultat, ensure_ascii=False), tache_id))
+        conn.execute(
+            "UPDATE taches SET resultat_json = ? WHERE id = ?",
+            (json.dumps(resultat, ensure_ascii=False), tache_id),
+        )
 
 
 def lire_reprise(conn: sqlite3.Connection, tache_id: int) -> dict:
     t = lire_tache(conn, tache_id)
-    return dict((t["resultat"] or {}).get("reprise") or {}) if isinstance(t["resultat"], dict) else {}
+    return (
+        dict((t["resultat"] or {}).get("reprise") or {}) if isinstance(t["resultat"], dict) else {}
+    )
 
 
 def terminer_tache(conn: sqlite3.Connection, tache_id: int, resultat: dict | None = None) -> None:
@@ -185,19 +243,29 @@ def terminer_tache(conn: sqlite3.Connection, tache_id: int, resultat: dict | Non
         res = t["resultat"] if isinstance(t["resultat"], dict) else {}
         res.update(resultat or {})
         res.pop("progression", None)
-        conn.execute("""UPDATE taches SET etat = 'terminee', resultat_json = ?, fini_le = ?,
+        conn.execute(
+            """UPDATE taches SET etat = 'terminee', resultat_json = ?, fini_le = ?,
                         verrou = NULL, verrou_le = NULL WHERE id = ?""",
-                     (json.dumps(res, ensure_ascii=False), db.maintenant(), tache_id))
-        evenements.ecrire(conn, "tache_terminee", f"Tâche {t['type']} terminée", niveau="succes",
-                          lot_id=t["lot_id"], objet_id=t["objet_id"], tache_id=tache_id)
+            (json.dumps(res, ensure_ascii=False), db.maintenant(), tache_id),
+        )
+        evenements.ecrire(
+            conn,
+            "tache_terminee",
+            f"Tâche {t['type']} terminée",
+            niveau="succes",
+            lot_id=t["lot_id"],
+            objet_id=t["objet_id"],
+            tache_id=tache_id,
+        )
 
 
 def delai_backoff(tentatives: int, base_s: float = BACKOFF_BASE_S) -> float:
     return min(BACKOFF_MAX_S, base_s * (2 ** max(0, tentatives - 1)))
 
 
-def echouer_tache(conn: sqlite3.Connection, tache_id: int, erreur: str,
-                  backoff_base_s: float = BACKOFF_BASE_S) -> str:
+def echouer_tache(
+    conn: sqlite3.Connection, tache_id: int, erreur: str, backoff_base_s: float = BACKOFF_BASE_S
+) -> str:
     """Relance (en_attente + backoff) ou marque echouee ; renvoie le nouvel état."""
     with db.transaction(conn):
         t = lire_tache(conn, tache_id)
@@ -207,19 +275,39 @@ def echouer_tache(conn: sqlite3.Connection, tache_id: int, erreur: str,
         if t["tentatives"] < t["max_tentatives"]:
             delai = delai_backoff(t["tentatives"], backoff_base_s)
             reprise = _iso(datetime.now(UTC) + timedelta(seconds=delai))
-            conn.execute("""UPDATE taches SET etat = 'en_attente', erreur = ?, verrou = NULL,
-                            verrou_le = NULL, reprise_le = ? WHERE id = ?""", (erreur, reprise, tache_id))
-            evenements.ecrire(conn, "tache_relancee", f"Tâche {t['type']} relancée",
-                              f"Tentative {t['tentatives']} échouée : {erreur}. Nouvel essai dans {delai:.0f} s.",
-                              niveau="alerte", lot_id=t["lot_id"], objet_id=t["objet_id"], tache_id=tache_id)
+            conn.execute(
+                """UPDATE taches SET etat = 'en_attente', erreur = ?, verrou = NULL,
+                            verrou_le = NULL, reprise_le = ? WHERE id = ?""",
+                (erreur, reprise, tache_id),
+            )
+            evenements.ecrire(
+                conn,
+                "tache_relancee",
+                f"Tâche {t['type']} relancée",
+                f"Tentative {t['tentatives']} échouée : {erreur}. Nouvel essai dans {delai:.0f} s.",
+                niveau="alerte",
+                lot_id=t["lot_id"],
+                objet_id=t["objet_id"],
+                tache_id=tache_id,
+            )
             return "en_attente"
-        conn.execute("""UPDATE taches SET etat = 'echouee', erreur = ?, fini_le = ?, verrou = NULL,
-                        verrou_le = NULL WHERE id = ?""", (erreur, db.maintenant(), tache_id))
+        conn.execute(
+            """UPDATE taches SET etat = 'echouee', erreur = ?, fini_le = ?, verrou = NULL,
+                        verrou_le = NULL WHERE id = ?""",
+            (erreur, db.maintenant(), tache_id),
+        )
         relances = t["tentatives"] - 1
-        evenements.ecrire(conn, evenements.TACHE_ECHEC_FINAL,
-                          f"Tâche {t['type']} en échec après {relances} relance{'s' if relances > 1 else ''}",
-                          erreur, niveau="erreur", lien=f"/lots/{t['lot_id']}/generation" if t["lot_id"] else None,
-                          lot_id=t["lot_id"], objet_id=t["objet_id"], tache_id=tache_id)
+        evenements.ecrire(
+            conn,
+            evenements.TACHE_ECHEC_FINAL,
+            f"Tâche {t['type']} en échec après {relances} relance{'s' if relances > 1 else ''}",
+            erreur,
+            niveau="erreur",
+            lien=f"/lots/{t['lot_id']}/generation" if t["lot_id"] else None,
+            lot_id=t["lot_id"],
+            objet_id=t["objet_id"],
+            tache_id=tache_id,
+        )
         return "echouee"
 
 
@@ -230,11 +318,22 @@ def echouer_definitivement(conn: sqlite3.Connection, tache_id: int, erreur: str)
         if t["etat"] != "en_cours":
             raise TransitionInterdite(f"tâche {tache_id} n'est pas en cours ({t['etat']})")
         erreur = (erreur or "erreur inconnue")[:4000]
-        conn.execute("""UPDATE taches SET etat = 'echouee', erreur = ?, fini_le = ?, verrou = NULL,
-                        verrou_le = NULL WHERE id = ?""", (erreur, db.maintenant(), tache_id))
-        evenements.ecrire(conn, evenements.TACHE_ECHEC_FINAL, f"Tâche {t['type']} impossible", erreur,
-                          niveau="erreur", lien=f"/lots/{t['lot_id']}/generation" if t["lot_id"] else None,
-                          lot_id=t["lot_id"], objet_id=t["objet_id"], tache_id=tache_id)
+        conn.execute(
+            """UPDATE taches SET etat = 'echouee', erreur = ?, fini_le = ?, verrou = NULL,
+                        verrou_le = NULL WHERE id = ?""",
+            (erreur, db.maintenant(), tache_id),
+        )
+        evenements.ecrire(
+            conn,
+            evenements.TACHE_ECHEC_FINAL,
+            f"Tâche {t['type']} impossible",
+            erreur,
+            niveau="erreur",
+            lien=f"/lots/{t['lot_id']}/generation" if t["lot_id"] else None,
+            lot_id=t["lot_id"],
+            objet_id=t["objet_id"],
+            tache_id=tache_id,
+        )
     return "echouee"
 
 
@@ -243,10 +342,20 @@ def annuler_tache(conn: sqlite3.Connection, tache_id: int) -> dict:
         t = lire_tache(conn, tache_id)
         if t["etat"] in ETATS_FINAUX:
             raise TransitionInterdite(f"tâche {tache_id} déjà {t['etat']}")
-        conn.execute("""UPDATE taches SET etat = 'annulee', fini_le = ?, verrou = NULL, verrou_le = NULL
-                        WHERE id = ?""", (db.maintenant(), tache_id))
-        evenements.ecrire(conn, "tache_annulee", f"Tâche {t['type']} annulée", niveau="info",
-                          lot_id=t["lot_id"], objet_id=t["objet_id"], tache_id=tache_id)
+        conn.execute(
+            """UPDATE taches SET etat = 'annulee', fini_le = ?, verrou = NULL, verrou_le = NULL
+                        WHERE id = ?""",
+            (db.maintenant(), tache_id),
+        )
+        evenements.ecrire(
+            conn,
+            "tache_annulee",
+            f"Tâche {t['type']} annulée",
+            niveau="info",
+            lot_id=t["lot_id"],
+            objet_id=t["objet_id"],
+            tache_id=tache_id,
+        )
     return lire_tache(conn, tache_id)
 
 
@@ -255,18 +364,30 @@ def relancer_tache(conn: sqlite3.Connection, tache_id: int) -> dict:
     with db.transaction(conn):
         t = lire_tache(conn, tache_id)
         if t["etat"] not in ("echouee", "annulee"):
-            raise TransitionInterdite(f"tâche {tache_id} est {t['etat']} : seule une tâche échouée ou annulée se relance")
+            raise TransitionInterdite(
+                f"tâche {tache_id} est {t['etat']} : seule une tâche échouée ou annulée se relance"
+            )
         reprise = (t["resultat"] or {}).get("reprise") if isinstance(t["resultat"], dict) else None
-        conn.execute("""UPDATE taches SET etat = 'en_attente', tentatives = 0, erreur = NULL, fini_le = NULL,
+        conn.execute(
+            """UPDATE taches SET etat = 'en_attente', tentatives = 0, erreur = NULL, fini_le = NULL,
                         resultat_json = ?, reprise_le = NULL WHERE id = ?""",
-                     (json.dumps({"reprise": reprise}, ensure_ascii=False) if reprise else None, tache_id))
-        evenements.ecrire(conn, "tache_relancee", f"Tâche {t['type']} relancée à la main", niveau="info",
-                          lot_id=t["lot_id"], objet_id=t["objet_id"], tache_id=tache_id)
+            (json.dumps({"reprise": reprise}, ensure_ascii=False) if reprise else None, tache_id),
+        )
+        evenements.ecrire(
+            conn,
+            "tache_relancee",
+            f"Tâche {t['type']} relancée à la main",
+            niveau="info",
+            lot_id=t["lot_id"],
+            objet_id=t["objet_id"],
+            tache_id=tache_id,
+        )
     return lire_tache(conn, tache_id)
 
 
-def reprendre_apres_coupure(conn: sqlite3.Connection, verrou_courant: str | None = None,
-                            delai_s: float = 0) -> list[int]:
+def reprendre_apres_coupure(
+    conn: sqlite3.Connection, verrou_courant: str | None = None, delai_s: float = 0
+) -> list[int]:
     """Remet en attente les tâches en_cours dont le verrou est périmé ; renvoie leurs ids.
 
     delai_s = 0 : tout verrou étranger est périmé (au démarrage, un seul worker tourne).
@@ -274,28 +395,54 @@ def reprendre_apres_coupure(conn: sqlite3.Connection, verrou_courant: str | None
     """
     limite = _iso(datetime.now(UTC) - timedelta(seconds=delai_s))
     with db.transaction(conn):
-        rows = db.toutes(conn, """
+        rows = db.toutes(
+            conn,
+            """
             SELECT * FROM taches WHERE etat = 'en_cours'
               AND (verrou IS NULL OR verrou != ?) AND (verrou_le IS NULL OR verrou_le <= ?)""",
-            (verrou_courant or "", limite))
+            (verrou_courant or "", limite),
+        )
         ids = []
         for t in rows:
-            conn.execute("""UPDATE taches SET etat = 'en_attente', verrou = NULL, verrou_le = NULL,
-                            tentatives = MAX(0, tentatives - 1), reprise_le = NULL WHERE id = ?""", (t["id"],))
-            evenements.ecrire(conn, "tache_reprise", f"Tâche {t['type']} reprise après coupure",
-                              f"Elle était en cours (verrou {t['verrou'] or '?'}) ; elle repart du début.",
-                              niveau="alerte", lot_id=t["lot_id"], objet_id=t["objet_id"], tache_id=t["id"])
+            conn.execute(
+                """UPDATE taches SET etat = 'en_attente', verrou = NULL, verrou_le = NULL,
+                            tentatives = MAX(0, tentatives - 1), reprise_le = NULL WHERE id = ?""",
+                (t["id"],),
+            )
+            evenements.ecrire(
+                conn,
+                "tache_reprise",
+                f"Tâche {t['type']} reprise après coupure",
+                f"Elle était en cours (verrou {t['verrou'] or '?'}) ; elle repart du début.",
+                niveau="alerte",
+                lot_id=t["lot_id"],
+                objet_id=t["objet_id"],
+                tache_id=t["id"],
+            )
             ids.append(t["id"])
     return ids
 
 
-def remettre_en_attente(conn: sqlite3.Connection, tache_id: int, raison: str = "arrêt du worker") -> None:
+def remettre_en_attente(
+    conn: sqlite3.Connection, tache_id: int, raison: str = "arrêt du worker"
+) -> None:
     """Arrêt propre : une tâche en cours non finie repart en attente sans compter la tentative."""
     with db.transaction(conn):
         t = lire_tache(conn, tache_id)
         if t["etat"] != "en_cours":
             return
-        conn.execute("""UPDATE taches SET etat = 'en_attente', verrou = NULL, verrou_le = NULL,
-                        tentatives = MAX(0, tentatives - 1), reprise_le = NULL WHERE id = ?""", (tache_id,))
-        evenements.ecrire(conn, "tache_remise_en_attente", f"Tâche {t['type']} remise en attente", raison,
-                          niveau="info", lot_id=t["lot_id"], objet_id=t["objet_id"], tache_id=tache_id)
+        conn.execute(
+            """UPDATE taches SET etat = 'en_attente', verrou = NULL, verrou_le = NULL,
+                        tentatives = MAX(0, tentatives - 1), reprise_le = NULL WHERE id = ?""",
+            (tache_id,),
+        )
+        evenements.ecrire(
+            conn,
+            "tache_remise_en_attente",
+            f"Tâche {t['type']} remise en attente",
+            raison,
+            niveau="info",
+            lot_id=t["lot_id"],
+            objet_id=t["objet_id"],
+            tache_id=tache_id,
+        )

@@ -1,4 +1,5 @@
 """Écran Réglages : lecture/écriture de config.local.yaml, tests de connexion."""
+
 from __future__ import annotations
 
 from typing import Literal
@@ -92,9 +93,14 @@ class ReglagesIn(_Modele):
 
 # --- état : solde Meshy, dépense réelle de l'API Claude ce mois, outils de la machine ----------
 
+
 def _etat(conn, cfg: dict) -> dict:
     solde = credits_svc.solde_meshy(conn, cfg)
-    return {"meshy_solde": solde, "claude_depense_mois": couts.depense_claude_mois(conn), "outils": outils.presence_outils(cfg)}
+    return {
+        "meshy_solde": solde,
+        "claude_depense_mois": couts.depense_claude_mois(conn),
+        "outils": outils.presence_outils(cfg),
+    }
 
 
 def _reponse(conn, cfg: dict) -> dict:
@@ -116,7 +122,9 @@ def ecrire_reglages(reglages: ReglagesIn, conn: Db, cfg: Config) -> dict:
 
 # --- tests de connexion ----------------------------------------------------
 
-Service = Literal["meshy", "claude", "comfyui", "itchio", "blender", "gltf_validator", "butler", "git_lfs"]
+Service = Literal[
+    "meshy", "claude", "comfyui", "itchio", "blender", "gltf_validator", "butler", "git_lfs"
+]
 
 
 @router.post("/tester/{service}")
@@ -141,8 +149,18 @@ def tester(service: Service, conn: Db, cfg: Config) -> dict:
     except HTTPException:
         raise
     except Exception as e:  # noqa: BLE001 - un test de connexion répond toujours
-        res = {"ok": False, "etat": "Erreur", "message": f"{type(e).__name__}: {e}"[:300], "details": {}}
+        res = {
+            "ok": False,
+            "etat": "Erreur",
+            "message": f"{type(e).__name__}: {e}"[:300],
+            "details": {},
+        }
     if not res.get("ok"):
-        evenements.ecrire(conn, "test_connexion_echec", f"Test {service} : {res.get('message', '')}"[:200],
-                          niveau="alerte", lien="/reglages")
+        evenements.ecrire(
+            conn,
+            "test_connexion_echec",
+            f"Test {service} : {res.get('message', '')}"[:200],
+            niveau="alerte",
+            lien="/reglages",
+        )
     return res

@@ -3,6 +3,7 @@
 Valeurs par défaut = config.local.example.yaml. Les clés API ne sortent jamais d'ici en clair :
 `vers_reglages()` les remplace par un aperçu (`••••ab12`).
 """
+
 from __future__ import annotations
 
 import copy
@@ -42,7 +43,6 @@ def _fusionner(defaut: dict, surcharge: dict) -> dict:
 def defauts() -> dict:
     with open(chemins.chemin_config_exemple(), encoding="utf-8") as f:
         return yaml.safe_load(f) or {}
-
 
 
 def charger() -> dict:
@@ -94,6 +94,7 @@ def relances_max(cfg: dict) -> int:
 
 # --- Contrat de l'écran Réglages --------------------------------------------
 
+
 def vers_reglages(cfg: dict) -> dict[str, Any]:
     """Structure renvoyée par GET /api/reglages (sans "etat"). Jamais de clé en clair."""
     s = cfg.get("services", {})
@@ -132,7 +133,9 @@ def vers_reglages(cfg: dict) -> dict[str, Any]:
             "blender": {
                 "chemin": str(outils.get("blender", {}).get("chemin", "") or ""),
             },
-            "gltf_validator": {"chemin": str(outils.get("gltf_validator", {}).get("chemin", "") or "")},
+            "gltf_validator": {
+                "chemin": str(outils.get("gltf_validator", {}).get("chemin", "") or "")
+            },
             "butler": {"chemin": str(outils.get("butler", {}).get("chemin", "") or "")},
         },
         "bibliotheque": {

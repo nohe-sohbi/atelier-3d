@@ -8,6 +8,7 @@ les fonctions qui construisent de la géométrie exigent bpy et lèvent BlenderA
 Conventions : 1 unité = 1 m ; haut = +Z ; face avant = -Y. Les couleurs, matériaux, budgets,
 dimensions et tolérances viennent du style (api/services/style_yaml.py), jamais d'ici.
 """
+
 from __future__ import annotations
 
 import itertools
@@ -50,8 +51,9 @@ def exiger_bpy() -> None:
 _AXES = {"x": 0, "y": 1, "z": 2}
 
 
-def lire_params(manifeste: dict[str, Any], params: dict[str, Any] | None,
-                style: Style | None = None) -> dict[str, Any]:
+def lire_params(
+    manifeste: dict[str, Any], params: dict[str, Any] | None, style: Style | None = None
+) -> dict[str, Any]:
     """Applique les défauts, borne min/max, vérifie les choix.
 
     Un paramètre peut porter `style_dim: "x"|"y"|"z"` : s'il n'est pas fourni et qu'un style
@@ -76,7 +78,8 @@ def lire_params(manifeste: dict[str, Any], params: dict[str, Any] | None,
         if typ == "choix":
             if valeur not in schema["choix"]:
                 raise ParametresInvalides(
-                    f"{nom} : {valeur!r} n'est pas dans {list(schema['choix'])}")
+                    f"{nom} : {valeur!r} n'est pas dans {list(schema['choix'])}"
+                )
         elif typ == "bool":
             if isinstance(valeur, str):
                 valeur = valeur.strip().lower() in ("1", "true", "vrai", "oui", "on")
@@ -121,7 +124,8 @@ def materiau(style: Style, nom: str):
     if bsdf is None:
         bsdf = mat.node_tree.nodes.new("ShaderNodeBsdfPrincipled")
         sortie = mat.node_tree.nodes.get("Material Output") or mat.node_tree.nodes.new(
-            "ShaderNodeOutputMaterial")
+            "ShaderNodeOutputMaterial"
+        )
         mat.node_tree.links.new(bsdf.outputs["BSDF"], sortie.inputs["Surface"])
     rgba = (*m["rgb"], 1.0)
     bsdf.inputs["Base Color"].default_value = rgba
@@ -144,8 +148,7 @@ def slot_materiau(obj, mat) -> int:
     return len(obj.data.materials) - 1
 
 
-def assigner_materiaux(obj, style: Style,
-                       choix: Callable[[Vector, Vector], str | None]) -> None:
+def assigner_materiaux(obj, style: Style, choix: Callable[[Vector, Vector], str | None]) -> None:
     """Pour chaque face, `choix(centre, normale)` renvoie un nom de matériau du style (ou None
     pour laisser la face telle quelle). Les slots sont créés à la demande."""
     exiger_bpy()
@@ -222,8 +225,15 @@ def tourner(obj, axe: str, degres: float) -> None:
 # ---------------------------------------------------------------------------
 # Sections et briques
 # ---------------------------------------------------------------------------
-def section_polaire(forme: str, n: int, a: float, b: float | None = None, z: float = 0.0,
-                    rotation_deg: float = 0.0, centre=(0.0, 0.0)) -> list[tuple[float, float, float]]:
+def section_polaire(
+    forme: str,
+    n: int,
+    a: float,
+    b: float | None = None,
+    z: float = 0.0,
+    rotation_deg: float = 0.0,
+    centre=(0.0, 0.0),
+) -> list[tuple[float, float, float]]:
     """Anneau de n points sur le contour d'une forme convexe, échantillonné par angle.
 
     forme : "cercle" (ellipse a, b), "rect" (demi-côtés a, b), "losange" (demi-diagonales a, b),
@@ -239,8 +249,10 @@ def section_polaire(forme: str, n: int, a: float, b: float | None = None, z: flo
         if forme == "cercle":
             r = 1.0 / math.sqrt((c / a) ** 2 + (s / b) ** 2)
         elif forme == "rect":
-            r = min(a / abs(c) if abs(c) > 1e-12 else math.inf,
-                    b / abs(s) if abs(s) > 1e-12 else math.inf)
+            r = min(
+                a / abs(c) if abs(c) > 1e-12 else math.inf,
+                b / abs(s) if abs(s) > 1e-12 else math.inf,
+            )
         elif forme == "losange":
             r = 1.0 / (abs(c) / a + abs(s) / b)
         elif forme == "octogone":
@@ -255,9 +267,17 @@ def section_polaire(forme: str, n: int, a: float, b: float | None = None, z: flo
     return pts
 
 
-def loft(anneaux: Sequence[Sequence[tuple[float, float, float]]], fermer_bas: bool = True,
-         fermer_haut: bool = True, boucle: bool = False, lisser: bool = True, nom: str = "loft",
-         materiau=None, pole_bas=None, pole_haut=None):
+def loft(
+    anneaux: Sequence[Sequence[tuple[float, float, float]]],
+    fermer_bas: bool = True,
+    fermer_haut: bool = True,
+    boucle: bool = False,
+    lisser: bool = True,
+    nom: str = "loft",
+    materiau=None,
+    pole_bas=None,
+    pole_haut=None,
+):
     """Surface fermée entre des anneaux successifs de même nombre de points.
 
     Chaque bout est fermé par une face (fermer_*), par un sommet pôle (pole_*), ou relié au
@@ -294,8 +314,13 @@ def loft(anneaux: Sequence[Sequence[tuple[float, float, float]]], fermer_bas: bo
     return objet_depuis_bmesh(bm, nom, [materiau], lisser)
 
 
-def revolution(profil_xy: Sequence[tuple[float, float]], segments: int = 32, lisser: bool = True,
-               nom: str = "revolution", materiau=None):
+def revolution(
+    profil_xy: Sequence[tuple[float, float]],
+    segments: int = 32,
+    lisser: bool = True,
+    nom: str = "revolution",
+    materiau=None,
+):
     """Surface de révolution autour de Z d'un profil [(rayon, z), ...] du bas vers le haut.
 
     Un rayon nul au premier ou au dernier point donne un pôle ; sinon le bout est fermé par une
@@ -314,12 +339,20 @@ def revolution(profil_xy: Sequence[tuple[float, float]], segments: int = 32, lis
     if any(r <= 1e-9 for r, _ in pts):
         raise ValueError("revolution : rayon nul au milieu du profil")
     anneaux = [section_polaire("cercle", segments, r, r, z) for r, z in pts]
-    return loft(anneaux, lisser=lisser, nom=nom, materiau=materiau,
-                pole_bas=pole_bas, pole_haut=pole_haut)
+    return loft(
+        anneaux, lisser=lisser, nom=nom, materiau=materiau, pole_bas=pole_bas, pole_haut=pole_haut
+    )
 
 
-def extrusion(polygone_xy: Sequence[tuple[float, float]], hauteur: float, biseau: float = 0.0,
-              segments_biseau: int = 1, nom: str = "extrusion", materiau=None, z0: float = 0.0):
+def extrusion(
+    polygone_xy: Sequence[tuple[float, float]],
+    hauteur: float,
+    biseau: float = 0.0,
+    segments_biseau: int = 1,
+    nom: str = "extrusion",
+    materiau=None,
+    z0: float = 0.0,
+):
     """Prisme droit : polygone (sens trigonométrique vu de dessus) extrudé de z0 à z0+hauteur."""
     exiger_bpy()
     bm = bmesh.new()
@@ -332,13 +365,25 @@ def extrusion(polygone_xy: Sequence[tuple[float, float]], hauteur: float, biseau
         k2 = (k + 1) % n
         bm.faces.new((bas[k], bas[k2], haut[k2], haut[k]))
     if biseau > 0:
-        bmesh.ops.bevel(bm, geom=bm.verts[:] + bm.edges[:], offset=biseau,
-                        segments=segments_biseau, affect="EDGES", clamp_overlap=True)
+        bmesh.ops.bevel(
+            bm,
+            geom=bm.verts[:] + bm.edges[:],
+            offset=biseau,
+            segments=segments_biseau,
+            affect="EDGES",
+            clamp_overlap=True,
+        )
     return objet_depuis_bmesh(bm, nom, [materiau], False)
 
 
-def boite(dims: tuple[float, float, float], biseau: float = 0.0, segments_biseau: int = 1,
-          nom: str = "boite", materiau=None, centre=(0.0, 0.0, 0.0)):
+def boite(
+    dims: tuple[float, float, float],
+    biseau: float = 0.0,
+    segments_biseau: int = 1,
+    nom: str = "boite",
+    materiau=None,
+    centre=(0.0, 0.0, 0.0),
+):
     """Pavé de dimensions (x, y, z) centré sur `centre`, arêtes biseautées si biseau > 0."""
     dx, dy, dz = (d / 2.0 for d in dims)
     cx, cy, cz = centre
@@ -346,16 +391,31 @@ def boite(dims: tuple[float, float, float], biseau: float = 0.0, segments_biseau
     return extrusion(poly, dims[2], biseau, segments_biseau, nom, materiau, z0=cz - dz)
 
 
-def cylindre(rayon: float, hauteur: float, segments: int = 32, rayon_haut: float | None = None,
-             lisser: bool = True, nom: str = "cylindre", materiau=None, z0: float = 0.0):
+def cylindre(
+    rayon: float,
+    hauteur: float,
+    segments: int = 32,
+    rayon_haut: float | None = None,
+    lisser: bool = True,
+    nom: str = "cylindre",
+    materiau=None,
+    z0: float = 0.0,
+):
     """Cylindre (ou tronc de cône) d'axe Z, base en z0."""
     rh = rayon if rayon_haut is None else rayon_haut
     return revolution([(rayon, z0), (rh, z0 + hauteur)], segments, lisser, nom, materiau)
 
 
-def tore(rayon_majeur: float, rayon_mineur: float, segments_majeur: int = 24,
-         segments_mineur: int = 12, angle_deg: float = 360.0, lisser: bool = True,
-         nom: str = "tore", materiau=None):
+def tore(
+    rayon_majeur: float,
+    rayon_mineur: float,
+    segments_majeur: int = 24,
+    segments_mineur: int = 12,
+    angle_deg: float = 360.0,
+    lisser: bool = True,
+    nom: str = "tore",
+    materiau=None,
+):
     """Tore dans le plan XY, centré à l'origine ; partiel (angle < 360) = fermé par deux faces.
 
     Le secteur part de l'angle 0 (+X) et tourne vers +Y.
@@ -375,8 +435,15 @@ def tore(rayon_majeur: float, rayon_mineur: float, segments_majeur: int = 24,
     return loft(anneaux, boucle=complet, lisser=lisser, nom=nom, materiau=materiau)
 
 
-def arc(rayon: float, epaisseur: float, segments: int = 16, profondeur: float = 0.3,
-        angle_deg: float = 180.0, nom: str = "arc", materiau=None):
+def arc(
+    rayon: float,
+    epaisseur: float,
+    segments: int = 16,
+    profondeur: float = 0.3,
+    angle_deg: float = 180.0,
+    nom: str = "arc",
+    materiau=None,
+):
     """Arc (voûte) dans le plan XZ : secteur d'anneau de rayon extérieur `rayon`, épais de
     `epaisseur` vers l'intérieur, extrudé sur `profondeur` le long de Y. Part de +X vers +Z."""
     r_int = rayon - epaisseur
@@ -385,8 +452,14 @@ def arc(rayon: float, epaisseur: float, segments: int = 16, profondeur: float = 
     for i in range(segments + 1):
         phi = math.radians(angle_deg) * i / segments
         c, s = math.cos(phi), math.sin(phi)
-        anneaux.append([(r_int * c, -p, r_int * s), (rayon * c, -p, rayon * s),
-                        (rayon * c, p, rayon * s), (r_int * c, p, r_int * s)])
+        anneaux.append(
+            [
+                (r_int * c, -p, r_int * s),
+                (rayon * c, -p, rayon * s),
+                (rayon * c, p, rayon * s),
+                (r_int * c, p, r_int * s),
+            ]
+        )
     return loft(anneaux, lisser=False, nom=nom, materiau=materiau)
 
 
@@ -394,17 +467,34 @@ def miroir_x(obj, distance_fusion: float = 1e-5) -> None:
     """Rend l'objet symétrique en X : coupe à x=0, garde le côté x<=0 et le reflète."""
     exiger_bpy()
     bm = bmesh_depuis_objet(obj)
-    bmesh.ops.bisect_plane(bm, geom=bm.verts[:] + bm.edges[:] + bm.faces[:], dist=1e-6,
-                           plane_co=(0.0, 0.0, 0.0), plane_no=(1.0, 0.0, 0.0),
-                           clear_outer=True, clear_inner=False)
-    bmesh.ops.mirror(bm, geom=bm.verts[:] + bm.edges[:] + bm.faces[:], matrix=Matrix.Identity(4),
-                     merge_dist=distance_fusion, axis="X")
+    bmesh.ops.bisect_plane(
+        bm,
+        geom=bm.verts[:] + bm.edges[:] + bm.faces[:],
+        dist=1e-6,
+        plane_co=(0.0, 0.0, 0.0),
+        plane_no=(1.0, 0.0, 0.0),
+        clear_outer=True,
+        clear_inner=False,
+    )
+    bmesh.ops.mirror(
+        bm,
+        geom=bm.verts[:] + bm.edges[:] + bm.faces[:],
+        matrix=Matrix.Identity(4),
+        merge_dist=distance_fusion,
+        axis="X",
+    )
     bmesh.ops.recalc_face_normals(bm, faces=bm.faces[:])
     ecrire_bmesh(obj, bm)
 
 
-def cannelures(obj, n: int, profondeur: float, z_min: float | None = None,
-               z_max: float | None = None, fondu: float = 0.0) -> None:
+def cannelures(
+    obj,
+    n: int,
+    profondeur: float,
+    z_min: float | None = None,
+    z_max: float | None = None,
+    fondu: float = 0.0,
+) -> None:
     """Creuse n cannelures radiales (autour de Z) : crêtes aux angles 2πk/n, creux entre.
     Les anneaux doivent avoir un nombre de sommets multiple de 2n (idéalement 4n). n pair
     conserve la symétrie X."""
@@ -435,8 +525,14 @@ def biseauter(obj, largeur: float, segments: int = 1) -> None:
     """Biseaute toutes les arêtes de l'objet."""
     exiger_bpy()
     bm = bmesh_depuis_objet(obj)
-    bmesh.ops.bevel(bm, geom=bm.verts[:] + bm.edges[:], offset=largeur, segments=segments,
-                    affect="EDGES", clamp_overlap=True)
+    bmesh.ops.bevel(
+        bm,
+        geom=bm.verts[:] + bm.edges[:],
+        offset=largeur,
+        segments=segments,
+        affect="EDGES",
+        clamp_overlap=True,
+    )
     ecrire_bmesh(obj, bm)
 
 
@@ -468,14 +564,15 @@ def joindre(objets: Sequence[Any], nom: str | None = None):
             correspondance.append(mats.index(mat))
         if correspondance and correspondance != list(range(len(correspondance))):
             for poly in me.polygons:
-                poly.material_index = correspondance[min(poly.material_index,
-                                                        len(correspondance) - 1)]
+                poly.material_index = correspondance[
+                    min(poly.material_index, len(correspondance) - 1)
+                ]
         bm.from_mesh(me)
     for obj in objets[1:]:
         supprimer(obj)
     # les slots manquants sont ajoutés AVANT d'écrire le maillage : materials.clear() remettrait
     # tous les indices de matériau à zéro
-    for mat in mats[len(cible.data.materials):]:
+    for mat in mats[len(cible.data.materials) :]:
         cible.data.materials.append(mat)
     bm.to_mesh(cible.data)
     bm.free()
@@ -564,14 +661,26 @@ def deplier_uv(obj, marge: float = 0.02, angle_limite_deg: float = 66.0) -> None
     bpy.ops.object.mode_set(mode="EDIT")
     try:
         bpy.ops.mesh.select_all(action="SELECT")
-        bpy.ops.uv.smart_project(angle_limit=math.radians(angle_limite_deg), island_margin=marge,
-                                 area_weight=0.0, correct_aspect=True, scale_to_bounds=False)
+        bpy.ops.uv.smart_project(
+            angle_limit=math.radians(angle_limite_deg),
+            island_margin=marge,
+            area_weight=0.0,
+            correct_aspect=True,
+            scale_to_bounds=False,
+        )
     finally:
         bpy.ops.object.mode_set(mode="OBJECT")
 
 
-def finaliser(obj, manifeste: dict[str, Any], style: Style, params: dict[str, Any],
-              point_poignee=None, marge_uv: float = 0.02, pieces: int | None = None) -> Any:
+def finaliser(
+    obj,
+    manifeste: dict[str, Any],
+    style: Style,
+    params: dict[str, Any],
+    point_poignee=None,
+    marge_uv: float = 0.02,
+    pieces: int | None = None,
+) -> Any:
     """Queue commune de build() : nettoyage, pivot selon la famille, transformations appliquées,
     UV dépliées, nom et métadonnées. Renvoie l'objet final."""
     nettoyer(obj)
@@ -658,8 +767,11 @@ def uv_hors_carre(obj, eps: float = 1e-5) -> int:
     couche = obj.data.uv_layers.active
     if couche is None:
         return len(obj.data.loops)
-    return sum(1 for l in couche.data
-               if l.uv.x < -eps or l.uv.x > 1 + eps or l.uv.y < -eps or l.uv.y > 1 + eps)
+    return sum(
+        1
+        for l in couche.data
+        if l.uv.x < -eps or l.uv.x > 1 + eps or l.uv.y < -eps or l.uv.y > 1 + eps
+    )
 
 
 def chevauchements_uv(obj, resolution: int = 1024) -> int:
@@ -709,15 +821,19 @@ def materiaux_hors_palette(obj, style: Style, eps: float = 1e-4) -> list[str]:
             hors.append("<vide>")
             continue
         bsdf = mat.node_tree.nodes.get("Principled BSDF") if mat.use_nodes else None
-        rgb = tuple(bsdf.inputs["Base Color"].default_value)[:3] if bsdf else tuple(
-            mat.diffuse_color)[:3]
+        rgb = (
+            tuple(bsdf.inputs["Base Color"].default_value)[:3]
+            if bsdf
+            else tuple(mat.diffuse_color)[:3]
+        )
         if not any(all(abs(a - b) < eps for a, b in zip(rgb, p)) for p in palette):
             hors.append(mat.name)
     return hors
 
 
-def distance_point_segment(p: tuple[float, float], a: tuple[float, float],
-                           b: tuple[float, float]) -> float:
+def distance_point_segment(
+    p: tuple[float, float], a: tuple[float, float], b: tuple[float, float]
+) -> float:
     """Distance 2D d'un point à un segment [a, b] (utile pour dessiner des motifs)."""
     ax, ay = a
     bx, by = b
@@ -728,8 +844,9 @@ def distance_point_segment(p: tuple[float, float], a: tuple[float, float],
     return math.hypot(px - (ax + t * dx), py - (ay + t * dy))
 
 
-def profil_lisse(points: Sequence[tuple[float, float]], subdivisions: int = 2,
-                 tension: float = 0.5) -> list[tuple[float, float]]:
+def profil_lisse(
+    points: Sequence[tuple[float, float]], subdivisions: int = 2, tension: float = 0.5
+) -> list[tuple[float, float]]:
     """Spline de Catmull-Rom passant par les points de contrôle (r, z) : `subdivisions`
     points intermédiaires entre deux contrôles. Les points de contrôle sont conservés tels
     quels (un rayon nul aux bouts reste un pôle)."""
@@ -749,13 +866,19 @@ def profil_lisse(points: Sequence[tuple[float, float]], subdivisions: int = 2,
                 a0, a1, a2, a3 = p0[d], p1[d], p2[d], p3[d]
                 m1 = tension * (a2 - a0)
                 m2 = tension * (a3 - a1)
-                coords.append((2 * t3 - 3 * t2 + 1) * a1 + (t3 - 2 * t2 + t) * m1
-                              + (-2 * t3 + 3 * t2) * a2 + (t3 - t2) * m2)
+                coords.append(
+                    (2 * t3 - 3 * t2 + 1) * a1
+                    + (t3 - 2 * t2 + t) * m1
+                    + (-2 * t3 + 3 * t2) * a2
+                    + (t3 - t2) * m2
+                )
             resultat.append((max(0.0, coords[0]), coords[1]))
     resultat.append(pts[-1])
     return resultat
 
 
-def anneaux_depuis_sections(sections: Sequence[tuple], n: int) -> list[list[tuple[float, float, float]]]:
+def anneaux_depuis_sections(
+    sections: Sequence[tuple], n: int
+) -> list[list[tuple[float, float, float]]]:
     """[(z, forme, a, b), ...] -> anneaux polaires de n points (pour loft)."""
     return [section_polaire(forme, n, a, b, z) for z, forme, a, b in sections]

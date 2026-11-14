@@ -1,4 +1,5 @@
 """Boucle du worker : handlers, exécution, relances, arrêt propre."""
+
 import threading
 import time
 
@@ -30,8 +31,17 @@ def test_execute_attendre_avec_progression(atelier, conn, cfg):
         w.arreter(delai_s=1)
     t = q.lire_tache(conn, tid)
     assert t["etat"] == "terminee" and t["resultat"]["ok"] is True and "duree_s" in t["resultat"]
-    types = [e["type"] for e in conn.execute("SELECT type FROM evenements WHERE tache_id = ? ORDER BY id", (tid,))]
-    assert types == ["tache_creee", "tache_debutee", "tache_progression", "tache_progression", "tache_terminee"]
+    types = [
+        e["type"]
+        for e in conn.execute("SELECT type FROM evenements WHERE tache_id = ? ORDER BY id", (tid,))
+    ]
+    assert types == [
+        "tache_creee",
+        "tache_debutee",
+        "tache_progression",
+        "tache_progression",
+        "tache_terminee",
+    ]
 
 
 def test_echec_relance_puis_echouee(atelier, conn, cfg):
@@ -46,8 +56,11 @@ def test_echec_relance_puis_echouee(atelier, conn, cfg):
         w.arreter(delai_s=1)
     t = q.lire_tache(conn, tid)
     assert t["etat"] == "echouee" and t["tentatives"] == 2 and "cassé" in t["erreur"]
-    assert db.une(conn, "SELECT 1 AS x FROM evenements WHERE type = ? AND tache_id = ?",
-                  (evenements.TACHE_ECHEC_FINAL, tid))
+    assert db.une(
+        conn,
+        "SELECT 1 AS x FROM evenements WHERE type = ? AND tache_id = ?",
+        (evenements.TACHE_ECHEC_FINAL, tid),
+    )
 
 
 def test_type_inconnu_echoue_proprement(atelier, conn, cfg):
@@ -106,7 +119,11 @@ def test_arret_propre_remet_en_attente(atelier, conn, cfg):
     assert not th.is_alive()
     t = q.lire_tache(conn, longue)
     assert t["etat"] == "en_attente" and t["tentatives"] == 0 and t["verrou"] is None
-    assert db.une(conn, "SELECT 1 AS x FROM evenements WHERE type = 'tache_remise_en_attente' AND tache_id = ?", (longue,))
+    assert db.une(
+        conn,
+        "SELECT 1 AS x FROM evenements WHERE type = 'tache_remise_en_attente' AND tache_id = ?",
+        (longue,),
+    )
     assert q.lire_tache(conn, courte)["etat"] == "terminee"
 
 
@@ -115,7 +132,12 @@ def test_contexte_donne_config_db_et_adaptateurs(atelier, conn, cfg):
     w = _worker()
     ctx = Contexte(w, q.lire_tache(conn, tid), conn)
     assert ctx.config["files"]["gpu"] == 1 and ctx.db is conn
-    assert ctx.meshy.mode == "simule" and set(ctx.adaptateurs) == {"meshy", "claude", "comfyui", "itchio"}
+    assert ctx.meshy.mode == "simule" and set(ctx.adaptateurs) == {
+        "meshy",
+        "claude",
+        "comfyui",
+        "itchio",
+    }
     assert ctx.arret_demande() is False
     q.prendre_tache(conn, "api", w.verrou, 4)
     ctx.progression(10, "en route")

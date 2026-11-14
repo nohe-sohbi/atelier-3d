@@ -3,6 +3,7 @@
 L'API s'en sert pour le routage du Brief (« un générateur sait-il faire ce type ? ») et pour détecter
 qu'un script demandé à Claude Code est apparu. Un module invalide est signalé sans empêcher les autres.
 """
+
 from __future__ import annotations
 
 import importlib.util
@@ -19,8 +20,17 @@ log = logging.getLogger("api.generateurs")
 
 MODULES_EXCLUS = {"__init__", "_base"}
 CHAMPS_MANIFESTE = (
-    "nom", "titre", "version", "types", "categorie", "famille", "dimensions_type",
-    "symetrique", "pieces_declarees", "parametres", "variantes",
+    "nom",
+    "titre",
+    "version",
+    "types",
+    "categorie",
+    "famille",
+    "dimensions_type",
+    "symetrique",
+    "pieces_declarees",
+    "parametres",
+    "variantes",
 )
 FAMILLES = ("armes", "outils", "props", "mobilier", "contenants", "archi")
 CATEGORIES = ("petit_prop", "prop_moyen", "grand_prop", "module_archi")
@@ -45,7 +55,11 @@ def noms_disponibles(racine: Path | None = None) -> list[str]:
     racine = racine or dossier()
     if not racine.is_dir():
         return []
-    return sorted(f.stem for f in racine.glob("*.py") if f.stem not in MODULES_EXCLUS and not f.stem.startswith("_"))
+    return sorted(
+        f.stem
+        for f in racine.glob("*.py")
+        if f.stem not in MODULES_EXCLUS and not f.stem.startswith("_")
+    )
 
 
 def charger(nom: str, racine: Path | None = None) -> ModuleType:
@@ -83,7 +97,9 @@ def valider_manifeste(m: dict[str, Any]) -> None:
     if m["symetrique"] not in ("X", "Y", None):
         raise ManifesteInvalide("symetrique doit valoir 'X', 'Y' ou None")
     if not isinstance(m["pieces_declarees"], int) or m["pieces_declarees"] < 1:
-        raise ManifesteInvalide("pieces_declarees doit être un entier >= 1 (le nombre de pièces de l'objet)")
+        raise ManifesteInvalide(
+            "pieces_declarees doit être un entier >= 1 (le nombre de pièces de l'objet)"
+        )
     if not isinstance(m["version"], int) or m["version"] < 1:
         raise ManifesteInvalide("version doit être un entier >= 1")
     params = m["parametres"]
@@ -103,7 +119,9 @@ def valider_manifeste(m: dict[str, Any]) -> None:
             lo, hi = schema.get("min"), schema.get("max")
             if lo is not None and hi is not None and lo > hi:
                 raise ManifesteInvalide(f"paramètre {nom} : min > max")
-            if (lo is not None and schema["defaut"] < lo) or (hi is not None and schema["defaut"] > hi):
+            if (lo is not None and schema["defaut"] < lo) or (
+                hi is not None and schema["defaut"] > hi
+            ):
                 raise ManifesteInvalide(f"paramètre {nom} : le défaut sort de [min, max]")
     variantes = m["variantes"]
     if not isinstance(variantes, dict) or not (2 <= len(variantes) <= 4):
@@ -128,7 +146,9 @@ def manifestes(racine: Path | None = None) -> tuple[dict[str, dict[str, Any]], d
                 raise ManifesteInvalide("MANIFESTE et build(params, style, seed) requis")
             valider_manifeste(manifeste)
             if manifeste["nom"] != nom:
-                raise ManifesteInvalide(f"MANIFESTE['nom'] vaut {manifeste['nom']!r}, attendu {nom!r}")
+                raise ManifesteInvalide(
+                    f"MANIFESTE['nom'] vaut {manifeste['nom']!r}, attendu {nom!r}"
+                )
             valides[nom] = manifeste
         except Exception as e:  # noqa: BLE001 - l'erreur d'un module est rapportée, pas propagée
             erreurs[nom] = f"{type(e).__name__}: {e}"
@@ -136,8 +156,9 @@ def manifestes(racine: Path | None = None) -> tuple[dict[str, dict[str, Any]], d
     return valides, erreurs
 
 
-def trouver_pour_type(type_objet: str, registre: dict[str, dict[str, Any]] | None = None,
-                      racine: Path | None = None) -> str | None:
+def trouver_pour_type(
+    type_objet: str, registre: dict[str, dict[str, Any]] | None = None, racine: Path | None = None
+) -> str | None:
     """Nom du générateur qui sait fabriquer ce type d'objet du brief, ou None."""
     cible = normaliser_type(type_objet)
     if not cible:
@@ -145,7 +166,9 @@ def trouver_pour_type(type_objet: str, registre: dict[str, dict[str, Any]] | Non
     if registre is None:
         registre, _ = manifestes(racine)
     for nom, manifeste in registre.items():
-        if cible == normaliser_type(nom) or cible in (normaliser_type(t) for t in manifeste["types"]):
+        if cible == normaliser_type(nom) or cible in (
+            normaliser_type(t) for t in manifeste["types"]
+        ):
             return nom
     return None
 

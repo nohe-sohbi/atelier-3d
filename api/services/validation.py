@@ -11,6 +11,7 @@ Quatre décisions, toutes réelles :
 Le verdict vient des contrôles du cahier des charges (rapport.json) et de mesures faites sur le fichier 3D lui-même.
 Rien n'est inventé : sans avis de l'IA, il n'y a pas d'avis.
 """
+
 from __future__ import annotations
 
 import json
@@ -58,6 +59,7 @@ class DecisionImpossible(RuntimeError):
 
 # --- fichiers ----------------------------------------------------------------------------------------------
 
+
 def _dossier_asset(essai: dict) -> Path:
     return fabrication.dossier_essai(essai) / "asset"
 
@@ -88,11 +90,14 @@ def _json(chemin: Path) -> dict:
 
 # --- mesures et verdict ------------------------------------------------------------------------------------
 
+
 def mesurer(glb: Path) -> dict[str, Any] | None:
     """Mesures sur le LOD0 du fichier : taille, pied au sol, écart du point d'ancrage. None si le fichier ne se lit pas."""
     try:
         mesh = validate.maillage_par_suffixe(validate.charger_maillages(glb), "_LOD0")
-    except Exception:  # noqa: BLE001 - un fichier illisible ne doit pas casser l'écran : le verdict le dit
+    except (
+        Exception
+    ):  # noqa: BLE001 - un fichier illisible ne doit pas casser l'écran : le verdict le dit
         return None
     if mesh is None or len(mesh.vertices) == 0:
         return None
@@ -100,8 +105,13 @@ def mesurer(glb: Path) -> dict[str, Any] | None:
     taille = maxi - mini
     centre = (maxi + mini) / 2
     # Repère de l'app : Z en haut, face avant vers -Y.
-    return {"largeur": float(taille[0]), "profondeur": float(taille[1]), "hauteur": float(taille[2]),
-            "pied": float(mini[2]), "decalage": float((centre[0] ** 2 + centre[1] ** 2) ** 0.5)}
+    return {
+        "largeur": float(taille[0]),
+        "profondeur": float(taille[1]),
+        "hauteur": float(taille[2]),
+        "pied": float(mini[2]),
+        "decalage": float((centre[0] ** 2 + centre[1] ** 2) ** 0.5),
+    }
 
 
 def _cm(v: float) -> str:
@@ -130,27 +140,48 @@ def verdict(controles: list[dict], mesure: dict | None) -> dict:
     if mesure is None:
         pas_bien.append({"ok": False, "texte": "Le fichier 3D n'a pas pu être mesuré"})
     else:
-        mesures_ok.append({"ok": True, "texte": f"Taille : {_metre(mesure['largeur'])} × {_metre(mesure['profondeur'])} × {_metre(mesure['hauteur'])} m"})
+        mesures_ok.append(
+            {
+                "ok": True,
+                "texte": f"Taille : {_metre(mesure['largeur'])} × {_metre(mesure['profondeur'])} × {_metre(mesure['hauteur'])} m",
+            }
+        )
         pied = mesure["pied"]
         if abs(pied) <= PRECISION_M:
             mesures_ok.append({"ok": True, "texte": "Posé au sol"})
         else:
-            pas_bien.append({"ok": False, "texte": f"Flotte à {_cm(pied)} au-dessus du sol" if pied > 0 else f"Enfoncé de {_cm(pied)} sous le sol"})
+            pas_bien.append(
+                {
+                    "ok": False,
+                    "texte": (
+                        f"Flotte à {_cm(pied)} au-dessus du sol"
+                        if pied > 0
+                        else f"Enfoncé de {_cm(pied)} sous le sol"
+                    ),
+                }
+            )
         tolerance = max(0.004, max(mesure["largeur"], mesure["profondeur"]) * 0.03)
         if mesure["decalage"] <= tolerance:
             mesures_ok.append({"ok": True, "texte": "Bien centré sur son point d'ancrage"})
         else:
-            pas_bien.append({"ok": False, "texte": f"Point d'ancrage décalé de {_cm(mesure['decalage'])}"})
+            pas_bien.append(
+                {"ok": False, "texte": f"Point d'ancrage décalé de {_cm(mesure['decalage'])}"}
+            )
     bien = mesures_ok + reussites
-    return {"etat": "attention" if pas_bien else "ok", "raisons": pas_bien + bien[:RAISONS_REUSSIES],
-            "autres_ok": max(0, len(bien) - RAISONS_REUSSIES)}
+    return {
+        "etat": "attention" if pas_bien else "ok",
+        "raisons": pas_bien + bien[:RAISONS_REUSSIES],
+        "autres_ok": max(0, len(bien) - RAISONS_REUSSIES),
+    }
 
 
 # --- lecture -----------------------------------------------------------------------------------------------
 
+
 def _etat(o: dict) -> str:
     return {"revue": "a_valider", "garde": "garde", "rejete": "jete"}.get(
-        o["etape"], "en_fabrication" if o["etape"] in fabrication.ETAPES else "look")
+        o["etape"], "en_fabrication" if o["etape"] in fabrication.ETAPES else "look"
+    )
 
 
 def _source(o: dict, essai: dict) -> str:
@@ -161,15 +192,34 @@ def _source(o: dict, essai: dict) -> str:
 
 def _objet_vue(conn: sqlite3.Connection, o: dict) -> dict:
     etat = _etat(o)
-    vue: dict[str, Any] = {"id": o["id"], "nom": o["nom"], "voie": o["voie"], "etat": etat, "peut_annuler": etat in ("garde", "jete"),
-                           "peut_corriger": o["voie"] == "ia",
-                           "credits_correction": CREDITS_IMAGE * references.PAR_SERIE if o["voie"] == "ia" else 0, "modele": None, "reference": None, "vues": [], "planche": None,
-                           "verdict": None, "controles": [], "faits": None, "source": None, "avis_ia": None, "essai_id": None}
+    vue: dict[str, Any] = {
+        "id": o["id"],
+        "nom": o["nom"],
+        "voie": o["voie"],
+        "etat": etat,
+        "peut_annuler": etat in ("garde", "jete"),
+        "peut_corriger": o["voie"] == "ia",
+        "credits_correction": CREDITS_IMAGE * references.PAR_SERIE if o["voie"] == "ia" else 0,
+        "modele": None,
+        "reference": None,
+        "vues": [],
+        "planche": None,
+        "verdict": None,
+        "controles": [],
+        "faits": None,
+        "source": None,
+        "avis_ia": None,
+        "essai_id": None,
+    }
     if o.get("reference_id"):
         vue["reference"] = f"/api/fichiers/references/{o['reference_id']}"
     if etat not in ("a_valider", "garde", "jete"):
         return vue
-    essai = db.une(conn, "SELECT * FROM essais WHERE objet_id = ? AND etat = 'pret' ORDER BY numero DESC LIMIT 1", (o["id"],))
+    essai = db.une(
+        conn,
+        "SELECT * FROM essais WHERE objet_id = ? AND etat = 'pret' ORDER BY numero DESC LIMIT 1",
+        (o["id"],),
+    )
     if essai is None:
         return vue
     asset = _dossier_asset(essai)
@@ -178,38 +228,81 @@ def _objet_vue(conn: sqlite3.Connection, o: dict) -> dict:
     meta = _json(asset / "meta.json")
     controles = [c for c in rapport.get("controles", []) if isinstance(c, dict)]
     rendus = asset / "rendus"
-    vue.update({
-        "essai_id": essai["id"], "source": _source(o, essai), "avis_ia": essai.get("avis_ia") or None,
-        "modele": f"/api/fichiers/essais/{essai['id']}/modele.glb" if glb else None,
-        "vues": [{"nom": n, "url": f"/api/fichiers/essais/{essai['id']}/{n}.png"} for n in validate.VUES if (rendus / f"{n}.png").is_file()],
-        "planche": f"/api/fichiers/essais/{essai['id']}/planche.png" if (rendus / "planche.png").is_file() else None,
-        "controles": [{"nom": c["nom"], "ok": bool(c.get("ok")), "etat": c.get("etat", ""), "detail": c.get("detail", ""),
-                       "bloquant": bool(c.get("bloquant"))} for c in controles],
-        "verdict": verdict(controles, mesurer(glb) if glb else None),
-        "faits": {"dimensions_m": meta.get("dimensions_m"), "tris": {"lod0": meta.get("tris_lod0"), "lod1": meta.get("tris_lod1"),
-                                                                       "lod2": meta.get("tris_lod2")},
-                  "credits": int(essai["cout_credits"] or 0), "nombre_essais": int(essai["numero"])},
-    })
+    vue.update(
+        {
+            "essai_id": essai["id"],
+            "source": _source(o, essai),
+            "avis_ia": essai.get("avis_ia") or None,
+            "modele": f"/api/fichiers/essais/{essai['id']}/modele.glb" if glb else None,
+            "vues": [
+                {"nom": n, "url": f"/api/fichiers/essais/{essai['id']}/{n}.png"}
+                for n in validate.VUES
+                if (rendus / f"{n}.png").is_file()
+            ],
+            "planche": (
+                f"/api/fichiers/essais/{essai['id']}/planche.png"
+                if (rendus / "planche.png").is_file()
+                else None
+            ),
+            "controles": [
+                {
+                    "nom": c["nom"],
+                    "ok": bool(c.get("ok")),
+                    "etat": c.get("etat", ""),
+                    "detail": c.get("detail", ""),
+                    "bloquant": bool(c.get("bloquant")),
+                }
+                for c in controles
+            ],
+            "verdict": verdict(controles, mesurer(glb) if glb else None),
+            "faits": {
+                "dimensions_m": meta.get("dimensions_m"),
+                "tris": {
+                    "lod0": meta.get("tris_lod0"),
+                    "lod1": meta.get("tris_lod1"),
+                    "lod2": meta.get("tris_lod2"),
+                },
+                "credits": int(essai["cout_credits"] or 0),
+                "nombre_essais": int(essai["numero"]),
+            },
+        }
+    )
     return vue
 
 
 def _fabriques(conn: sqlite3.Connection, lot_id: int) -> list[dict]:
-    return [o for o in lots_svc.objets_du_lot(conn, lot_id) if not o["retire"] and o["voie"] not in VOIES_SANS_FABRICATION]
+    return [
+        o
+        for o in lots_svc.objets_du_lot(conn, lot_id)
+        if not o["retire"] and o["voie"] not in VOIES_SANS_FABRICATION
+    ]
 
 
 def vue(conn: sqlite3.Connection, lot_id: int) -> dict:
     lots_svc._ligne(conn, lot_id)
     objets = [_objet_vue(conn, o) for o in _fabriques(conn, lot_id)]
-    compte = {e: sum(1 for o in objets if o["etat"] == e) for e in ("a_valider", "garde", "jete", "en_fabrication", "look")}
+    compte = {
+        e: sum(1 for o in objets if o["etat"] == e)
+        for e in ("a_valider", "garde", "jete", "en_fabrication", "look")
+    }
     decides = compte["garde"] + compte["jete"]
-    return {"lot_id": lot_id, "objets": objets,
-            "resume": {"total": len(objets), "a_valider": compte["a_valider"], "gardes": compte["garde"], "jetes": compte["jete"],
-                       "pas_prets": compte["en_fabrication"] + compte["look"]},
-            "termine": bool(objets) and decides == len(objets),
-            "collection": _nom_collection(lots_svc._ligne(conn, lot_id))}
+    return {
+        "lot_id": lot_id,
+        "objets": objets,
+        "resume": {
+            "total": len(objets),
+            "a_valider": compte["a_valider"],
+            "gardes": compte["garde"],
+            "jetes": compte["jete"],
+            "pas_prets": compte["en_fabrication"] + compte["look"],
+        },
+        "termine": bool(objets) and decides == len(objets),
+        "collection": _nom_collection(lots_svc._ligne(conn, lot_id)),
+    }
 
 
 # --- décisions ---------------------------------------------------------------------------------------------
+
 
 def _nom_collection(lot: dict) -> str:
     return (lot["nom"] or "").strip() or f"Projet {lot['id']}"
@@ -237,8 +330,17 @@ def _exiger(o: dict, *etapes: str, action: str) -> None:
         raise DecisionImpossible(f"{action} : cet objet n'est pas à valider")
 
 
-def decider(conn: sqlite3.Connection, cfg: dict, lot_id: int, objet_id: int, decision: str, *, motif: str | None = None,
-            notes: list[str] | None = None, texte: str | None = None) -> dict:
+def decider(
+    conn: sqlite3.Connection,
+    cfg: dict,
+    lot_id: int,
+    objet_id: int,
+    decision: str,
+    *,
+    motif: str | None = None,
+    notes: list[str] | None = None,
+    texte: str | None = None,
+) -> dict:
     """Applique une décision et renvoie l'objet relu. DecisionImpossible (409) si elle ne convient pas à son état."""
     if decision not in DECISIONS:
         raise ValueError(f"décision inconnue : {decision} (attendu : {', '.join(DECISIONS)})")
@@ -252,11 +354,23 @@ def decider(conn: sqlite3.Connection, cfg: dict, lot_id: int, objet_id: int, dec
         with db.transaction(conn):
             conn.execute("UPDATE objets SET etape = 'garde' WHERE id = ?", (objet_id,))
             if asset:
-                conn.execute("UPDATE assets SET statut = 'garde', maj_le = ? WHERE id = ?", (maintenant, asset["id"]))
-                conn.execute("INSERT OR IGNORE INTO collections_assets(collection_id, asset_id) VALUES (?, ?)",
-                             (_collection(conn, lot), asset["id"]))
-            evenements.ecrire(conn, "objet_garde", f"{o['nom']} gardé", f"dans {_nom_collection(lot)}", niveau="info",
-                              lot_id=lot_id, objet_id=objet_id)
+                conn.execute(
+                    "UPDATE assets SET statut = 'garde', maj_le = ? WHERE id = ?",
+                    (maintenant, asset["id"]),
+                )
+                conn.execute(
+                    "INSERT OR IGNORE INTO collections_assets(collection_id, asset_id) VALUES (?, ?)",
+                    (_collection(conn, lot), asset["id"]),
+                )
+            evenements.ecrire(
+                conn,
+                "objet_garde",
+                f"{o['nom']} gardé",
+                f"dans {_nom_collection(lot)}",
+                niveau="info",
+                lot_id=lot_id,
+                objet_id=objet_id,
+            )
 
     elif decision == "jeter":
         _exiger(o, "revue", action="Jeter")
@@ -266,9 +380,19 @@ def decider(conn: sqlite3.Connection, cfg: dict, lot_id: int, objet_id: int, dec
         with db.transaction(conn):
             conn.execute("UPDATE objets SET etape = 'rejete' WHERE id = ?", (objet_id,))
             if asset:
-                conn.execute("UPDATE assets SET statut = 'archive', maj_le = ? WHERE id = ?", (maintenant, asset["id"]))
-            evenements.ecrire(conn, "objet_jete", f"{o['nom']} jeté", f"motif : {motif}" if motif else "", niveau="info",
-                              lot_id=lot_id, objet_id=objet_id)
+                conn.execute(
+                    "UPDATE assets SET statut = 'archive', maj_le = ? WHERE id = ?",
+                    (maintenant, asset["id"]),
+                )
+            evenements.ecrire(
+                conn,
+                "objet_jete",
+                f"{o['nom']} jeté",
+                f"motif : {motif}" if motif else "",
+                niveau="info",
+                lot_id=lot_id,
+                objet_id=objet_id,
+            )
 
     elif decision == "annuler":
         _exiger(o, "garde", "rejete", action="Annuler")
@@ -276,29 +400,60 @@ def decider(conn: sqlite3.Connection, cfg: dict, lot_id: int, objet_id: int, dec
         with db.transaction(conn):
             conn.execute("UPDATE objets SET etape = 'revue' WHERE id = ?", (objet_id,))
             if asset:
-                conn.execute("UPDATE assets SET statut = 'revue', maj_le = ? WHERE id = ?", (maintenant, asset["id"]))
-                conn.execute("DELETE FROM collections_assets WHERE asset_id = ? AND collection_id IN "
-                             "(SELECT id FROM collections WHERE nom = ?)", (asset["id"], _nom_collection(lot)))
+                conn.execute(
+                    "UPDATE assets SET statut = 'revue', maj_le = ? WHERE id = ?",
+                    (maintenant, asset["id"]),
+                )
+                conn.execute(
+                    "DELETE FROM collections_assets WHERE asset_id = ? AND collection_id IN "
+                    "(SELECT id FROM collections WHERE nom = ?)",
+                    (asset["id"], _nom_collection(lot)),
+                )
 
     else:  # refaire, corriger : l'objet revient au Look
         _exiger(o, "revue", action="Refaire" if decision == "refaire" else "Corriger")
         if decision == "corriger":
             if o["voie"] != "ia":
-                raise DecisionImpossible("Corriger : un objet fait par script se règle par ses variantes, utilise « Refaire »")
-            remarques = " ".join(" ".join([*(f"{i}. {n.strip()}" for i, n in enumerate(notes or [], start=1) if n and n.strip()),
-                                           (texte or "").strip()]).split())
+                raise DecisionImpossible(
+                    "Corriger : un objet fait par script se règle par ses variantes, utilise « Refaire »"
+                )
+            remarques = " ".join(
+                " ".join(
+                    [
+                        *(
+                            f"{i}. {n.strip()}"
+                            for i, n in enumerate(notes or [], start=1)
+                            if n and n.strip()
+                        ),
+                        (texte or "").strip(),
+                    ]
+                ).split()
+            )
             if not remarques:
-                raise ValueError("Corriger : dis ce qui ne va pas (pointe un défaut ou écris une phrase)")
+                raise ValueError(
+                    "Corriger : dis ce qui ne va pas (pointe un défaut ou écris une phrase)"
+                )
             _, style = references._style_du_lot(conn, lot)
-            consigne = f"{references.consigne_par_defaut(style, o)} Corrections demandées : {remarques}"
+            consigne = (
+                f"{references.consigne_par_defaut(style, o)} Corrections demandées : {remarques}"
+            )
             if len(consigne) > references.MAX_CONSIGNE:
-                raise ValueError(f"Corriger : tes remarques sont trop longues (reste sous {references.MAX_CONSIGNE - len(references.consigne_par_defaut(style, o)) - 30} caractères)")
+                raise ValueError(
+                    f"Corriger : tes remarques sont trop longues (reste sous {references.MAX_CONSIGNE - len(references.consigne_par_defaut(style, o)) - 30} caractères)"
+                )
             conn.execute("UPDATE objets SET consigne = ? WHERE id = ?", (consigne, objet_id))
         with db.transaction(conn):
             conn.execute("UPDATE objets SET etape = 'references' WHERE id = ?", (objet_id,))
             conn.execute("UPDATE pieces SET etape = 'references' WHERE objet_id = ?", (objet_id,))
-            evenements.ecrire(conn, "objet_refait", f"{o['nom']} : retour au Look", "avec tes remarques" if decision == "corriger" else "",
-                              niveau="info", lot_id=lot_id, objet_id=objet_id)
+            evenements.ecrire(
+                conn,
+                "objet_refait",
+                f"{o['nom']} : retour au Look",
+                "avec tes remarques" if decision == "corriger" else "",
+                niveau="info",
+                lot_id=lot_id,
+                objet_id=objet_id,
+            )
         if decision == "corriger":
             references.preparer(conn, cfg, lot_id, objet_id)
 

@@ -5,6 +5,7 @@ Un seul maillage fermé construit en loft de sections polaires le long de Z : po
 et arête centrale (fer), pointe. Type « pompeii » (tranchants parallèles, pointe courte) ou
 « mainz » (lame cintrée, longue pointe). Symétrique en X ; pivot au milieu de la poignée.
 """
+
 from __future__ import annotations
 
 import math
@@ -22,20 +23,57 @@ MANIFESTE = {
     "symetrique": "X",
     "pieces_declarees": 1,
     "parametres": {
-        "longueur_m": {"type": "float", "defaut": 0.65, "min": 0.5, "max": 0.85, "style_dim": "z",
-                       "aide": "Longueur totale, pommeau compris (par défaut : style)"},
-        "largeur_garde_m": {"type": "float", "defaut": 0.08, "min": 0.06, "max": 0.12,
-                            "style_dim": "x", "aide": "Largeur de la garde (par défaut : style)"},
-        "epaisseur_m": {"type": "float", "defaut": 0.04, "min": 0.03, "max": 0.06, "style_dim": "y",
-                        "aide": "Diamètre du pommeau = épaisseur hors tout (par défaut : style)"},
-        "largeur_lame_m": {"type": "float", "defaut": 0.05, "min": 0.035, "max": 0.065,
-                           "aide": "Largeur de la lame au talon"},
-        "longueur_poignee_m": {"type": "float", "defaut": 0.095, "min": 0.07, "max": 0.13,
-                               "aide": "Longueur de la poignée (entre pommeau et garde)"},
-        "type": {"type": "choix", "defaut": "pompeii", "choix": ["pompeii", "mainz"],
-                 "aide": "Pompeii : tranchants parallèles ; Mainz : lame cintrée, longue pointe"},
-        "segments": {"type": "int", "defaut": 24, "min": 12, "max": 32,
-                     "aide": "Sommets par section (pair)"},
+        "longueur_m": {
+            "type": "float",
+            "defaut": 0.65,
+            "min": 0.5,
+            "max": 0.85,
+            "style_dim": "z",
+            "aide": "Longueur totale, pommeau compris (par défaut : style)",
+        },
+        "largeur_garde_m": {
+            "type": "float",
+            "defaut": 0.08,
+            "min": 0.06,
+            "max": 0.12,
+            "style_dim": "x",
+            "aide": "Largeur de la garde (par défaut : style)",
+        },
+        "epaisseur_m": {
+            "type": "float",
+            "defaut": 0.04,
+            "min": 0.03,
+            "max": 0.06,
+            "style_dim": "y",
+            "aide": "Diamètre du pommeau = épaisseur hors tout (par défaut : style)",
+        },
+        "largeur_lame_m": {
+            "type": "float",
+            "defaut": 0.05,
+            "min": 0.035,
+            "max": 0.065,
+            "aide": "Largeur de la lame au talon",
+        },
+        "longueur_poignee_m": {
+            "type": "float",
+            "defaut": 0.095,
+            "min": 0.07,
+            "max": 0.13,
+            "aide": "Longueur de la poignée (entre pommeau et garde)",
+        },
+        "type": {
+            "type": "choix",
+            "defaut": "pompeii",
+            "choix": ["pompeii", "mainz"],
+            "aide": "Pompeii : tranchants parallèles ; Mainz : lame cintrée, longue pointe",
+        },
+        "segments": {
+            "type": "int",
+            "defaut": 24,
+            "min": 12,
+            "max": 32,
+            "aide": "Sommets par section (pair)",
+        },
     },
     "variantes": {
         "A": {"type": "pompeii"},
@@ -46,12 +84,12 @@ MANIFESTE = {
 
 def _sections(p: dict) -> tuple[list[tuple], dict[str, float]]:
     L = p["longueur_m"]
-    rp = p["epaisseur_m"] / 2.0                 # rayon du pommeau
-    rg = min(0.0125, rp * 0.65)                 # rayon de la poignée
-    ag = p["largeur_garde_m"] / 2.0             # demi-largeur de la garde
-    bg = min(rp * 0.8, 0.016)                   # demi-épaisseur de la garde
-    wl = p["largeur_lame_m"] / 2.0              # demi-largeur de la lame
-    el = 0.004                                  # demi-épaisseur de la lame (arête centrale)
+    rp = p["epaisseur_m"] / 2.0  # rayon du pommeau
+    rg = min(0.0125, rp * 0.65)  # rayon de la poignée
+    ag = p["largeur_garde_m"] / 2.0  # demi-largeur de la garde
+    bg = min(rp * 0.8, 0.016)  # demi-épaisseur de la garde
+    wl = p["largeur_lame_m"] / 2.0  # demi-largeur de la lame
+    el = 0.004  # demi-épaisseur de la lame (arête centrale)
     S: list[tuple] = []
     # pommeau : calotte sphérique jusqu'à la latitude où le rayon rejoint la poignée
     for lat in (-65.0, -35.0, 0.0, 25.0, 50.0):
@@ -78,8 +116,14 @@ def _sections(p: dict) -> tuple[list[tuple], dict[str, float]]:
     if p["type"] == "pompeii":
         lame = [(0.0, 1.0, 1.0), (0.45, 1.0, 1.0), (0.82, 1.0, 0.9), (0.91, 0.55, 0.7)]
     else:
-        lame = [(0.0, 1.0, 1.0), (0.28, 0.92, 1.0), (0.52, 0.88, 1.0), (0.70, 0.98, 0.95),
-                (0.84, 0.62, 0.75), (0.93, 0.30, 0.55)]
+        lame = [
+            (0.0, 1.0, 1.0),
+            (0.28, 0.92, 1.0),
+            (0.52, 0.88, 1.0),
+            (0.70, 0.98, 0.95),
+            (0.84, 0.62, 0.75),
+            (0.93, 0.30, 0.55),
+        ]
     for t, kw, ke in lame:
         S.append((zb0 + Lb * t, "losange", wl * kw, el * ke))
     reperes = {"zg0": zg0, "zg1": zg1, "zb0": zb0, "L": L}
@@ -91,8 +135,13 @@ def build(params: dict, style, seed: int = 0):
     n = p["segments"] + (p["segments"] % 2)
     sections, rep = _sections(p)
     anneaux = B.anneaux_depuis_sections(sections, n)
-    obj = B.loft(anneaux, lisser=True, nom="gladius", pole_bas=(0.0, 0.0, 0.0),
-                 pole_haut=(0.0, 0.0, rep["L"]))
+    obj = B.loft(
+        anneaux,
+        lisser=True,
+        nom="gladius",
+        pole_bas=(0.0, 0.0, 0.0),
+        pole_haut=(0.0, 0.0, rep["L"]),
+    )
 
     def choix(centre, normale):
         z = centre.z

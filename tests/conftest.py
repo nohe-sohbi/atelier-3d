@@ -1,4 +1,5 @@
 """Fixtures communes : base SQLite temporaire, config temporaire copiée de l'exemple, client HTTP."""
+
 from __future__ import annotations
 
 import shutil
@@ -28,8 +29,14 @@ def atelier(tmp_path, monkeypatch):
     monkeypatch.setenv("ATELIER_LOTS", str(lots))
     monkeypatch.setenv("ATELIER_STYLES", str(styles))
     db.initialiser()
-    return SimpleNamespace(racine=tmp_path, config=config, lots=lots, styles=styles, generateurs=generateurs,
-                           db=tmp_path / "atelier.db")
+    return SimpleNamespace(
+        racine=tmp_path,
+        config=config,
+        lots=lots,
+        styles=styles,
+        generateurs=generateurs,
+        db=tmp_path / "atelier.db",
+    )
 
 
 @pytest.fixture
@@ -52,7 +59,6 @@ def client(atelier):
 
     with TestClient(create_app()) as c:
         yield c
-
 
 
 def ecrire_config(chemin, modif):

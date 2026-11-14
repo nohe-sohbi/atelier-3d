@@ -1,4 +1,5 @@
 """Mode production : l'API sert web/dist/ avec repli SPA ; /api reste en JSON ; pas de traversée."""
+
 from fastapi.testclient import TestClient
 
 

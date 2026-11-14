@@ -12,6 +12,7 @@ Ce que trimesh ne sait pas mesurer peut être fourni par le script bpy dans
 Aucune dépendance optionnelle de trimesh (scipy, networkx, rtree) n'est requise :
 composantes connexes, cohérence des normales et distance à la surface sont faites en numpy.
 """
+
 from __future__ import annotations
 
 import json
@@ -46,8 +47,8 @@ NOMS_CONTROLES = (
 )
 VUES = ("face", "dos", "profil", "trois_quarts", "dessus")
 SUFFIXES_GLB = ("_LOD0", "_LOD1", "_LOD2", "_COL")
-_EPS_UV = 1e-4          # tolérance numérique pour « hors du carré 0-1 »
-_EPS_SAT = 1e-7         # tolérance numérique de la séparation de deux triangles UV
+_EPS_UV = 1e-4  # tolérance numérique pour « hors du carré 0-1 »
+_EPS_SAT = 1e-7  # tolérance numérique de la séparation de deux triangles UV
 _ECHANTILLON_SYM = 2000  # sommets testés au plus pour la symétrie
 
 
@@ -62,16 +63,22 @@ class Controle:
     bloquant: bool
     ok: bool
     detail: str = ""
-    etat: str = ""   # ok | echec | alerte | non exécuté | non demandée | disponible
+    etat: str = ""  # ok | echec | alerte | non exécuté | non demandée | disponible
 
     def __post_init__(self) -> None:
         if not self.etat:
             self.etat = "ok" if self.ok else ("echec" if self.bloquant else "alerte")
 
     def to_dict(self) -> dict[str, Any]:
-        return {"nom": self.nom, "mesure": self.mesure, "seuil": self.seuil,
-                "bloquant": self.bloquant, "ok": bool(self.ok), "detail": self.detail,
-                "etat": self.etat}
+        return {
+            "nom": self.nom,
+            "mesure": self.mesure,
+            "seuil": self.seuil,
+            "bloquant": self.bloquant,
+            "ok": bool(self.ok),
+            "detail": self.detail,
+            "etat": self.etat,
+        }
 
 
 @dataclass
@@ -86,7 +93,9 @@ class Rapport:
 
     @property
     def bloquants_ok(self) -> bool:
-        return all(c.ok for c in self.controles if c.bloquant) and bool(self.licence.get("ok", False))
+        return all(c.ok for c in self.controles if c.bloquant) and bool(
+            self.licence.get("ok", False)
+        )
 
     @property
     def statut(self) -> str:
@@ -128,13 +137,26 @@ class Rapport:
 
     @classmethod
     def depuis_dict(cls, d: dict[str, Any]) -> Rapport:
-        r = cls(id=d.get("id", ""), style=d.get("style", ""), dossier=d.get("dossier", ""),
-                date=d.get("date", ""), licence=dict(d.get("licence", {})),
-                extras=dict(d.get("extras", {})))
+        r = cls(
+            id=d.get("id", ""),
+            style=d.get("style", ""),
+            dossier=d.get("dossier", ""),
+            date=d.get("date", ""),
+            licence=dict(d.get("licence", {})),
+            extras=dict(d.get("extras", {})),
+        )
         for c in d.get("controles", []):
-            r.controles.append(Controle(nom=c["nom"], mesure=c.get("mesure"), seuil=c.get("seuil"),
-                                        bloquant=bool(c.get("bloquant")), ok=bool(c.get("ok")),
-                                        detail=c.get("detail", ""), etat=c.get("etat", "")))
+            r.controles.append(
+                Controle(
+                    nom=c["nom"],
+                    mesure=c.get("mesure"),
+                    seuil=c.get("seuil"),
+                    bloquant=bool(c.get("bloquant")),
+                    ok=bool(c.get("ok")),
+                    detail=c.get("detail", ""),
+                    etat=c.get("etat", ""),
+                )
+            )
         return r
 
     @classmethod
@@ -206,6 +228,7 @@ def faces_inversees(mesh: trimesh.Trimesh) -> tuple[int, bool, float]:
                 if v[i] == a and v[(i + 1) % 3] == b:
                     return True
             return False
+
         coherent = avant(f1) != avant(f2)
         voisins[int(f1)].append((int(f2), coherent))
         voisins[int(f2)].append((int(f1), coherent))
@@ -258,17 +281,17 @@ def distance_surface(mesh: trimesh.Trimesh, points: np.ndarray, k: int = 8) -> n
     resultat = np.empty(len(points))
     lot = 512
     for i in range(0, len(points), lot):
-        p = points[i:i + lot]
+        p = points[i : i + lot]
         d2 = ((p[:, None, :] - centres[None, :, :]) ** 2).sum(axis=2)
         idx = np.argpartition(d2, k - 1, axis=1)[:, :k]  # (n, k)
-        cand = tris[idx.reshape(-1)]                        # (n*k, 3, 3)
+        cand = tris[idx.reshape(-1)]  # (n*k, 3, 3)
         pts = np.repeat(p, k, axis=0)
         proches = trimesh.triangles.closest_point(cand, pts)
         d = np.linalg.norm(proches - pts, axis=1).reshape(len(p), k)
         # Le sommet le plus proche borne aussi la distance : un point qui tombe sur un sommet est à 0, même quand
         # les centres des grands triangles voisins sont plus loin que d'autres (le raccourci ci-dessus les rate).
         dv = np.sqrt(((p[:, None, :] - mesh.vertices[None, :, :]) ** 2).sum(axis=2)).min(axis=1)
-        resultat[i:i + lot] = np.minimum(d.min(axis=1), dv)
+        resultat[i : i + lot] = np.minimum(d.min(axis=1), dv)
     return resultat
 
 
@@ -283,14 +306,18 @@ def chevauchements_uv(faces_uv: np.ndarray, cellules: int = 64) -> tuple[int, in
         return 0, 0
     t = np.asarray(faces_uv, dtype=float)
     # retirer les triangles dégénérés
-    aires = 0.5 * np.abs((t[:, 1, 0] - t[:, 0, 0]) * (t[:, 2, 1] - t[:, 0, 1])
-                         - (t[:, 2, 0] - t[:, 0, 0]) * (t[:, 1, 1] - t[:, 0, 1]))
+    aires = 0.5 * np.abs(
+        (t[:, 1, 0] - t[:, 0, 0]) * (t[:, 2, 1] - t[:, 0, 1])
+        - (t[:, 2, 0] - t[:, 0, 0]) * (t[:, 1, 1] - t[:, 0, 1])
+    )
     t = t[aires > 1e-12]
     if len(t) < 2:
         return 0, 0
     # dédoublonner les triangles identiques (miroirs empilés)
     cle = np.round(t, 5)
-    ordre = np.lexsort((cle[:, :, 1], cle[:, :, 0]), axis=1)  # sommets de chaque triangle triés par (x, y)
+    ordre = np.lexsort(
+        (cle[:, :, 1], cle[:, :, 0]), axis=1
+    )  # sommets de chaque triangle triés par (x, y)
     cle_triee = np.take_along_axis(cle, ordre[:, :, None], axis=1).reshape(len(t), -1)
     _, premiers = np.unique(cle_triee, axis=0, return_index=True)
     t = t[np.sort(premiers)]
@@ -319,8 +346,9 @@ def chevauchements_uv(faces_uv: np.ndarray, cellules: int = 64) -> tuple[int, in
         return 0, 0
     P = np.array(sorted(paires))
     # filtre AABB
-    garde = np.all(mins[P[:, 0]] <= maxs[P[:, 1]] + _EPS_SAT, axis=1) & \
-        np.all(mins[P[:, 1]] <= maxs[P[:, 0]] + _EPS_SAT, axis=1)
+    garde = np.all(mins[P[:, 0]] <= maxs[P[:, 1]] + _EPS_SAT, axis=1) & np.all(
+        mins[P[:, 1]] <= maxs[P[:, 0]] + _EPS_SAT, axis=1
+    )
     P = P[garde]
     if len(P) == 0:
         return 0, 0
@@ -335,7 +363,9 @@ def chevauchements_uv(faces_uv: np.ndarray, cellules: int = 64) -> tuple[int, in
             axe = axe / np.where(norme == 0, 1, norme)
             pa = np.einsum("mij,mj->mi", A, axe)
             pb = np.einsum("mij,mj->mi", B, axe)
-            sep = (pb.min(axis=1) >= pa.max(axis=1) - _EPS_SAT) | (pa.min(axis=1) >= pb.max(axis=1) - _EPS_SAT)
+            sep = (pb.min(axis=1) >= pa.max(axis=1) - _EPS_SAT) | (
+                pa.min(axis=1) >= pb.max(axis=1) - _EPS_SAT
+            )
             separes |= sep
     chev = P[~separes]
     return len(chev), len(np.unique(chev))
@@ -345,7 +375,9 @@ def chevauchements_uv(faces_uv: np.ndarray, cellules: int = 64) -> tuple[int, in
 # Lecture du GLB
 # ---------------------------------------------------------------------------
 # glTF a Y en haut ; l'app (et le style) ont Z en haut et la face avant vers -Y : (x, y, z) glTF -> (x, -z, y).
-GLTF_VERS_APP = np.array([[1.0, 0.0, 0.0, 0.0], [0.0, 0.0, -1.0, 0.0], [0.0, 1.0, 0.0, 0.0], [0.0, 0.0, 0.0, 1.0]])
+GLTF_VERS_APP = np.array(
+    [[1.0, 0.0, 0.0, 0.0], [0.0, 0.0, -1.0, 0.0], [0.0, 1.0, 0.0, 0.0], [0.0, 0.0, 0.0, 1.0]]
+)
 
 
 def charger_maillages(glb: str | Path) -> dict[str, trimesh.Trimesh]:
@@ -362,10 +394,16 @@ def charger_maillages(glb: str | Path) -> dict[str, trimesh.Trimesh]:
         m = geom.copy()
         m.apply_transform(GLTF_VERS_APP @ transform)
         image = getattr(getattr(m.visual, "material", None), "baseColorTexture", None)
-        m.metadata["texture_px"] = int(image.size[0]) if image is not None and hasattr(image, "size") else None
+        m.metadata["texture_px"] = (
+            int(image.size[0]) if image is not None and hasattr(image, "size") else None
+        )
         # trimesh découpe un objet en un morceau par matériau, rangés sous le nœud de l'objet : on les recolle.
         parent = parents.get(noeud)
-        cle = str(parent) if parent and parent != scene.graph.base_frame and parent not in geometries else str(noeud)
+        cle = (
+            str(parent)
+            if parent and parent != scene.graph.base_frame and parent not in geometries
+            else str(noeud)
+        )
         morceaux[cle].append(m)
     return {nom: _recoller(ms) for nom, ms in morceaux.items()}
 
@@ -390,7 +428,9 @@ def _recoller(morceaux: list[trimesh.Trimesh]) -> trimesh.Trimesh:
     return resultat
 
 
-def maillage_par_suffixe(maillages: dict[str, trimesh.Trimesh], suffixe: str) -> trimesh.Trimesh | None:
+def maillage_par_suffixe(
+    maillages: dict[str, trimesh.Trimesh], suffixe: str
+) -> trimesh.Trimesh | None:
     for nom, m in maillages.items():
         if nom.endswith(suffixe):
             return m
@@ -411,8 +451,12 @@ def _pct(a: float, b: float) -> float:
 # ---------------------------------------------------------------------------
 # Les 12 contrôles
 # ---------------------------------------------------------------------------
-def valider(dossier_asset: str | Path, style: Style, infos: dict[str, Any] | None = None,
-            config: dict[str, Any] | None = None) -> Rapport:
+def valider(
+    dossier_asset: str | Path,
+    style: Style,
+    infos: dict[str, Any] | None = None,
+    config: dict[str, Any] | None = None,
+) -> Rapport:
     """Passe les 12 contrôles sur le dossier d'un asset exporté.
 
     `infos` : id, categorie, dimensions_type (ou type), dimensions_m (facultatif, prime sur le
@@ -461,17 +505,26 @@ def valider(dossier_asset: str | Path, style: Style, infos: dict[str, Any] | Non
     topo = nettoyer_topologie(lod0) if lod0 is not None else None
 
     def sans_maillage(nom: str, seuil: Any, bloquant: bool = True) -> Controle:
-        return Controle(nom, None, seuil, bloquant, False, erreur_glb or "aucun maillage LOD0 dans le GLB")
+        return Controle(
+            nom, None, seuil, bloquant, False, erreur_glb or "aucun maillage LOD0 dans le GLB"
+        )
 
     # 1. Maillage fermé
     if topo is None:
         rapport.controles.append(sans_maillage("Maillage fermé", 0))
     else:
         nm, bords, multi = aretes_non_manifold(topo)
-        rapport.controles.append(Controle(
-            "Maillage fermé", nm, 0, True, nm == 0,
-            f"{nm} arêtes non-manifold ({bords} de bord, {multi} partagées par plus de 2 faces) "
-            f"sur {len(topo.edges_unique)}"))
+        rapport.controles.append(
+            Controle(
+                "Maillage fermé",
+                nm,
+                0,
+                True,
+                nm == 0,
+                f"{nm} arêtes non-manifold ({bords} de bord, {multi} partagées par plus de 2 faces) "
+                f"sur {len(topo.edges_unique)}",
+            )
+        )
 
     # 2. Pièces flottantes
     if topo is None:
@@ -479,9 +532,16 @@ def valider(dossier_asset: str | Path, style: Style, infos: dict[str, Any] | Non
     else:
         nc = composantes_connexes(topo)
         ecart = nc - pieces
-        rapport.controles.append(Controle(
-            "Pièces flottantes", ecart, 0, True, ecart == 0,
-            f"{nc} morceaux reliés pour {pieces} déclaré(s)"))
+        rapport.controles.append(
+            Controle(
+                "Pièces flottantes",
+                ecart,
+                0,
+                True,
+                ecart == 0,
+                f"{nc} morceaux reliés pour {pieces} déclaré(s)",
+            )
+        )
 
     # 3. Normales
     if topo is None:
@@ -489,10 +549,17 @@ def valider(dossier_asset: str | Path, style: Style, infos: dict[str, Any] | Non
     else:
         inv, coherent, vol = faces_inversees(topo)
         ok = inv == 0 and coherent and vol > 0
-        rapport.controles.append(Controle(
-            "Normales", inv, 0, True, ok,
-            f"{inv} faces inversées ; orientation {'cohérente' if coherent else 'incohérente'} ; "
-            f"volume {vol:.4f} m³"))
+        rapport.controles.append(
+            Controle(
+                "Normales",
+                inv,
+                0,
+                True,
+                ok,
+                f"{inv} faces inversées ; orientation {'cohérente' if coherent else 'incohérente'} ; "
+                f"volume {vol:.4f} m³",
+            )
+        )
 
     # 4. Dimensions
     attendu = info("dimensions_m") if infos.get("dimensions_m") else None
@@ -501,23 +568,47 @@ def valider(dossier_asset: str | Path, style: Style, infos: dict[str, Any] | Non
     if lod0 is None:
         rapport.controles.append(sans_maillage("Dimensions", f"±{tol['dimensions_pct']} %"))
     elif not attendu:
-        rapport.controles.append(Controle(
-            "Dimensions", None, f"±{tol['dimensions_pct']} %", True, False,
-            f"type d'objet {type_objet!r} absent de dimensions_m du style et aucune dimension fournie"))
+        rapport.controles.append(
+            Controle(
+                "Dimensions",
+                None,
+                f"±{tol['dimensions_pct']} %",
+                True,
+                False,
+                f"type d'objet {type_objet!r} absent de dimensions_m du style et aucune dimension fournie",
+            )
+        )
     else:
         ext = [float(x) for x in lod0.extents]
         ecarts = [_pct(m, a) for m, a in zip(ext, attendu)]
-        mesures = (f"mesuré [{ext[0]:.3f}, {ext[1]:.3f}, {ext[2]:.3f}] m, attendu {list(attendu)} m "
-                   f"(écarts X/Y/Z : {ecarts[0]:.1f} / {ecarts[1]:.1f} / {ecarts[2]:.1f} %)")
+        mesures = (
+            f"mesuré [{ext[0]:.3f}, {ext[1]:.3f}, {ext[2]:.3f}] m, attendu {list(attendu)} m "
+            f"(écarts X/Y/Z : {ecarts[0]:.1f} / {ecarts[1]:.1f} / {ecarts[2]:.1f} %)"
+        )
         if importe:
             taille = _pct(max(ext), max(float(a) for a in attendu))
-            rapport.controles.append(Controle(
-                "Dimensions", round(taille, 2), tol["dimensions_pct"], True, taille <= tol["dimensions_pct"],
-                f"taille (plus grande dimension) : écart {taille:.1f} % ; proportions à juger en revue : {mesures}"))
+            rapport.controles.append(
+                Controle(
+                    "Dimensions",
+                    round(taille, 2),
+                    tol["dimensions_pct"],
+                    True,
+                    taille <= tol["dimensions_pct"],
+                    f"taille (plus grande dimension) : écart {taille:.1f} % ; proportions à juger en revue : {mesures}",
+                )
+            )
         else:
             pire = max(ecarts)
-            rapport.controles.append(Controle(
-                "Dimensions", round(pire, 2), tol["dimensions_pct"], True, pire <= tol["dimensions_pct"], mesures))
+            rapport.controles.append(
+                Controle(
+                    "Dimensions",
+                    round(pire, 2),
+                    tol["dimensions_pct"],
+                    True,
+                    pire <= tol["dimensions_pct"],
+                    mesures,
+                )
+            )
         rapport.extras["dimensions_m"] = [round(x, 4) for x in ext]
 
     # 5. Polycount (+ ratios LOD)
@@ -529,8 +620,16 @@ def valider(dossier_asset: str | Path, style: Style, infos: dict[str, Any] | Non
     if lod0 is None:
         rapport.controles.append(sans_maillage("Polycount", budget))
     elif budget is None:
-        rapport.controles.append(Controle("Polycount", len(lod0.faces), None, True, False,
-                                          f"catégorie {categorie!r} sans budget dans le style"))
+        rapport.controles.append(
+            Controle(
+                "Polycount",
+                len(lod0.faces),
+                None,
+                True,
+                False,
+                f"catégorie {categorie!r} sans budget dans le style",
+            )
+        )
     else:
         t0 = len(lod0.faces)
         ok = t0 <= budget
@@ -549,8 +648,10 @@ def valider(dossier_asset: str | Path, style: Style, infos: dict[str, Any] | Non
             cible = ratios[i] * 100
             dans_tol = abs(part - cible) <= tol["lod_pct"]
             ok = ok and dans_tol
-            details.append(f"LOD{i} {ti} tris = {part:.0f} % (cible {cible:.0f} ± {tol['lod_pct']:.0f} %)"
-                           + ("" if dans_tol else " HORS TOLÉRANCE"))
+            details.append(
+                f"LOD{i} {ti} tris = {part:.0f} % (cible {cible:.0f} ± {tol['lod_pct']:.0f} %)"
+                + ("" if dans_tol else " HORS TOLÉRANCE")
+            )
         col = maillage_par_suffixe(maillages, "_COL")
         if col is not None:
             tris["tris_col"] = len(col.faces)
@@ -573,33 +674,62 @@ def valider(dossier_asset: str | Path, style: Style, infos: dict[str, Any] | Non
             miroir[:, axe] = 2 * centre[axe] - miroir[:, axe]
             d = distance_surface(topo, miroir)
             pire = float(d.max()) if len(d) else 0.0
-            rapport.controles.append(Controle(
-                "Symétrie", round(pire, 5), tol["symetrie_m"], not importe, pire <= tol["symetrie_m"],
-                f"miroir sur l'axe {symetrique} : écart max {pire * 1000:.2f} mm, "
-                f"moyen {float(d.mean()) * 1000 if len(d) else 0:.2f} mm sur {len(pts)} sommets"
-                + (" (objet venu d'une image : à juger en revue)" if importe else "")))
+            rapport.controles.append(
+                Controle(
+                    "Symétrie",
+                    round(pire, 5),
+                    tol["symetrie_m"],
+                    not importe,
+                    pire <= tol["symetrie_m"],
+                    f"miroir sur l'axe {symetrique} : écart max {pire * 1000:.2f} mm, "
+                    f"moyen {float(d.mean()) * 1000 if len(d) else 0:.2f} mm sur {len(pts)} sommets"
+                    + (" (objet venu d'une image : à juger en revue)" if importe else ""),
+                )
+            )
     else:
-        rapport.controles.append(Controle("Symétrie", 0, tol["symetrie_m"], True, True,
-                                          "objet non déclaré symétrique", etat="non demandée"))
+        rapport.controles.append(
+            Controle(
+                "Symétrie",
+                0,
+                tol["symetrie_m"],
+                True,
+                True,
+                "objet non déclaré symétrique",
+                etat="non demandée",
+            )
+        )
 
     # 7. UV
     uv = None
-    if lod0 is not None and hasattr(lod0.visual, "uv") and lod0.visual.uv is not None \
-            and len(lod0.visual.uv) == len(lod0.vertices):
+    if (
+        lod0 is not None
+        and hasattr(lod0.visual, "uv")
+        and lod0.visual.uv is not None
+        and len(lod0.visual.uv) == len(lod0.vertices)
+    ):
         uv = np.asarray(lod0.visual.uv, dtype=float)
     if lod0 is None:
         rapport.controles.append(sans_maillage("UV", 0))
     elif uv is None:
-        rapport.controles.append(Controle("UV", None, 0, True, False, "aucune coordonnée UV dans le LOD0"))
+        rapport.controles.append(
+            Controle("UV", None, 0, True, False, "aucune coordonnée UV dans le LOD0")
+        )
     else:
         hors = int(((uv < -_EPS_UV) | (uv > 1 + _EPS_UV)).any(axis=1).sum())
         faces_uv = uv[lod0.faces]
         paires, concernes = chevauchements_uv(faces_uv)
         mesure = paires + hors
-        rapport.controles.append(Controle(
-            "UV", mesure, 0, True, mesure == 0,
-            f"{paires} paires de triangles qui se chevauchent ({concernes} triangles), "
-            f"{hors} sommets hors du carré 0-1 (miroirs empilés ignorés)"))
+        rapport.controles.append(
+            Controle(
+                "UV",
+                mesure,
+                0,
+                True,
+                mesure == 0,
+                f"{paires} paires de triangles qui se chevauchent ({concernes} triangles), "
+                f"{hors} sommets hors du carré 0-1 (miroirs empilés ignorés)",
+            )
+        )
 
     # 8. Densité de texels (non bloquant)
     taille_tex = None
@@ -609,11 +739,16 @@ def valider(dossier_asset: str | Path, style: Style, infos: dict[str, Any] | Non
             taille_tex = int(v["px"])
             break
     if taille_tex is None and lod0 is not None:
-        taille_tex = lod0.metadata.get("texture_px")  # texture de couleur intégrée au GLB (voie IA, import)
+        taille_tex = lod0.metadata.get(
+            "texture_px"
+        )  # texture de couleur intégrée au GLB (voie IA, import)
     if taille_tex is None:
-        for p in sorted((dossier / "textures").glob("*.png")) if (dossier / "textures").is_dir() else []:
+        for p in (
+            sorted((dossier / "textures").glob("*.png")) if (dossier / "textures").is_dir() else []
+        ):
             try:
                 from PIL import Image
+
                 with Image.open(p) as im:
                     taille_tex = int(im.size[0])
                 break
@@ -621,21 +756,45 @@ def valider(dossier_asset: str | Path, style: Style, infos: dict[str, Any] | Non
                 continue
     if lod0 is None or uv is None or taille_tex is None or lod0.area <= 0:
         sans_texture = lod0 is not None and uv is not None and taille_tex is None
-        rapport.controles.append(Controle(
-            "Densité de texels", None, f"{style.texel_density:.0f} px/m ± {tol['texel_pct']:.0f} %", False, False,
-            "aucune texture : les couleurs viennent des matériaux du style ; à mesurer quand les textures seront cuites"
-            if sans_texture else "non mesurable : il faut un LOD0 avec UV et une texture", etat="non exécuté"))
+        rapport.controles.append(
+            Controle(
+                "Densité de texels",
+                None,
+                f"{style.texel_density:.0f} px/m ± {tol['texel_pct']:.0f} %",
+                False,
+                False,
+                (
+                    "aucune texture : les couleurs viennent des matériaux du style ; à mesurer quand les textures seront cuites"
+                    if sans_texture
+                    else "non mesurable : il faut un LOD0 avec UV et une texture"
+                ),
+                etat="non exécuté",
+            )
+        )
     else:
         f = uv[lod0.faces]
-        aire_uv = float((0.5 * np.abs((f[:, 1, 0] - f[:, 0, 0]) * (f[:, 2, 1] - f[:, 0, 1])
-                                      - (f[:, 2, 0] - f[:, 0, 0]) * (f[:, 1, 1] - f[:, 0, 1]))).sum())
+        aire_uv = float(
+            (
+                0.5
+                * np.abs(
+                    (f[:, 1, 0] - f[:, 0, 0]) * (f[:, 2, 1] - f[:, 0, 1])
+                    - (f[:, 2, 0] - f[:, 0, 0]) * (f[:, 1, 1] - f[:, 0, 1])
+                )
+            ).sum()
+        )
         densite = float(np.sqrt(aire_uv * taille_tex * taille_tex / lod0.area))
         ecart = _pct(densite, style.texel_density)
-        rapport.controles.append(Controle(
-            "Densité de texels", round(densite, 1), f"{style.texel_density:.0f} px/m ± {tol['texel_pct']:.0f} %",
-            False, ecart <= tol["texel_pct"],
-            f"{densite:.0f} px/m (texture {taille_tex} px, {aire_uv * 100:.1f} % du carré UV, "
-            f"{lod0.area:.3f} m²) : écart {ecart:.1f} %"))
+        rapport.controles.append(
+            Controle(
+                "Densité de texels",
+                round(densite, 1),
+                f"{style.texel_density:.0f} px/m ± {tol['texel_pct']:.0f} %",
+                False,
+                ecart <= tol["texel_pct"],
+                f"{densite:.0f} px/m (texture {taille_tex} px, {aire_uv * 100:.1f} % du carré UV, "
+                f"{lod0.area:.3f} m²) : écart {ecart:.1f} %",
+            )
+        )
         rapport.extras["texel_density"] = round(densite, 1)
 
     # 9. Export
@@ -661,31 +820,61 @@ def valider(dossier_asset: str | Path, style: Style, infos: dict[str, Any] | Non
     else:
         ok = False
         details.append("FBX absent ou vide")
-    rapport.controles.append(Controle("Export", "ok" if ok else "erreur", "OK", True, ok, " ; ".join(details)))
+    rapport.controles.append(
+        Controle("Export", "ok" if ok else "erreur", "OK", True, ok, " ; ".join(details))
+    )
 
     # 10. Conformité du fichier (glTF-Validator)
     rapport.controles.append(_conformite_gltf(glb, config))
 
     # 11. Rendus
     rendus = dossier / "rendus"
-    presentes = [v for v in VUES if (rendus / f"{v}.png").is_file() and (rendus / f"{v}.png").stat().st_size > 0]
+    presentes = [
+        v
+        for v in VUES
+        if (rendus / f"{v}.png").is_file() and (rendus / f"{v}.png").stat().st_size > 0
+    ]
     planche = (rendus / "planche.png").is_file() and (rendus / "planche.png").stat().st_size > 0
     vignette = (rendus / "vignette.png").is_file()
     ok = len(presentes) == len(VUES) and planche
-    rapport.controles.append(Controle(
-        "Rendus", f"{len(presentes)}/{len(VUES)} vues, planche {'oui' if planche else 'non'}", "OK", True, ok,
-        f"vues présentes : {', '.join(presentes) or 'aucune'} ; planche de contact "
-        f"{'présente' if planche else 'absente'} ; vignette {'présente' if vignette else 'absente'}"))
+    rapport.controles.append(
+        Controle(
+            "Rendus",
+            f"{len(presentes)}/{len(VUES)} vues, planche {'oui' if planche else 'non'}",
+            "OK",
+            True,
+            ok,
+            f"vues présentes : {', '.join(presentes) or 'aucune'} ; planche de contact "
+            f"{'présente' if planche else 'absente'} ; vignette {'présente' if vignette else 'absente'}",
+        )
+    )
 
     # 12. Critique IA (indicatif)
     avis = _lire_json(dossier / "avis_ia.json")
     if avis:
-        rapport.controles.append(Controle("Critique IA", "avis disponible", "Aucun", False, True,
-                                          str(avis.get("avis") or avis.get("texte") or avis), etat="disponible"))
+        rapport.controles.append(
+            Controle(
+                "Critique IA",
+                "avis disponible",
+                "Aucun",
+                False,
+                True,
+                str(avis.get("avis") or avis.get("texte") or avis),
+                etat="disponible",
+            )
+        )
     else:
-        rapport.controles.append(Controle("Critique IA", "non demandée", "Aucun", False, True,
-                                          "aucun avis de modèle de vision pour l'instant (indicatif, jamais bloquant)",
-                                          etat="non demandée"))
+        rapport.controles.append(
+            Controle(
+                "Critique IA",
+                "non demandée",
+                "Aucun",
+                False,
+                True,
+                "aucun avis de modèle de vision pour l'instant (indicatif, jamais bloquant)",
+                etat="non demandée",
+            )
+        )
 
     # Licences : liste blanche
     rapport.licence = verifier_licences(info("licence"), info("sources") or [])
@@ -696,7 +885,8 @@ def valider(dossier_asset: str | Path, style: Style, infos: dict[str, Any] | Non
 
 def verifier_licences(licence: Any, sources: list[Any]) -> dict[str, Any]:
     """Chaque source doit porter une licence de la liste blanche (cahier des charges). La licence de l'asset se
-    choisit à la publication (étape 10) : absente, elle n'est pas un refus ; présente, elle doit être dans la liste."""
+    choisit à la publication (étape 10) : absente, elle n'est pas un refus ; présente, elle doit être dans la liste.
+    """
     refus: list[str] = []
     if licence and licence not in LICENCES_AUTORISEES:
         refus.append(f"licence de l'asset hors liste blanche : {licence}")
@@ -717,8 +907,12 @@ def verifier_licences(licence: Any, sources: list[Any]) -> dict[str, Any]:
         "licence": licence,
         "sources": lic_sources,
         "autorisees": list(LICENCES_AUTORISEES),
-        "detail": (" ; ".join(refus) if refus else
-                   "licences conformes" + ("" if licence else " ; licence de publication à choisir à la publication")),
+        "detail": (
+            " ; ".join(refus)
+            if refus
+            else "licences conformes"
+            + ("" if licence else " ; licence de publication à choisir à la publication")
+        ),
     }
 
 
@@ -730,30 +924,64 @@ def _conformite_gltf(glb: Path, config: dict[str, Any] | None) -> Controle:
         executable = chemin
     if not executable:
         # Bloquant (cahier des charges) : sans l'outil, l'asset ne peut pas être déclaré conforme.
-        return Controle(nom, "non exécuté", "0 erreur", True, False,
-                        "glTF-Validator introuvable : renseigne son chemin dans Réglages (Outils sur ta machine)",
-                        etat="non exécuté")
+        return Controle(
+            nom,
+            "non exécuté",
+            "0 erreur",
+            True,
+            False,
+            "glTF-Validator introuvable : renseigne son chemin dans Réglages (Outils sur ta machine)",
+            etat="non exécuté",
+        )
     if not glb.is_file():
         return Controle(nom, "non exécuté", "0 erreur", True, False, "GLB absent", etat="echec")
     try:
         # -o : le rapport JSON sur la sortie standard (sans -o, il serait écrit à côté du GLB).
-        r = subprocess.run([executable, "-o", str(glb)], capture_output=True, text=True,
-                           timeout=120, cwd=str(glb.parent), check=False)
+        r = subprocess.run(
+            [executable, "-o", str(glb)],
+            capture_output=True,
+            text=True,
+            timeout=120,
+            cwd=str(glb.parent),
+            check=False,
+        )
     except (OSError, subprocess.SubprocessError) as e:
-        return Controle(nom, "non exécuté", "0 erreur", True, False,
-                        f"glTF-Validator n'a pas pu être lancé : {e}", etat="non exécuté")
+        return Controle(
+            nom,
+            "non exécuté",
+            "0 erreur",
+            True,
+            False,
+            f"glTF-Validator n'a pas pu être lancé : {e}",
+            etat="non exécuté",
+        )
     try:
         donnees = json.loads(r.stdout or "{}")
     except json.JSONDecodeError:
         donnees = {}
     issues = donnees.get("issues") or {}
     if not donnees:
-        return Controle(nom, "non exécuté", "0 erreur", True, False,
-                        f"glTF-Validator lancé (code {r.returncode}) mais aucun rapport lisible : "
-                        f"{(r.stderr or r.stdout)[-300:]}", etat="non exécuté")
+        return Controle(
+            nom,
+            "non exécuté",
+            "0 erreur",
+            True,
+            False,
+            f"glTF-Validator lancé (code {r.returncode}) mais aucun rapport lisible : "
+            f"{(r.stderr or r.stdout)[-300:]}",
+            etat="non exécuté",
+        )
     erreurs = int(issues.get("numErrors", 0))
     avert = int(issues.get("numWarnings", 0))
-    messages = [m.get("message", "") for m in issues.get("messages", []) if m.get("severity") == 0][:5]
-    return Controle(nom, erreurs, 0, True, erreurs == 0,
-                    f"{erreurs} erreurs, {avert} avertissements (glTF-Validator)"
-                    + (" : " + " | ".join(messages) if messages else ""))
+    messages = [m.get("message", "") for m in issues.get("messages", []) if m.get("severity") == 0][
+        :5
+    ]
+    return Controle(
+        nom,
+        erreurs,
+        0,
+        True,
+        erreurs == 0,
+        f"{erreurs} erreurs, {avert} avertissements (glTF-Validator)"
+        + (" : " + " | ".join(messages) if messages else ""),
+    )

@@ -1,4 +1,5 @@
 """Les 12 contrôles sur des GLB fabriqués avec trimesh (sans Blender ; repris de l'archive et adaptés)."""
+
 from __future__ import annotations
 
 import numpy as np
@@ -19,8 +20,14 @@ from tests.pipeline.fabrique import (
 )
 
 ID = "ROM_PROP_Caisse_A"
-INFOS = {"id": ID, "categorie": "petit_prop", "dimensions_type": "caisse", "symetrique": "X",
-         "pieces_declarees": 1, "sources": []}
+INFOS = {
+    "id": ID,
+    "categorie": "petit_prop",
+    "dimensions_type": "caisse",
+    "symetrique": "X",
+    "pieces_declarees": 1,
+    "sources": [],
+}
 
 
 @pytest.fixture(scope="module")
@@ -34,7 +41,7 @@ def config(tmp_path):
 
 
 def caisse_lods():
-    base = boite()                      # 12 tris, 0,6 x 0,4 x 0,4 m (la caisse du style)
+    base = boite()  # 12 tris, 0,6 x 0,4 x 0,4 m (la caisse du style)
     return eclater(avec_n_tris(base, 48)), avec_n_tris(base, 24), base
 
 
@@ -55,20 +62,26 @@ def test_un_cube_ferme_passe_tous_les_bloquants(tmp_path, style, config):
     assert r.controle("Conformité du fichier").detail.startswith("0 erreurs")
     assert r.controle("Critique IA").etat == "non demandée"
     assert r.controle("Densité de texels").ok, r.controle("Densité de texels").detail
-    assert r.controle("Dimensions").ok, r.controle("Dimensions").detail  # GLB en Y vers le haut, relu en Z
+    assert r.controle("Dimensions").ok, r.controle(
+        "Dimensions"
+    ).detail  # GLB en Y vers le haut, relu en Z
     d = r.to_dict()
     assert d["nb_controles"] == 12 and va.Rapport.depuis_dict(d).bloquants_ok
 
 
 def test_sans_gltf_validator_le_controle_bloque(tmp_path, style):
-    r = valider(tmp_path, style, {"gltf_validator": {"chemin": "gltf_validator_absent_pour_le_test"}})
+    r = valider(
+        tmp_path, style, {"gltf_validator": {"chemin": "gltf_validator_absent_pour_le_test"}}
+    )
     c = r.controle("Conformité du fichier")
     assert c.bloquant and not c.ok and c.etat == "non exécuté" and "Réglages" in c.detail
     assert not r.bloquants_ok
 
 
 def test_une_erreur_gltf_bloque(tmp_path, style):
-    r = valider(tmp_path, style, {"gltf_validator": {"chemin": validateur_factice(tmp_path, erreurs=2)}})
+    r = valider(
+        tmp_path, style, {"gltf_validator": {"chemin": validateur_factice(tmp_path, erreurs=2)}}
+    )
     c = r.controle("Conformité du fichier")
     assert not c.ok and c.mesure == 2 and "erreur factice" in c.detail
 
@@ -90,9 +103,13 @@ def test_deux_cubes_separes(tmp_path, style, config):
     deux = eclater(trimesh.util.concatenate([a, b]))
     infos = {"symetrique": None, "dimensions_type": None, "dimensions_m": [0.63, 0.4, 0.4]}
     autres = {"lod1": avec_n_tris(boite(), 12), "lod2": avec_n_tris(boite(), 12)}
-    c = valider(tmp_path, style, config, lod0=deux, infos=infos, **autres).controle("Pièces flottantes")
+    c = valider(tmp_path, style, config, lod0=deux, infos=infos, **autres).controle(
+        "Pièces flottantes"
+    )
     assert not c.ok and "2 morceaux" in c.detail
-    r = valider(tmp_path, style, config, lod0=deux, infos={**infos, "pieces_declarees": 2}, **autres)
+    r = valider(
+        tmp_path, style, config, lod0=deux, infos={**infos, "pieces_declarees": 2}, **autres
+    )
     assert r.controle("Pièces flottantes").ok
 
 
@@ -111,21 +128,39 @@ def test_faces_inversees_echouent_normales(tmp_path, style, config):
 
 def test_dimensions_hors_tolerance(tmp_path, style, config):
     base = boite((0.6, 0.4, 0.5))
-    c = valider(tmp_path, style, config, lod0=eclater(avec_n_tris(base, 48)), lod1=avec_n_tris(base, 24),
-                lod2=base).controle("Dimensions")
-    assert not c.ok and c.mesure == pytest.approx(25.0) and c.seuil == style.tolerances["dimensions_pct"]
+    c = valider(
+        tmp_path,
+        style,
+        config,
+        lod0=eclater(avec_n_tris(base, 48)),
+        lod1=avec_n_tris(base, 24),
+        lod2=base,
+    ).controle("Dimensions")
+    assert (
+        not c.ok
+        and c.mesure == pytest.approx(25.0)
+        and c.seuil == style.tolerances["dimensions_pct"]
+    )
 
 
 def test_polycount_trop_haut_et_lods(tmp_path, style, config):
     gros = trimesh.creation.icosphere(subdivisions=4, radius=0.2)  # 5 120 tris > 2 000 (petit_prop)
     gros.apply_translation([0, 0, 0.2])
-    c = valider(tmp_path, style, config, lod0=gros, uv=np.zeros((len(gros.vertices), 2)),
-                infos={"dimensions_m": [0.4, 0.4, 0.4], "symetrique": None},
-                lod1=trimesh.creation.icosphere(subdivisions=3),
-                lod2=trimesh.creation.icosphere(subdivisions=2)).controle("Polycount")
+    c = valider(
+        tmp_path,
+        style,
+        config,
+        lod0=gros,
+        uv=np.zeros((len(gros.vertices), 2)),
+        infos={"dimensions_m": [0.4, 0.4, 0.4], "symetrique": None},
+        lod1=trimesh.creation.icosphere(subdivisions=3),
+        lod2=trimesh.creation.icosphere(subdivisions=2),
+    ).controle("Polycount")
     assert not c.ok and c.mesure == 5120 and c.seuil == style.budget("petit_prop")
     lod0, _, _ = caisse_lods()
-    c = valider(tmp_path, style, config, lod1=lod0).controle("Polycount")  # LOD1 = LOD0 : ratio hors tolérance
+    c = valider(tmp_path, style, config, lod1=lod0).controle(
+        "Polycount"
+    )  # LOD1 = LOD0 : ratio hors tolérance
     assert not c.ok and "HORS TOLÉRANCE" in c.detail
 
 
@@ -135,7 +170,9 @@ def test_symetrie_detecte_une_bosse(tmp_path, style, config):
     v = bosse.vertices.copy()
     v[(v[:, 0] > 0.29) & (v[:, 2] > 0.3), 0] += 0.03  # le haut d'un seul côté tiré de 3 cm
     bosse.vertices = v
-    c = valider(tmp_path, style, config, lod0=bosse, infos={"dimensions_m": [0.63, 0.4, 0.4]}).controle("Symétrie")
+    c = valider(
+        tmp_path, style, config, lod0=bosse, infos={"dimensions_m": [0.63, 0.4, 0.4]}
+    ).controle("Symétrie")
     assert not c.ok and c.mesure > style.tolerances["symetrie_m"]
 
 
@@ -173,20 +210,32 @@ def test_export_sans_fbx_et_rendus_manquants(tmp_path, style, config):
 
 def test_licences(tmp_path, style, config):
     r = valider(tmp_path, style, config)
-    assert r.licence["ok"] and "à choisir" in r.licence["detail"]  # choisie à la publication (étape 10)
+    assert (
+        r.licence["ok"] and "à choisir" in r.licence["detail"]
+    )  # choisie à la publication (étape 10)
     r = valider(tmp_path, style, config, infos={"licence": "Tripo-gratuit"})
     assert not r.licence["ok"] and r.statut == "refuse"
     r = valider(tmp_path, style, config, infos={"sources": [{"nom": "x", "licence": "Hunyuan3D"}]})
     assert not r.licence["ok"] and "Hunyuan3D" in r.licence["detail"]
-    r = valider(tmp_path, style, config, infos={"sources": [{"nom": "Kenney", "licence": "CC0-1.0"}]})
+    r = valider(
+        tmp_path, style, config, infos={"sources": [{"nom": "Kenney", "licence": "CC0-1.0"}]}
+    )
     assert r.licence["ok"]
 
 
 def test_les_infos_viennent_du_meta_json_a_defaut(tmp_path, style, config):
     lod0, lod1, lod2 = caisse_lods()
-    meta = construire_meta(id=ID, categorie="petit_prop", voie="code", generateur="generators/caisse.py@abc",
-                           dimensions_m=[0.6, 0.4, 0.4], tris_lod0=48, dimensions_type="caisse",
-                           symetrique="X", pieces_declarees=1)
+    meta = construire_meta(
+        id=ID,
+        categorie="petit_prop",
+        voie="code",
+        generateur="generators/caisse.py@abc",
+        dimensions_m=[0.6, 0.4, 0.4],
+        tris_lod0=48,
+        dimensions_type="caisse",
+        symetrique="X",
+        pieces_declarees=1,
+    )
     r = va.valider(dossier_asset(tmp_path, ID, lod0, lod1, lod2, meta=meta), style, {}, config)
     assert r.id == ID and r.bloquants_ok, r.to_json()
 
@@ -194,4 +243,8 @@ def test_les_infos_viennent_du_meta_json_a_defaut(tmp_path, style, config):
 def test_glb_absent_rapporte_proprement(tmp_path, style, config):
     (tmp_path / ID).mkdir()
     r = va.valider(tmp_path / ID, style, INFOS, config)
-    assert len(r.controles) == 12 and not r.bloquants_ok and "GLB absent" in r.controle("Maillage fermé").detail
+    assert (
+        len(r.controles) == 12
+        and not r.bloquants_ok
+        and "GLB absent" in r.controle("Maillage fermé").detail
+    )

@@ -1,4 +1,5 @@
 """Chemins du projet, surchargeables par variables d'environnement (tests)."""
+
 from __future__ import annotations
 
 import os

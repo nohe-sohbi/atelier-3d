@@ -25,10 +25,12 @@ def test_materiau_resout_la_couleur(atelier):
 
 def test_validation_refuse_un_style_bancal(atelier):
     brut = _pilote(atelier).brut
-    for casse in (lambda b: b["palette"].__setitem__("bidon", "pas-une-couleur"),
-                  lambda b: b["budgets_tris"].pop("petit_prop"),
-                  lambda b: b["conventions"].__setitem__("haut", "+Y"),
-                  lambda b: [b["palette"].pop(k) for k in list(b["palette"])[:4]]):
+    for casse in (
+        lambda b: b["palette"].__setitem__("bidon", "pas-une-couleur"),
+        lambda b: b["budgets_tris"].pop("petit_prop"),
+        lambda b: b["conventions"].__setitem__("haut", "+Y"),
+        lambda b: [b["palette"].pop(k) for k in list(b["palette"])[:4]],
+    ):
         b = copy.deepcopy(brut)
         casse(b)
         with pytest.raises(st.StyleInvalide):

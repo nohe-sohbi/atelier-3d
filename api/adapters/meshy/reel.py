@@ -3,6 +3,7 @@
 Images (documentation Meshy, octobre 2026) : `text-to-image` sans image de référence, `image-to-image` avec
 1 à 5 images de référence ; une image par tâche ; modèle `nano-banana` à 3 crédits l'image.
 """
+
 from __future__ import annotations
 
 import base64
@@ -18,8 +19,12 @@ MAX_REFERENCES = 5
 # Préfixe de l'id d'une tâche image → chemin de l'API qui la lit.
 CHEMINS_IMAGE = {"img:": "/openapi/v1/image-to-image/", "txt:": "/openapi/v1/text-to-image/"}
 # Codes HTTP pour lesquels relancer la même demande n'y changera rien.
-REFUS = {400: "demande refusée par Meshy", 401: "clé API Meshy refusée", 402: "crédits Meshy insuffisants",
-         403: "clé API Meshy refusée"}
+REFUS = {
+    400: "demande refusée par Meshy",
+    401: "clé API Meshy refusée",
+    402: "crédits Meshy insuffisants",
+    403: "clé API Meshy refusée",
+}
 
 
 class MeshyReel(Meshy):
@@ -35,8 +40,9 @@ class MeshyReel(Meshy):
     def _client(self, timeout: float = _commun.TIMEOUT_S):
         if not self._cle:
             raise RuntimeError("clé API Meshy absente : renseigne-la dans Réglages")
-        return _commun.client_http(timeout, base_url=self.base_url,
-                                   headers={"Authorization": f"Bearer {self._cle}"})
+        return _commun.client_http(
+            timeout, base_url=self.base_url, headers={"Authorization": f"Bearer {self._cle}"}
+        )
 
     def solde(self) -> dict:
         with self._client(5.0) as c:  # lu à chaque ouverture d'écran : délai court
@@ -51,8 +57,12 @@ class MeshyReel(Meshy):
             s = self.solde()
         except Exception as e:  # noqa: BLE001 - un test de connexion répond toujours
             return _commun.resultat_test(False, "Erreur", f"Meshy : {_commun.erreur_http(e)}")
-        return _commun.resultat_test(True, "Connecté", f"Meshy : {s['restants']} / {s['total']} crédits",
-                                     {"mode": "reel", "solde": s})
+        return _commun.resultat_test(
+            True,
+            "Connecté",
+            f"Meshy : {s['restants']} / {s['total']} crédits",
+            {"mode": "reel", "solde": s},
+        )
 
     @staticmethod
     def _image_url(image: str | Path) -> str:
@@ -77,13 +87,20 @@ class MeshyReel(Meshy):
                 detail = str(r.json().get("message") or "")[:300]
             except ValueError:
                 pass
-            raise RefusMeshy(f"{REFUS[r.status_code]} (HTTP {r.status_code}{' : ' + detail if detail else ''})")
+            raise RefusMeshy(
+                f"{REFUS[r.status_code]} (HTTP {r.status_code}{' : ' + detail if detail else ''})"
+            )
         r.raise_for_status()
         return str(r.json()["result"])
 
     def image_vers_3d(self, image: str | Path, options: dict | None = None) -> str:
-        corps = {"image_url": self._image_url(image), "should_texture": True, "enable_pbr": True,
-                 "ai_model": "latest", **(options or {})}
+        corps = {
+            "image_url": self._image_url(image),
+            "should_texture": True,
+            "enable_pbr": True,
+            "ai_model": "latest",
+            **(options or {}),
+        }
         return self._lancer("/openapi/v1/image-to-3d", corps)
 
     @staticmethod
@@ -134,5 +151,7 @@ class MeshyReel(Meshy):
         corps = {"ai_model": MODELE_IMAGE, "prompt": prompt}
         references = [self._image_url(i) for i in liste_images(image)[:MAX_REFERENCES]]
         if references:
-            return "img:" + self._lancer("/openapi/v1/image-to-image", {**corps, "reference_image_urls": references})
+            return "img:" + self._lancer(
+                "/openapi/v1/image-to-image", {**corps, "reference_image_urls": references}
+            )
         return "txt:" + self._lancer("/openapi/v1/text-to-image", corps)

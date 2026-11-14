@@ -1,4 +1,5 @@
 """dev.py : la config du premier lancement est un YAML valide, même avec un chemin Windows ; ports déjà pris."""
+
 import importlib
 import socket
 import threading
@@ -19,7 +20,9 @@ def test_preparer_config_chemin_windows(atelier, monkeypatch):
     assert chemin == atelier.config
     assert yaml.safe_load(chemin.read_text(encoding="utf-8"))["blender"]["chemin"] == CHEMIN_WINDOWS
     assert cfgmod.charger()["blender"]["chemin"] == CHEMIN_WINDOWS
-    assert "# Copie ce fichier" in chemin.read_text(encoding="utf-8")  # les commentaires de l'exemple sont gardés
+    assert "# Copie ce fichier" in chemin.read_text(
+        encoding="utf-8"
+    )  # les commentaires de l'exemple sont gardés
 
 
 def test_preparer_config_sans_blender(atelier, monkeypatch):
@@ -69,7 +72,9 @@ def test_port_web_deja_pris(atelier, capsys):
 def test_le_worker_se_relance_quand_le_code_change(tmp_path):
     dev = importlib.import_module("dev")
     changement, arret = threading.Event(), threading.Event()
-    t = threading.Thread(target=dev.surveiller_code, args=(changement, arret, (tmp_path,)), daemon=True)
+    t = threading.Thread(
+        target=dev.surveiller_code, args=(changement, arret, (tmp_path,)), daemon=True
+    )
     t.start()
     try:
         (tmp_path / "notes.txt").write_text("rien", encoding="utf-8")

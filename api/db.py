@@ -5,6 +5,7 @@
   et consignés dans la table `migrations`. Elles sont idempotentes : une version déjà
   consignée n'est pas rejouée.
 """
+
 from __future__ import annotations
 
 import logging
@@ -96,7 +97,10 @@ def lister_migrations() -> list[tuple[int, str, Path]]:
 
 def dossier_sauvegardes(conn: sqlite3.Connection) -> Path | None:
     """Le dossier `sauvegardes/` à côté de la base ; None pour une base en mémoire."""
-    fichier = next((r["file"] for r in conn.execute("PRAGMA database_list").fetchall() if r["name"] == "main"), "")
+    fichier = next(
+        (r["file"] for r in conn.execute("PRAGMA database_list").fetchall() if r["name"] == "main"),
+        "",
+    )
     return Path(fichier).parent / "sauvegardes" if fichier else None
 
 
@@ -128,7 +132,11 @@ def sauvegarde_quotidienne(conn: sqlite3.Connection, heures: float = 20.0) -> Pa
     dossier = dossier_sauvegardes(conn)
     if dossier is None:
         return None
-    recentes = [f for f in dossier.glob("atelier-quotidienne-*.db") if time.time() - f.stat().st_mtime < heures * 3600]
+    recentes = [
+        f
+        for f in dossier.glob("atelier-quotidienne-*.db")
+        if time.time() - f.stat().st_mtime < heures * 3600
+    ]
     return None if recentes else sauvegarder_base(conn, "quotidienne")
 
 
@@ -141,7 +149,8 @@ def verifier_fts5(conn: sqlite3.Connection) -> None:
     if not r or not r["fts5"]:
         raise FTS5Absent(
             f"SQLite {sqlite3.sqlite_version} sans FTS5 : la recherche globale ne peut pas être créée. "
-            "Utilise un Python 3.12 de python.org (Windows) ou le paquet sqlite3 de ta distribution.")
+            "Utilise un Python 3.12 de python.org (Windows) ou le paquet sqlite3 de ta distribution."
+        )
 
 
 def appliquer_migrations(conn: sqlite3.Connection) -> list[int]:
@@ -167,11 +176,15 @@ def appliquer_migrations(conn: sqlite3.Connection) -> list[int]:
             except sqlite3.OperationalError:
                 # Un autre processus migre la même base en ce moment (premier lancement de l'API et du worker) :
                 # c'est lui qui la copie ; on n'attend pas son verrou pour rien.
-                log.warning("sauvegarde avant migration ignorée : la base est occupée par une autre migration")
+                log.warning(
+                    "sauvegarde avant migration ignorée : la base est occupée par une autre migration"
+                )
         for version, nom, fichier in lister_migrations():
             conn.execute("BEGIN IMMEDIATE")
             try:
-                if conn.execute("SELECT 1 FROM migrations WHERE version = ?", (version,)).fetchone():
+                if conn.execute(
+                    "SELECT 1 FROM migrations WHERE version = ?", (version,)
+                ).fetchone():
                     conn.execute("ROLLBACK")
                     continue
                 _executer_script(conn, fichier.read_text(encoding="utf-8"))

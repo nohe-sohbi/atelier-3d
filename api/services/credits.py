@@ -5,6 +5,7 @@ Si Meshy est injoignable, on renvoie None et on écrit un événement (au plus u
 l'interface affiche alors « solde non lu », jamais un chiffre inventé.
 Quand la part utilisée atteint le seuil réglé (80 % ou 90 %), une notification « crédits » s'écrit, une fois par mois.
 """
+
 from __future__ import annotations
 
 import sqlite3
@@ -32,20 +33,34 @@ def solde_meshy(conn: sqlite3.Connection, cfg: dict) -> dict | None:
     mode = cfgmod.mode(cfg, "meshy")
     meshy = cfgmod.service(cfg, "meshy")
     cle = (mode, cfgmod.apercu_cle(meshy.get("cle_api")), meshy.get("credits_mensuels"))
-    if mode == "reel" and _cache["cle"] == cle and time.monotonic() - _cache["lu_a"] < DUREE_CACHE_S:
+    if (
+        mode == "reel"
+        and _cache["cle"] == cle
+        and time.monotonic() - _cache["lu_a"] < DUREE_CACHE_S
+    ):
         s = _cache["solde"]
     else:
         try:
             s = get_meshy(cfg).solde()
         except Exception as e:  # noqa: BLE001 - l'écran ne doit pas tomber si Meshy est injoignable
             if not evenements.recent_existe(conn, MESHY_INJOIGNABLE, minutes=10):
-                evenements.ecrire(conn, MESHY_INJOIGNABLE, "Solde Meshy non lu",
-                                  f"{type(e).__name__}: {e}"[:300], niveau="alerte")
+                evenements.ecrire(
+                    conn,
+                    MESHY_INJOIGNABLE,
+                    "Solde Meshy non lu",
+                    f"{type(e).__name__}: {e}"[:300],
+                    niveau="alerte",
+                )
             return None
         _cache.update({"cle": cle, "lu_a": time.monotonic(), "solde": s})
     total = int(s.get("total") or 0)
     restants = int(s.get("restants") or 0)
-    solde = {"restants": restants, "total": total, "utilises": max(0, total - restants), "mode": cfgmod.mode(cfg, "meshy")}
+    solde = {
+        "restants": restants,
+        "total": total,
+        "utilises": max(0, total - restants),
+        "mode": cfgmod.mode(cfg, "meshy"),
+    }
     _alerter_si_besoin(conn, cfg, solde)
     return solde
 
@@ -60,11 +75,18 @@ def _alerter_si_besoin(conn: sqlite3.Connection, cfg: dict, solde: dict) -> None
         return
     d = datetime.now(UTC)
     debut_du_mois = f"{d.year:04d}-{d.month:02d}-01T00:00:00Z"
-    if conn.execute("SELECT 1 FROM evenements WHERE type = ? AND date >= ?",
-                    (evenements.CREDITS_ALERTE, debut_du_mois)).fetchone():
+    if conn.execute(
+        "SELECT 1 FROM evenements WHERE type = ? AND date >= ?",
+        (evenements.CREDITS_ALERTE, debut_du_mois),
+    ).fetchone():
         return
     simule = " (simulé)" if solde["mode"] == "simule" else ""
-    evenements.ecrire(conn, evenements.CREDITS_ALERTE, f"Crédits Meshy à {round(pct)} %{simule}",
-                      f"{solde['restants']} crédits restants sur {solde['total']} ce mois-ci.", niveau="alerte",
-                      lien="/reglages")
+    evenements.ecrire(
+        conn,
+        evenements.CREDITS_ALERTE,
+        f"Crédits Meshy à {round(pct)} %{simule}",
+        f"{solde['restants']} crédits restants sur {solde['total']} ce mois-ci.",
+        niveau="alerte",
+        lien="/reglages",
+    )
     conn.commit()

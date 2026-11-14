@@ -1,4 +1,5 @@
 """Les générateurs livrés, pour de vrai dans Blender : générer, finir, contrôler, rendre (tests marqués `blender`)."""
+
 import json
 
 import pytest
@@ -30,42 +31,95 @@ def test_pieces_selon_les_reglages():
 
     racine = chemins.racine() / "generators"
     m = generateurs_registre.charger("amphore", racine).MANIFESTE
-    assert fabrication.pieces_declarees(m, {}, racine) == 3 and fabrication.pieces_declarees(m, {"anses": "aucune"}, racine) == 1
+    assert (
+        fabrication.pieces_declarees(m, {}, racine) == 3
+        and fabrication.pieces_declarees(m, {"anses": "aucune"}, racine) == 1
+    )
     m = generateurs_registre.charger("scutum", racine).MANIFESTE
-    assert fabrication.pieces_declarees(m, {"motif": "uni"}, racine) == m["pieces_declarees"]  # pas de pieces() : le MANIFESTE
+    assert (
+        fabrication.pieces_declarees(m, {"motif": "uni"}, racine) == m["pieces_declarees"]
+    )  # pas de pieces() : le MANIFESTE
 
 
 @pytest.mark.blender
-@pytest.mark.parametrize(("nom", "params"), [*((n, None) for n in LIVRES), ("amphore", {"anses": "aucune"})])
+@pytest.mark.parametrize(
+    ("nom", "params"), [*((n, None) for n in LIVRES), ("amphore", {"anses": "aucune"})]
+)
 def test_generateur_de_bout_en_bout(nom, params, cfg_blender, tmp_path):
     from api.services import fabrication
 
     style = _style()
     m = generateurs_registre.charger(nom, chemins.racine() / "generators").MANIFESTE
     params = m["variantes"]["A"] if params is None else params
-    m = {**m, "pieces_declarees": fabrication.pieces_declarees(m, params, chemins.racine() / "generators")}
+    m = {
+        **m,
+        "pieces_declarees": fabrication.pieces_declarees(
+            m, params, chemins.racine() / "generators"
+        ),
+    }
     ident = f"ROM_PROP_{nom.capitalize()}_A"
     fichier = chemins.racine() / "generators" / f"{nom}.py"
-    g = blender.lancer("generer", {"fichier": str(fichier), "params": params, "seed": 0, "id": ident,
-                                   "dossier": str(tmp_path)}, cfg_blender, tmp_path, style=style)
+    g = blender.lancer(
+        "generer",
+        {
+            "fichier": str(fichier),
+            "params": params,
+            "seed": 0,
+            "id": ident,
+            "dossier": str(tmp_path),
+        },
+        cfg_blender,
+        tmp_path,
+        style=style,
+    )
     assert g["tris"] <= style.budget(m["categorie"])
-    assert g["dimensions_m"] == pytest.approx(style.dimensions(m["dimensions_type"]), abs=1e-3)  # au millimètre près
+    assert g["dimensions_m"] == pytest.approx(
+        style.dimensions(m["dimensions_type"]), abs=1e-3
+    )  # au millimètre près
     assert set(g["materiaux"]) <= set(style.materiaux)  # rien hors du style
     asset = tmp_path / "asset"
-    f = blender.lancer("finir", {"blend": g["blend"], "dossier": str(asset), "id": ident, "infos": m},
-                       cfg_blender, tmp_path, style=style)
+    f = blender.lancer(
+        "finir",
+        {"blend": g["blend"], "dossier": str(asset), "id": ident, "infos": m},
+        cfg_blender,
+        tmp_path,
+        style=style,
+    )
     tolerance = style.tolerances["lod_pct"] / 100
     for i, ratio in ((1, style.lod_ratios[1]), (2, style.lod_ratios[2])):
         assert f[f"tris_lod{i}"] / f["tris_lod0"] == pytest.approx(ratio, abs=tolerance)
     # Petits rendus sur le processeur : le test ne dépend pas d'une carte graphique.
-    r = blender.lancer("rendre", {"blend": str(asset / f"{ident}.blend"), "dossier": str(asset / "rendus"), "id": ident,
-                                  "moteur": "cycles", "taille_px": 96}, cfg_blender, tmp_path, style=style)
+    r = blender.lancer(
+        "rendre",
+        {
+            "blend": str(asset / f"{ident}.blend"),
+            "dossier": str(asset / "rendus"),
+            "id": ident,
+            "moteur": "cycles",
+            "taille_px": 96,
+        },
+        cfg_blender,
+        tmp_path,
+        style=style,
+    )
     assert sorted(r["vues"]) == sorted(validate.VUES)
     planche.assembler(asset / "rendus", ident)
-    (asset / "meta.json").write_text(json.dumps(meta.construire_meta(
-        id=ident, categorie=m["categorie"], voie="code", generateur=meta.reference_generateur(nom),
-        dimensions_m=f["normalisation"]["dimensions_m"], tris_lod0=f["tris_lod0"])), encoding="utf-8")
+    (asset / "meta.json").write_text(
+        json.dumps(
+            meta.construire_meta(
+                id=ident,
+                categorie=m["categorie"],
+                voie="code",
+                generateur=meta.reference_generateur(nom),
+                dimensions_m=f["normalisation"]["dimensions_m"],
+                tris_lod0=f["tris_lod0"],
+            )
+        ),
+        encoding="utf-8",
+    )
     validateur = outils.resoudre_chemin("gltf_validator") or validateur_factice(tmp_path)
-    rapport = validate.valider(asset, style, {**m, "id": ident}, {"gltf_validator": {"chemin": validateur}})
+    rapport = validate.valider(
+        asset, style, {**m, "id": ident}, {"gltf_validator": {"chemin": validateur}}
+    )
     echecs = [f"{c.nom} : {c.detail}" for c in rapport.controles if c.bloquant and not c.ok]
     assert echecs == [] and rapport.statut == "accepte"

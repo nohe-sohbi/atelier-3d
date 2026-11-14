@@ -1,4 +1,5 @@
 """Adaptateur itch.io réel : test de butler et de la clé, sans réseau ni butler installé (fakes)."""
+
 from subprocess import CompletedProcess
 
 import httpx
@@ -19,17 +20,24 @@ def butler(tmp_path, monkeypatch):
         if args[1:] == ["version"]:
             return CompletedProcess(args, 0, stdout="v15.24.0, built on …", stderr="")
         return CompletedProcess(args, 1, stdout="", stderr="inattendu")
+
     monkeypatch.setattr(reel.subprocess, "run", run)
     return exe
 
 
 def _cfg(exe, cle="", compte=""):
-    return {"services": {"itchio": {"mode": "reel", "cle_api": cle, "compte": compte, "canal": "assets"}},
-            "butler": {"chemin": str(exe)}}
+    return {
+        "services": {
+            "itchio": {"mode": "reel", "cle_api": cle, "compte": compte, "canal": "assets"}
+        },
+        "butler": {"chemin": str(exe)},
+    }
 
 
 def _itchio_repond(monkeypatch, handler):
-    monkeypatch.setattr(_commun, "client_http", lambda **kw: httpx.Client(transport=httpx.MockTransport(handler)))
+    monkeypatch.setattr(
+        _commun, "client_http", lambda **kw: httpx.Client(transport=httpx.MockTransport(handler))
+    )
 
 
 def test_butler_introuvable(tmp_path):
@@ -57,6 +65,7 @@ def test_butler_cle_acceptee_et_compte(butler, monkeypatch):
         vu["auth"] = req.headers.get("Authorization")
         vu["url"] = str(req.url)
         return httpx.Response(200, json={"user": {"username": "Nohe", "id": 1}})
+
     _itchio_repond(monkeypatch, handler)
     r = reel.ItchioReel(_cfg(butler, cle="secret-123", compte="nohe")).tester_butler()
     assert r["ok"] is True and r["etat"] == "Connecté" and r["details"]["compte"] == "Nohe"
@@ -69,6 +78,7 @@ def test_butler_cle_acceptee_et_compte(butler, monkeypatch):
 def test_butler_itchio_injoignable(butler, monkeypatch):
     def handler(req):
         raise httpx.ConnectError("refus", request=req)
+
     _itchio_repond(monkeypatch, handler)
     r = reel.ItchioReel(_cfg(butler, cle="k")).tester_butler()
     assert r["ok"] is False and "injoignable" in r["message"]
